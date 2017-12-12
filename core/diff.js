@@ -10,12 +10,16 @@ export function diff (oldTree, newTree) {
 }
 
 function deepWalk (oldN, newN, index, patches) {
-  if (newN === null) { return pathchs}
+  if (oldN === newN) { return }
 	// Contrast the difference between oldNode and newNode, record it.
   const currentPatch = []
 
+  if (newN === null) {
+    // Real dom will be removed when perform reordering
+    // Dot't anthing
+  }
   // If text node
-  if (_.isString(oldN) && _.isString(newN)) {
+  else if (_.isString(oldN) && _.isString(newN)) {
   	if (oldN !== newN) {
       currentPatch.push({
         type: patch.TEXT,
@@ -23,43 +27,43 @@ function deepWalk (oldN, newN, index, patches) {
       })
     }
   }
-
   // Node is the same，But the properties and child of the nodes are different
-  if (
+  else if (
       oldN.tagName === newN.tagName &&
       oldN.key === newN.key
   ) {
     // diff props
     const propsPatches = diffProps(oldN, newN)
-
     propsPatches && currentPatch.push({
       type: patch.PROPS,
       props: propsPatches
     })
-  }
 
-  // Diff child, If the node has a 'ignore' property, don't diff child
-  if (!isIgnoreChild(newN)) {
-    diffChild(
-      oldN.children,
-      newN.children,
-      index,
-      patches,
-      currentPatch
-    )
+    // Diff child, If the node has a 'ignore' property, don't diff child
+    if (!isIgnoreChild(newN)) {
+      diffChild(
+        oldN.children,
+        newN.children,
+        index,
+        patches,
+        currentPatch
+      )
+    }
   }
-
   // Default is replace old node.
-  currentPatch.push({
-    type: patch.REPLACE,
-    node: newN
-  })
-
+  else {
+    currentPatch.push({
+      type: patch.REPLACE,
+      node: newN
+    })
+  }
+  
   currentPatch.length && (patches[index] = currentPatch)
   return patches
 }
  
-function diffChild (oldC, newC, index, patches, currentPatch) {
+function diffChild (oldC = [], newC = [], index, patches, currentPatch) {
+  // Write later by myself 😂
   const diffs = listDiff(oldC, newC, 'key')
   newC = diffs.children
 
@@ -77,10 +81,17 @@ function diffChild (oldC, newC, index, patches, currentPatch) {
     const oldChild = oldC[i],
           newChild = newC[i]
 
-    currentNodeIndex = leftNode && leftNode.count 
-      ? currentNodeIndex + leftNode.count + 1
-      : currentNodeIndex + 1
+    if (leftNode && leftNode.count) {
+      console.log(leftNode)
+      currentNodeIndex = currentNodeIndex + leftNode.count + 1
+    } else {
+      currentNodeIndex = currentNodeIndex + 1
+    }
+    // currentNodeIndex = leftNode && leftNode.count 
+    //   ? currentNodeIndex + leftNode.count + 1
+    //   : currentNodeIndex + 1
 
+    _.log(currentNodeIndex)
     // Deep recursive children
     deepWalk(oldChild, newChild, currentNodeIndex, patches)
     leftNode = oldChild
