@@ -3,10 +3,10 @@ import patch from './patch'
 import listDiff from 'list-diff2'
 
 export function diff (oldTree, newTree) {
-	const index   = 0
-	const pathchs = {}
+  const index   = 0
+  const pathchs = {}
 
-	return deepWalk(oldTree, newTree, index, pathchs)
+  return deepWalk(oldTree, newTree, index, pathchs)
 }
 
 function deepWalk (oldN, newN, index, patches) {
