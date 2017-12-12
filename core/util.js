@@ -2,8 +2,9 @@ export function typeOf (val) {
 	return Object.prototype.toString.call(val)
 }
 
-export function random (max, min) {
-
+export function toNumber (val) {
+  var n = parseFloat(val);
+  return isNaN(n) ? val : n
 }
 
 export function isString (str) {
@@ -11,7 +12,7 @@ export function isString (str) {
 }
 
 export function isObject (obj) {
-	return typeOf(obj) === '[object Object]'
+	return obj !== null && typeof obj === 'object'
 }
 
 export function isNumber (num) {
@@ -24,10 +25,6 @@ export function isFunction (fun) {
 
 export function log (...args) {
   console.log(...args)
-}
-
-export function dir (...args) {
-  console.dir(...args)
 }
 
 export function setAttr (node, key, value) {
@@ -60,7 +57,11 @@ export function setAttr (node, key, value) {
 
 export function each (arr, cb) {
   let i = 0
-  if (Array.isArray(arr)) {
+  // Deal array and like-array
+  if (
+      Array.isArray(arr) || 
+      (isObject(arr) && arr.length)
+  ) {
     const length = arr.length
     for (; i < length; i++) {
       if (cb(arr[i], i) === false) {
@@ -70,6 +71,7 @@ export function each (arr, cb) {
     return
   }
 
+  // Deal object
   if (isObject(arr)) {
     const keyName = Object.keys(arr)
     const length  = keyName.length
@@ -80,11 +82,3 @@ export function each (arr, cb) {
     }
   }
 }
-
-
-
-
-
-
-
-

@@ -24,7 +24,7 @@ function deepWalk (oldN, newN, index, patches) {
       currentPatch.push({
         type: patch.TEXT,
         content: newN
-      })
+      }) 
     }
   }
   // Node is the same，But the properties and child of the nodes are different
@@ -77,25 +77,15 @@ function diffChild (oldC = [], newC = [], index, patches, currentPatch) {
 
   let leftNode = null
   let currentNodeIndex = index
-  for (let i = 0, length = oldC.length; i < length; i++) {
-    const oldChild = oldC[i],
-          newChild = newC[i]
+  _.each(oldC, (child, i) => {
+    const newChild = newC[i]
+    currentNodeIndex = leftNode && leftNode.count 
+      ? currentNodeIndex + leftNode.count + 1
+      : currentNodeIndex + 1
 
-    if (leftNode && leftNode.count) {
-      console.log(leftNode)
-      currentNodeIndex = currentNodeIndex + leftNode.count + 1
-    } else {
-      currentNodeIndex = currentNodeIndex + 1
-    }
-    // currentNodeIndex = leftNode && leftNode.count 
-    //   ? currentNodeIndex + leftNode.count + 1
-    //   : currentNodeIndex + 1
-
-    _.log(currentNodeIndex)
-    // Deep recursive children
-    deepWalk(oldChild, newChild, currentNodeIndex, patches)
-    leftNode = oldChild
-  }
+    deepWalk(child, newChild, currentNodeIndex, patches)
+    leftNode = child
+  })
 }
 
 function diffProps (oldN, newN) {

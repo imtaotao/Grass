@@ -1,48 +1,55 @@
 import * as _ from './util'
 
 class vnode {
-	constructor (tagName, props = {}, children = []) {
-		if (!tagName) { return }
-		this.tagName  = tagName
-		if (Array.isArray(props)) {
-			children = props
-			props = null
-		}
-		this.setParam(tagName, props, children)
-	}
+  constructor (tagName, props = {}, children = []) {
+    if (!tagName) { return }
+    this.tagName  = tagName
+    if (Array.isArray(props)) {
+      children = props
+      props = null
+    }
+    this.setParam(tagName, props, children)
+  }
 
-	setParam (tagName, props, children) {
-		this.props    = props || {}
-		this.key      = props ? props.key : undefined
-		this.children = children || []
-	}
+  setParam (tagName, props, children) {
+    this.props    = props || {}
+    this.key      = props ? props.key : undefined
+    this.children = children || []
 
-	render () {
-		const {tagName, props, children} = this
-		const keyName = Object.keys(props)
-		const length  = keyName.length
-		const element = document.createElement(tagName)
+    let count = 0
+    _.each(this.children, (child, i) => {
+      child instanceof vnode 
+        ? count += child.count
+        : String(children[i])
 
-		// set element prop
-		for (let i = 0; i < length; i++) {
-			element.setAttribute(keyName[i], props[keyName[i]])
-		}
+      count++
+    })
+    this.count = count
+  }
 
-		// create child element
-		for (let j = 0, Length = children.length; j < Length; j++) {
-			const child = children[j]
-			// judg child
-			const childElement = (child instanceof vnode) 
-				? child.render()
-				: document.createTextNode(child)
+  render () {
+    const {tagName, props, children} = this
+    const element = document.createElement(tagName)
 
-			element.appendChild(childElement)
-		}
+    // set element prop
+    _.each(props, (prop, key) => {
+      _.setAttr(element, key, prop)
+    })
 
-		return element
-	}
+    // create child element
+    _.each(children, (child, i) => {
+      // judg child
+      const childElement = (child instanceof vnode) 
+        ? child.render()
+        : document.createTextNode(child)
+
+      element.appendChild(childElement)
+    })
+
+    return element
+  }
 }
 
 export default function (tagName, props, children) {
-	return new vnode(tagName, props, children)
+  return new vnode(tagName, props, children)
 }

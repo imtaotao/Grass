@@ -1,55 +1,59 @@
-import * as v from './core/create-vdom'
+import vnode from './core/create-vdom'
 import { diff } from './core/diff'
 import patch from './core/patch'
 import * as _ from './core/util'
-const el = v.default
 
 export function test () {
-  // console.time('tt')
-  text()
-	// reorder()
-  // console.timeEnd('tt')
+  // text()
+	reorder()
 }
 
 
 function text () {
-  var root = el('div', {id: 'content'}, [
-    el('p', ['I love you']),
-    el('div', ['I love you']),
-    el('section', ['I love you'])
+  var root = vnode('div', {id: 'content'}, [
+    vnode('p', ['I love you']),
+    vnode('div', ['I love you']),
+    vnode('section', ['I love you'])
   ])
 
-  var root2 = el('div', [
-    el('p', ['I love you']),
-    el('div', {name: 'Jerry'}, ['I love you']),
-    el('section', ['I love you, too'])
+  var root2 = vnode('div', [
+    vnode('p', ['I love you']),
+    vnode('div', {name: 'Jerry'}, ['I love you']),
+    vnode('section', ['I love you, too'])
   ])
 
   var dom = root.render()
-  
+  document.body.appendChild(dom)
+
+  _.log(dom)
   var patches = diff(root, root2)
-  _.log(patches)
-  patch(dom, patches)
+  setTimeout(() => {
+    patch(dom, patches)
+    _.log(dom)
+  }, 3000)
 }
 
 function reorder () {
-  var oldRoot = el('ul', {id: 'list'}, [
-      el('li', {key: 'a'}),
-      el('li', {key: 'b'}),
-      el('li', {key: 'c', style: 'shit'}),
-      el('li', {key: 'd'}),
-      el('li', {key: 'e'})
+  var oldRoot = vnode('ul', {id: 'list'}, [
+      vnode('li', {key: 'a'}),
+      vnode('li', {key: 'b'}),
+      vnode('li', {key: 'c', style: 'shit'}),
+      vnode('li', {key: 'd'}),
+      vnode('li', {key: 'e'})
     ])
 
-    var newRoot = el('ul', {id: 'lsit'}, [
-      el('li', {key: 'a'}),
-      el('li', {key: 'c'}),
-      el('li', {key: 'e'}),
-      el('li', {key: 'd'}),
-      el('li', {key: 'b', name: 'Jerry'})
+    var newRoot = vnode('ul', {id: 'lsit'}, [
+      vnode('li', {key: 'a'}),
+      vnode('li', {key: 'c'}),
+      vnode('li', {key: 'e'}),
+      vnode('li', {key: 'd'}),
+      vnode('li', {key: 'b', name: 'Jerry'})
     ])
 
-
+  var dom = oldRoot.render()
+  document.body.appendChild(dom)
   const patches = diff(oldRoot, newRoot)
-  patch(oldRoot.render(), patches)
+  setTimeout(() => {
+    patch(dom, patches)
+  }, 3000)
 }
