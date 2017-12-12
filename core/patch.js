@@ -126,4 +126,4 @@ patch.REPLACE = REPLACE
 patch.PROPS   = PROPS
 patch.TEXT    = TEXT
 
-export default patch
+export patch

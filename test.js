@@ -1,6 +1,4 @@
-import vnode from './core/create-vdom'
-import { diff } from './core/diff'
-import patch from './core/patch'
+import { vnode, diff, patch } from './core'
 import * as _ from './core/util'
 
 export function test () {
