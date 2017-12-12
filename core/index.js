@@ -1,3 +1,9 @@
-export { vnode } from './create-vdom'
-export { diff } from './diff'
-export { patch } from './patch'
+import { vnode } from './create-vdom'
+import { diff } from './diff'
+import patch from './patch'
+
+export {
+  vnode,
+  diff,
+  patch
+}

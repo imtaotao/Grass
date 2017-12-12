@@ -50,6 +50,6 @@ class vnode {
   }
 }
 
-export default function vnode (tagName, props, children) {
+export function vnode (tagName, props, children) {
   return new vnode(tagName, props, children)
 }
