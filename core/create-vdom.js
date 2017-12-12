@@ -38,7 +38,7 @@ class vnode {
 
     // create child element
     _.each(children, (child, i) => {
-      // judg child
+      // judge child
       const childElement = (child instanceof vnode) 
         ? child.render()
         : document.createTextNode(child)

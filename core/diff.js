@@ -11,7 +11,7 @@ export function diff (oldTree, newTree) {
 
 function deepWalk (oldN, newN, index, patches) {
   if (oldN === newN) { return }
-	// Contrast the difference between oldNode and newNode, record it.
+  // Contrast the difference between oldNode and newNode, record it.
   const currentPatch = []
 
   if (newN === null) {
