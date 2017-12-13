@@ -8,23 +8,23 @@ export function test () {
 
 
 function text () {
-  var root = vnode('div', {id: 'content'}, [
+  const root = vnode('div', {id: 'content'}, [
     vnode('p', ['I love you']),
     vnode('div', ['I love you']),
     vnode('section', ['I love you'])
   ])
 
-  var root2 = vnode('div', [
+  const root2 = vnode('div', [
     vnode('p', ['I love you']),
     vnode('div', {name: 'Jerry'}, ['I love you']),
     vnode('section', ['I love you, too'])
   ])
 
-  var dom = root.render()
+  const dom = root.render()
   document.body.appendChild(dom)
 
   _.log(dom)
-  var patches = diff(root, root2)
+  const patches = diff(root, root2)
   setTimeout(() => {
     patch(dom, patches)
     _.log(dom)
@@ -32,7 +32,7 @@ function text () {
 }
 
 function reorder () {
-  var oldRoot = vnode('ul', {id: 'list'}, [
+  const oldRoot = vnode('ul', {id: 'list'}, [
       vnode('li', {key: 'a'}),
       vnode('li', {key: 'b'}),
       vnode('li', {key: 'c', style: 'shit'}),
@@ -40,7 +40,7 @@ function reorder () {
       vnode('li', {key: 'e'})
     ])
 
-    var newRoot = vnode('ul', {id: 'lsit'}, [
+    const newRoot = vnode('ul', {id: 'lsit'}, [
       vnode('li', {key: 'a'}),
       vnode('li', {key: 'c'}),
       vnode('li', {key: 'e'}),
@@ -48,7 +48,7 @@ function reorder () {
       vnode('li', {key: 'b', name: 'Jerry'})
     ])
 
-  var dom = oldRoot.render()
+  const dom = oldRoot.render()
   document.body.appendChild(dom)
   const patches = diff(oldRoot, newRoot)
   setTimeout(() => {

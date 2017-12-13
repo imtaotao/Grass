@@ -24,7 +24,7 @@ function deepWalk (node, walker, patches) {
   }
 
   if (currentPatches) {
-      applyPatches(node, currentPatches)
+    applyPatches(node, currentPatches)
   }
   
 }
@@ -53,7 +53,7 @@ function applyPatches (node, currentPatches) {
 // Reset text
 function setText (node, text) {
   node[
-    node.textContent 
+    node.textContent
       ? 'textContent' 
       : 'nodeValue'
   ] = text

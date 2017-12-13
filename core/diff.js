@@ -1,6 +1,6 @@
 import * as _ from './util'
 import patch from './patch'
-import listDiff from 'list-diff2'
+import { listDiff } from './list-diff2'
 
 export function diff (oldTree, newTree) {
   const index   = 0
