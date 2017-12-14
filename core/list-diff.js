@@ -66,6 +66,7 @@ export function listDiff (oldList, newList, key) {
     var simulateItem = simulateList[j]
     var simulateItemKey = getItemKey(simulateItem, key)
 
+    _.log(itemKey, simulateItemKey)
     if (simulateItem) {
       if (itemKey === simulateItemKey) {
         j++
