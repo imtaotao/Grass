@@ -1,5 +1,5 @@
-import { vnode, diff, patch } from './core'
-import * as _ from './core/util'
+import { vnode, diff, patch } from '../test'
+import * as _ from '../utils'
 
 export function test () {
   // text()

@@ -1,11 +1,11 @@
-import * as _ from './util'
+import * as _ from '../utils'
 
 const REPLACE = 'replace' // replace
 const REORDER = 'reorder' // reorder
 const PROPS   = 'props'   // props
 const TEXT    = 'text'    // text
 
-function patch (node, patches) {
+export function patch (node, patches) {
   const walker = { index: 0 }
   deepWalk(node, walker, patches)
 }

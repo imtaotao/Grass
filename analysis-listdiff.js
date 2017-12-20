@@ -70,6 +70,7 @@ function reorder(aChildren, bChildren) {
             }
         } else {
             // Match the item in a with the next free item in b
+            // 将a中的 item 与b中的下一个 free item 进行匹配
             if (freeIndex < freeCount) {
                 itemIndex = bFree[freeIndex++]
                 newChildren.push(bChildren[itemIndex])
@@ -88,6 +89,7 @@ function reorder(aChildren, bChildren) {
         bFree[freeIndex]
 
     // Iterate through b and append any new keys
+    // 通过b迭代并追加任何新的 keys
     // O(M) time
     for (var j = 0; j < bChildren.length; j++) {
         var newItem = bChildren[j]
@@ -97,6 +99,9 @@ function reorder(aChildren, bChildren) {
                 // Add any new keyed items
                 // We are adding new items to the end and then sorting them
                 // in place. In future we should insert new items in place.
+                // 添加任何新的键控项目
+                // 我们将新项目添加到最后，然后对它们进行排序
+                // 到位。 将来我们应该插入新的项目。
                 newChildren.push(newItem)
             }
         } else if (j >= lastFreeIndex) {
@@ -123,13 +128,16 @@ function reorder(aChildren, bChildren) {
 
         if (!simulateItem || simulateItem.key !== wantedItem.key) {
             // if we need a key in this position...
+            // 如果我们需要这个位置的 key...
             if (wantedItem.key) {
                 if (simulateItem && simulateItem.key) {
                     // if an insert doesn't put this key in place, it needs to move
+                    // 如果一个插入件没有放置这个keys，它需要移动
                     if (bKeys[simulateItem.key] !== k + 1) {
                         removes.push(remove(simulate, simulateIndex, simulateItem.key))
                         simulateItem = simulate[simulateIndex]
                         // if the remove didn't put the wanted item in place, we need to insert it
+                        // 如果删除没有把想要的项目放到位，我们需要插入它
                         if (!simulateItem || simulateItem.key !== wantedItem.key) {
                             inserts.push({key: wantedItem.key, to: k})
                         }

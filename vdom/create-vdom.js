@@ -1,20 +1,22 @@
-import * as _ from './util'
+import * as _ from '../utils'
 
 class vnode {
-  constructor (tagName, props = {}, children = []) {
+  constructor (tagName, props = {}, children = [], order = {}) {
     if (!tagName) { return }
     this.tagName  = tagName
     if (Array.isArray(props)) {
+      order    = children
       children = props
-      props = null
+      props    = null
     }
-    this.setParam(tagName, props, children)
+    this.setParam(tagName, props, children, order)
   }
 
-  setParam (tagName, props, children) {
+  setParam (tagName, props, children, order) {
     this.props    = props || {}
     this.key      = props ? props.key : undefined
     this.children = children || []
+    this.order    = order
 
     let count = 0
     _.each(this.children, (child, i) => {

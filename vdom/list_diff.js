@@ -1,4 +1,4 @@
-import * as _ from './util'
+import * as _ from '../utils'
 
 export function listDiff (oldList = [], newList = [], key) {
 	const oldMap   = makeKeyIndex(oldList, key)
@@ -18,7 +18,7 @@ export function listDiff (oldList = [], newList = [], key) {
   	if (itemKey) {
   		// get now key's position in newIndex
   		const position = newIndex[itemKey]
-  		if (!position) {
+  		if (position == null) {
   			return children.push(null)
   		}
   		children.push(newList[position])
@@ -42,26 +42,27 @@ export function listDiff (oldList = [], newList = [], key) {
   	const simulateItem = simulateList[j]
   	const simulateKey  = getKey(simulateItem, key)
 
-  	_.log(itemKey, simulateKey)
   	if (simulateItem) {
-  		// _.log(itemKey, simulateItem)
   		// If key is same, noting to do
   		if (itemKey === simulateKey) {
   			j++
   			return
   		} 
-			if (!oldIndex[itemKey]) {
-				insert(i, item)
+			if (oldIndex[itemKey] == null) {
+				insert(i, vnode)
+        return
 			}
 
-			
-  		
-
-  		
-
+      const nextItemKey = getKey(simulateList[j + 1], key)
+      if (itemKey === nextItemKey) {
+        remove(i)
+        removeSimulate(j)
+        j++
+      } else {
+        insert(i, vnode)
+      }
   		return
   	}
-
   	insert(i, vnode)
   })
 	
@@ -82,6 +83,11 @@ export function listDiff (oldList = [], newList = [], key) {
 			type: 1
 		})
 	}
+
+	return {
+    moves: moves,
+    children: children
+  }
 }
 
 function makeKeyIndex (list, key) {
@@ -98,6 +104,7 @@ function makeKeyIndex (list, key) {
 }
 
 function getKey (item, key) {
+	if (!item || !key) return
 	return _.isString(key) 
 		? item[key]
 		: key(item)

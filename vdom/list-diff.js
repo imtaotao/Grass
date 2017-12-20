@@ -6,9 +6,9 @@
  *                  - moves is a list of actions that telling how to remove and insert
  */
 
-import * as _ from './util' 
+import * as _ from '../utils' 
 
-export function listDiff (oldList, newList, key) {
+export function listDiff (oldList = [], newList = [], key) {
   var oldMap = makeKeyIndexAndFree(oldList, key)
   var newMap = makeKeyIndexAndFree(newList, key)
   var newFree = newMap.free
@@ -66,7 +66,6 @@ export function listDiff (oldList, newList, key) {
     var simulateItem = simulateList[j]
     var simulateItemKey = getItemKey(simulateItem, key)
 
-    _.log(itemKey, simulateItemKey)
     if (simulateItem) {
       if (itemKey === simulateItemKey) {
         j++
@@ -109,6 +108,10 @@ export function listDiff (oldList, newList, key) {
     simulateList.splice(index, 1)
   }
 
+  _.log({
+    moves: moves,
+    children: children
+  })
   return {
     moves: moves,
     children: children

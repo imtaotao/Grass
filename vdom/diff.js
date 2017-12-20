@@ -1,6 +1,6 @@
-import * as _ from './util'
+import * as _ from '../utils'
 import patch from './patch'
-import { listDiff } from './list-diff'
+import { listDiff } from './list_diff'
 
 export function diff (oldTree, newTree) {
   const index   = 0
@@ -62,7 +62,7 @@ function deepWalk (oldN, newN, index, patches) {
   return patches
 }
  
-function diffChild (oldC = [], newC = [], index, patches, currentPatch) {
+function diffChild (oldC, newC, index, patches, currentPatch) {
   // Write later by myself 😂
   const diffs = listDiff(oldC, newC, 'key')
   newC = diffs.children
