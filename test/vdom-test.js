@@ -1,4 +1,4 @@
-import { vnode, diff, patch } from '../test'
+import { vnode, diff, patch } from '../vdom'
 import * as _ from '../utils'
 
 export function test () {
@@ -49,7 +49,7 @@ function reorder () {
     ])
 
   const dom = oldRoot.render()
-  document.body.appendChild(dom)
+  document.getElementById('root').appendChild(dom)
   const patches = diff(oldRoot, newRoot)
   setTimeout(() => {
     patch(dom, patches)

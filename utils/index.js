@@ -1,2 +1,2 @@
-export * from 'tool'
-export * from 'type-check'
+export * from './tool'
+export * from './type-check'

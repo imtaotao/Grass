@@ -1,2 +1,1 @@
-import { test } from './test'
-test()
+import './test'

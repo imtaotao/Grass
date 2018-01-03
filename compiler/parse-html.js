@@ -21,5 +21,36 @@ const encodedAttr = /&(?:lt|gt|quot|amp);/g
 const encodedAttrWithNewLines = /&(?:lt|gt|quot|amp|#10|#9);/g
 
 export function parseHtml (html) {
-  
+  _.log(html)
+  let ast = {}
+  let index = 0
+  const tag = parseStartTag()
+  const end = parseEndTag()
+  console.log(tag)
+
+
+  // 获取开始标签
+  function parseStartTag () {
+  	const startTag = html.match(startTagOpen)
+  	const content = startTag[0]
+  	const tagName = startTag[1]
+  	advance(content.length)
+  	return {
+  		i: index - 1,
+  		tagName,
+  		content,
+  		children: []
+  	}
+  }
+
+  function parseEndTag () {
+  	const end = html.match(endTag)
+  	console.log(end)
+  }
+
+  // 跟新 html 字符串
+	function advance (n) {
+		index += n
+		html = html.substring(n)
+	}
 }

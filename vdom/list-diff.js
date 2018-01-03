@@ -1,149 +1,111 @@
-/**
- * Diff two list in O(N).
- * @param {Array} oldList - Original List
- * @param {Array} newList - List After certain insertions, removes, or moves
- * @return {Object} - {moves: <Array>}
- *                  - moves is a list of actions that telling how to remove and insert
- */
-
-import * as _ from '../utils' 
+import * as _ from '../utils'
 
 export function listDiff (oldList = [], newList = [], key) {
-  var oldMap = makeKeyIndexAndFree(oldList, key)
-  var newMap = makeKeyIndexAndFree(newList, key)
-  var newFree = newMap.free
+	const oldMap   = makeKeyIndex(oldList, key)
+  const newMap   = makeKeyIndex(newList, key)
+  const oldIndex = oldMap.keyIndex
+  const newIndex = newMap.keyIndex
+  const newFree  = newMap.free
+  let moves      = []
 
-  var oldKeyIndex = oldMap.keyIndex
-  var newKeyIndex = newMap.keyIndex
+  // a simulate list
+  let children   = []
+  let freeIndex  = 0
+ 	
+  // Check old list item, is delete or not
+  _.each(oldList, (item, i) => {
+  	const itemKey = getKey(item, key)
+  	if (itemKey) {
+  		// get now key's position in newIndex
+  		const position = newIndex[itemKey]
+  		if (position == null) {
+  			return children.push(null)
+  		}
+  		children.push(newList[position])
+  	}
+  })
 
-  var moves = []
+  // deep copy children array
+  const simulateList = children.slice(0)
+  
+  // remove not exist item
+  _.each(simulateList, (vnode, i) => {
+  	if (vnode === null) {
+  		remove(i)
+  		removeSimulate(i)
+  	}
+  })
 
-  // a simulate list to manipulate
-  var children = []
-  var i = 0
-  var item
-  var itemKey
-  var freeIndex = 0
+  let j = 0
+  _.each(newList, (vnode, i) => {
+  	const itemKey = getKey(vnode, key)
+  	const simulateItem = simulateList[j]
+  	const simulateKey  = getKey(simulateItem, key)
 
-  // fist pass to check item in old list: if it's removed or not
-  while (i < oldList.length) {
-    item = oldList[i]
-    itemKey = getItemKey(item, key)
-    if (itemKey) {
-      if (!newKeyIndex.hasOwnProperty(itemKey)) {
-        children.push(null)
-      } else {
-        var newItemIndex = newKeyIndex[itemKey]
-        children.push(newList[newItemIndex])
-      }
-    } else {
-      var freeItem = newFree[freeIndex++]
-      children.push(freeItem || null)
-    }
-    i++
-  }
+  	if (simulateItem) {
+  		// If key is same, noting to do
+  		if (itemKey === simulateKey) {
+  			j++
+  			return
+  		} 
+			if (oldIndex[itemKey] == null) {
+				insert(i, vnode)
+        return
+			}
 
-  var simulateList = children.slice(0)
-
-  // remove items no longer exist
-  i = 0
-  while (i < simulateList.length) {
-    if (simulateList[i] === null) {
-      remove(i)
-      removeSimulate(i)
-    } else {
-      i++
-    }
-  }
-
-  // i is cursor pointing to a item in new list
-  // j is cursor pointing to a item in simulateList
-  var j = i = 0
-  while (i < newList.length) {
-    item = newList[i]
-    itemKey = getItemKey(item, key)
-
-    var simulateItem = simulateList[j]
-    var simulateItemKey = getItemKey(simulateItem, key)
-
-    if (simulateItem) {
-      if (itemKey === simulateItemKey) {
+      const nextItemKey = getKey(simulateList[j + 1], key)
+      if (itemKey === nextItemKey) {
+        remove(i)
+        removeSimulate(j)
         j++
       } else {
-        // new item, just inesrt it
-        if (!oldKeyIndex.hasOwnProperty(itemKey)) {
-          insert(i, item)
-        } else {
-          // if remove current simulateItem make item in right place
-          // then just remove it
-          var nextItemKey = getItemKey(simulateList[j + 1], key)
-          if (nextItemKey === itemKey) {
-            remove(i)
-            removeSimulate(j)
-            j++ // after removing, current j is right, just jump to next one
-          } else {
-            // else insert item
-            insert(i, item)
-          }
-        }
+        insert(i, vnode)
       }
-    } else {
-      insert(i, item)
-    }
+  		return
+  	}
+  	insert(i, vnode)
+  })
+	
 
-    i++
-  }
-
-  function remove (index) {
-    var move = {index: index, type: 0}
-    moves.push(move)
-  }
-
-  function insert (index, item) {
-    var move = {index: index, item: item, type: 1}
-    moves.push(move)
-  }
 
   function removeSimulate (index) {
-    simulateList.splice(index, 1)
-  }
+  	simulateList.splice(index, 1)
+	}
 
-  _.log({
-    moves: moves,
-    children: children
-  })
-  return {
+	function remove (index) {
+		moves.push({index, type: 0})
+	}
+
+	function insert (index, item) {
+		moves.push({
+			index,
+			item,
+			type: 1
+		})
+	}
+
+	return {
     moves: moves,
     children: children
   }
 }
 
-/**
- * Convert list to key-item keyIndex object.
- * @param {Array} list
- * @param {String|Function} key
- */
-function makeKeyIndexAndFree (list, key) {
-  var keyIndex = {}
-  var free = []
-  for (var i = 0, len = list.length; i < len; i++) {
-    var item = list[i]
-    var itemKey = getItemKey(item, key)
-    if (itemKey) {
-      keyIndex[itemKey] = i
-    } else {
-      free.push(item)
-    }
-  }
-  return {
-    keyIndex: keyIndex,
-    free: free
-  }
+function makeKeyIndex (list, key) {
+	const keyIndex = Object.create(null)
+	const free = []
+	_.each(list, (item, i) => {
+		// get detail key
+		const itemKey = getKey(item, key)
+		// save every key correspond index
+		itemKey ? keyIndex[itemKey] = i : free.push(item)
+	})
+
+	return {keyIndex, free}
 }
 
-function getItemKey (item, key) {
-  if (!item || !key) return void 666
-  return typeof key === 'string'
-    ? item[key]
-    : key(item)
+function getKey (item, key) {
+	if (!item || !key) return
+	return _.isString(key) 
+		? item[key]
+		: key(item)
 }
