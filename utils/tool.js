@@ -55,3 +55,31 @@ export function each (arr, cb) {
     }
   }
 }
+
+const hasOwnProperty = Object.prototype.hasOwnProperty
+export function hasOwn (obj, key) {
+  return hasOwnProperty.call(obj, key)
+}
+
+export function remove (arr, item) {
+  if (!Array.isArray(arr)) return
+  if (arr.length) {
+    const index = arr.indexOf(item)
+    if (index > -1) {
+      return arr.splice(index, 1)
+    }
+  }
+}
+
+export function toNumber (val) {
+  const n = parseFloat(val);
+  return isNaN(n) ? val : n
+}
+
+export function toString (val) {
+  return val == null
+    ? ''
+    : typeof val === 'object'
+      ? JSON.stringify(val, null, 2)
+      : String(val)
+}

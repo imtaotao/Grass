@@ -2,11 +2,6 @@ export function typeOf (val) {
   return Object.prototype.toString.call(val)
 }
 
-export function toNumber (val) {
-  const n = parseFloat(val);
-  return isNaN(n) ? val : n
-}
-
 export function isString (str) {
   return typeOf(str) === '[object String]'
 }

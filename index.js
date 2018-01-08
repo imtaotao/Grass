@@ -1,2 +1,3 @@
-import { test } from './test'
-test()
+import { test, compilerText } from './test'
+// test()
+compilerText()

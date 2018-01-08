@@ -108,10 +108,6 @@ export function listDiff (oldList = [], newList = [], key) {
     simulateList.splice(index, 1)
   }
 
-  _.log({
-    moves: moves,
-    children: children
-  })
   return {
     moves: moves,
     children: children
