@@ -5,7 +5,6 @@ export function setAttr (node, key, value) {
     node.removeAttribute(key)
     return
   }
-
   switch (key) {
     case 'style' :
       node.style.cssText = value
@@ -82,4 +81,24 @@ export function toString (val) {
     : typeof val === 'object'
       ? JSON.stringify(val, null, 2)
       : String(val)
+}
+
+export function logtag (node, name, callback) {
+  if (node.tagName === name) {
+    console.log('元素 【'+ name +'】 为:', node)
+    callback && callback(node)
+  }
+}
+
+export function logid (node, id, callback) {
+  if (!node.attrs) return
+  const searchId = node.attrs.find((val) => {
+    if (val.id != null) {
+      return val
+    }
+  })
+  if (searchId && searchId.id === id) {
+    console.log('元素 【'+ node.tagName +'】 为:', node)
+    callback && callback(node)
+  }
 }
