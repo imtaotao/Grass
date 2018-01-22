@@ -1,5 +1,2 @@
-import { test } from './vdom-test'
-import { compilerTest } from './compiler'
-
-// test()
-compilerTest()
+export * from './vdom-test'
+export * from './compiler'

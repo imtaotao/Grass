@@ -84,7 +84,7 @@ export function listDiff (oldList = [], newList = [], key) {
 		})
 	}
 
-	return {
+  return {
     moves: moves,
     children: children
   }
