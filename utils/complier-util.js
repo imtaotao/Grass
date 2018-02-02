@@ -16,3 +16,7 @@ export function makeMap (str, expectsLowerCase) {
     ? val => map[val.toLowerCase()]
     : val => map[val]
 }
+
+export const isBuiltInTag = makeMap('slot,component', true)
+
+export const isInserComponents = makeMap('component,transition,transition-group,keep-alive,slot')

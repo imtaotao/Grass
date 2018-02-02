@@ -31,9 +31,9 @@ const decodingMap = {
 const encodedAttr = /&(?:lt|gt|quot|amp);/g
 const encodedAttrWithNewLines = /&(?:lt|gt|quot|amp|#10|#9);/g
 
-export const TEXT = 0
-export const STATICTAG = 1
-export const TAG = 2
+export const TEXT = 0 // 文本
+export const STATICTAG = 1 // 静态节点
+export const TAG = 2 // 元素节点
 
 
 
@@ -78,7 +78,7 @@ export function parseHtml (html) {
   			attrValue = attr[3] || attr[4] || attr[5]
   			singleAttr = {[attrName]: attrValue}
   			if (/^v-|@|:+/.test(attrName)) {
-  				scope.direction.push(singleAttr)
+          conversionDirection(singleAttr)
   			} else {
   				scope.attrs.push(singleAttr)
   			}
@@ -186,9 +186,27 @@ export function parseHtml (html) {
     html = html.substring(n)
   }
 
+  function conversionDirection (vAttr) {
+    let key = Object.keys(vAttr)[0]
+    let bind,on
+    if (key === 'v-for' && vAttr[key]) {
+      scope.for = true
+    }
+    if (key === 'v-if') {
+      scope.if = true
+    }
+    if ((bind = key.match(/^(:)(.+)/))) {
+      vAttr = {['v-bind' + key]: vAttr[key]}
+    }
+    if ((on = key.match(/^@(.+)/))) {
+      vAttr = {['v-on:' + on[1]]: vAttr[key]}
+    }
+    scope.direction.push(vAttr)
+  }
+
   function createTag (tagName, parent) {
   	const root = parent ? false : true
-  	const node = {
+  	return {
   		type: TAG,
   		tagName,
   		children: [],
@@ -199,9 +217,10 @@ export function parseHtml (html) {
   		root,
   		isUnaryTag:null,
   		direction: [],
-      hasBindings: () => !!node.direction.length
+      hasBindings () {
+        return !!this.direction.length
+      }
   	}
-    return node
   }
 
   function createStaticTag (content, expression, parent) {
@@ -223,7 +242,7 @@ export function parseHtml (html) {
   		parent,
   		end: null,
   		content,
-  		isStatic: true
+  		static: true
   	}
   }
 }
