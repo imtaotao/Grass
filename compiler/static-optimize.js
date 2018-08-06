@@ -13,7 +13,6 @@ export function optimize (astRoot, options = {}) {
 	markStatic(astRoot)
 	// 第二遍：标记静态根节点
 	markStaticRoots(astRoot, false)
-	_.log(astRoot)
 }
 
 function markStatic (node) {
@@ -59,7 +58,7 @@ function markStaticRoots (node, isInFor) {
 		if (node.children.length) {
 			_.each(node.children, (child, i) => {
 				markStaticRoots(child, isInFor || !!node.for)
-			})	
+			})
 		}
 	}
 }

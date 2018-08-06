@@ -5,4 +5,3 @@ import { log } from '@/type-check'
 // test()
 compilerText()
 // console.log(NODE_ENV)
-log(2121)

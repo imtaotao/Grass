@@ -3,24 +3,24 @@ import * as _ from '../utils'
 class vnode {
   constructor (tagName, props = {}, children = [], order = {}) {
     if (!tagName) { return }
-    this.tagName  = tagName
+    this.tagName = tagName
     if (Array.isArray(props)) {
-      order    = children
+      order = children
       children = props
-      props    = null
+      props = null
     }
     this.setParam(tagName, props, children, order)
   }
 
   setParam (tagName, props, children, order) {
-    this.props    = props || {}
-    this.key      = props ? props.key : undefined
+    this.props = props || {}
+    this.key = props ? props.key : undefined
     this.children = children || []
-    this.order    = order
+    this.order = order
 
     let count = 0
     _.each(this.children, (child, i) => {
-      child instanceof vnode 
+      child instanceof vnode
         ? count += child.count
         : String(children[i])
 
@@ -41,7 +41,7 @@ class vnode {
     // create child element
     _.each(children, (child, i) => {
       // judge child
-      const childElement = (child instanceof vnode) 
+      const childElement = (child instanceof vnode)
         ? child.render()
         : document.createTextNode(child)
 

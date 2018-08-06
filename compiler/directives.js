@@ -1,13 +1,13 @@
 import * as _ from '../utils'
 
-const priorityObj = {
+const priorityWeight = {
   'v-show': 0,
-  'v-on': 1,
-  'v-for': 2,
+  'v-for': 1,
+  'v-on': 2,
   'v-text': 3,
   'v-if': 4
 }
 
-export function priority (directive) {
-	return priorityObj[directive]
+export function priority (order) {
+	return priorityWeight[order] || 0
 }

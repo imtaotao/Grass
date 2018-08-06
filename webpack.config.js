@@ -2,6 +2,7 @@ const webpack = require('webpack')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const ExtractTextPlugin = require('extract-text-webpack-plugin')
 const UglifyJSPlugin = require('uglifyjs-webpack-plugin')
+const CleanWebpackPlugin = require('clean-webpack-plugin')
 const path = require('path')
 
 module.exports = {
@@ -61,6 +62,7 @@ module.exports = {
     new HtmlWebpackPlugin({
         template: __dirname + "/index.html" 
     }),
+    new CleanWebpackPlugin(['dist']),
     new webpack.optimize.OccurrenceOrderPlugin(),
     // new webpack.optimize.UglifyJsPlugin(), // 暂时不压缩代码
     new ExtractTextPlugin("style.css"), // 生成的css文件名字

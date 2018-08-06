@@ -2,15 +2,15 @@ import * as _ from '../utils'
 
 const REPLACE = 'replace' // replace
 const REORDER = 'reorder' // reorder
-const PROPS   = 'props'   // props
-const TEXT    = 'text'    // text
+const PROPS = 'props'   // props
+const TEXT = 'text'    // text
 
 export function patch (node, patches) {
   const walker = { index: 0 }
   deepWalk(node, walker, patches)
 }
 
-// The node is true node 
+// The node is true node
 function deepWalk (node, walker, patches) {
   // current patch
   const currentPatches = patches[walker.index]
@@ -26,7 +26,7 @@ function deepWalk (node, walker, patches) {
   if (currentPatches) {
     applyPatches(node, currentPatches)
   }
-  
+
 }
 
 function applyPatches (node, currentPatches) {
@@ -54,7 +54,7 @@ function applyPatches (node, currentPatches) {
 function setText (node, text) {
   node[
     node.textContent
-      ? 'textContent' 
+      ? 'textContent'
       : 'nodeValue'
   ] = text
 }
@@ -123,7 +123,7 @@ function reorderChildren (nodes, moves) {
 
 patch.REORDER = REORDER
 patch.REPLACE = REPLACE
-patch.PROPS   = PROPS
-patch.TEXT    = TEXT
+patch.PROPS = PROPS
+patch.TEXT = TEXT
 
 export default patch

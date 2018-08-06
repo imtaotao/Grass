@@ -1,17 +1,17 @@
 import * as _ from '../utils'
 
 export function listDiff (oldList = [], newList = [], key) {
-	const oldMap   = makeKeyIndex(oldList, key)
-  const newMap   = makeKeyIndex(newList, key)
+	const oldMap = makeKeyIndex(oldList, key)
+  const newMap = makeKeyIndex(newList, key)
   const oldIndex = oldMap.keyIndex
   const newIndex = newMap.keyIndex
-  const newFree  = newMap.free
-  let moves      = []
+  const newFree = newMap.free
+  let moves = []
 
   // a simulate list
-  let children   = []
-  let freeIndex  = 0
- 	
+  let children = []
+  let freeIndex = 0
+
   // Check old list item, is delete or not
   _.each(oldList, (item, i) => {
   	const itemKey = getKey(item, key)
@@ -27,7 +27,7 @@ export function listDiff (oldList = [], newList = [], key) {
 
   // deep copy children array
   const simulateList = children.slice(0)
-  
+
   // remove not exist item
   _.each(simulateList, (vnode, i) => {
   	if (vnode === null) {
@@ -40,14 +40,14 @@ export function listDiff (oldList = [], newList = [], key) {
   _.each(newList, (vnode, i) => {
   	const itemKey = getKey(vnode, key)
   	const simulateItem = simulateList[j]
-  	const simulateKey  = getKey(simulateItem, key)
+  	const simulateKey = getKey(simulateItem, key)
 
   	if (simulateItem) {
   		// If key is same, noting to do
   		if (itemKey === simulateKey) {
   			j++
   			return
-  		} 
+  		}
 			if (oldIndex[itemKey] == null) {
 				insert(i, vnode)
         return
@@ -65,7 +65,7 @@ export function listDiff (oldList = [], newList = [], key) {
   	}
   	insert(i, vnode)
   })
-	
+
 
 
   function removeSimulate (index) {
@@ -105,7 +105,7 @@ function makeKeyIndex (list, key) {
 
 function getKey (item, key) {
 	if (!item || !key) return
-	return _.isString(key) 
+	return _.isString(key)
 		? item[key]
 		: key(item)
 }

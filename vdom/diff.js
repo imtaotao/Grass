@@ -3,7 +3,7 @@ import patch from './patch'
 import { listDiff } from './list-diff'
 
 export function diff (oldTree, newTree) {
-  const index   = 0
+  const index = 0
   const pathchs = {}
 
   return deepWalk(oldTree, newTree, index, pathchs)
@@ -24,7 +24,7 @@ function deepWalk (oldN, newN, index, patches) {
       currentPatch.push({
         type: patch.TEXT,
         content: newN
-      }) 
+      })
     }
   }
   // Node is the same，But the properties and child of the nodes are different
@@ -57,11 +57,11 @@ function deepWalk (oldN, newN, index, patches) {
       node: newN
     })
   }
-  
+
   currentPatch.length && (patches[index] = currentPatch)
   return patches
 }
- 
+
 function diffChild (oldC, newC, index, patches, currentPatch) {
   // Write later by myself 😂
   const diffs = listDiff(oldC, newC, 'key')
@@ -79,7 +79,7 @@ function diffChild (oldC, newC, index, patches, currentPatch) {
   let currentNodeIndex = index
   _.each(oldC, (child, i) => {
     const newChild = newC[i]
-    currentNodeIndex = leftNode && leftNode.count 
+    currentNodeIndex = leftNode && leftNode.count
       ? currentNodeIndex + leftNode.count + 1
       : currentNodeIndex + 1
 
@@ -91,13 +91,13 @@ function diffChild (oldC, newC, index, patches, currentPatch) {
 function diffProps (oldN, newN) {
   let count = 0
   let propsPatches = {}
-  const oldProps   = oldN.props
-  const newProps   = newN.props
+  const oldProps = oldN.props
+  const newProps = newN.props
   if (!oldProps || !newProps) { return null }
   const oldKeyName = Object.keys(oldProps)
   const newKeyName = Object.keys(newProps)
-  const oLength    = oldKeyName.length
-  const nLength    = newKeyName.length
+  const oLength = oldKeyName.length
+  const nLength = newKeyName.length
 
   // Find out different properties
   for (let i = 0; i < oLength; i++) {

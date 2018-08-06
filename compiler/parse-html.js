@@ -47,7 +47,7 @@ export function parseHtml (html) {
   	parseStart()
   	parseEnd()
   }
- 
+
  	return ast
 
   function parseStart () {
@@ -57,8 +57,8 @@ export function parseHtml (html) {
   		const tagName = match[1]
   		const tagNode = createTag(
   				tagName,
-  				scope === ast 
-  					? null 
+  				scope === ast
+  					? null
   					: scope
   		)
 
@@ -231,7 +231,6 @@ export function parseHtml (html) {
   		end: null,
   		expression,
   		content,
-
   	}
   }
 
@@ -242,7 +241,7 @@ export function parseHtml (html) {
   		parent,
   		end: null,
   		content,
-  		static: true
+  		static: true,
   	}
   }
 }
