@@ -2,6 +2,7 @@ import { priority } from './directives'
 import { isObject, isNumber } from '../utils'
 import { _createStaticNode } from './parse-html'
 
+// 指令数量
 const orderLength = 5
 
 export function complierTemplate (nodes, componentConf) {
@@ -9,14 +10,13 @@ export function complierTemplate (nodes, componentConf) {
   if (!isObject(componentConf.data)) {
     throw Error('[Grass tip]: Component data must be a "Object"')
   }
-
+  
   for (const node of nodes) {
     dealSingleNode(node, componentConf)
   }
 }
 
 function dealSingleNode (node, componentConf) {
-  // v-for v-bind v-if @
   if (node.type === 2) {
     if (node.type === 2 && node.tagName === 'template') {
       isLegalComponent(node)
@@ -56,14 +56,13 @@ function dealSingleNode (node, componentConf) {
         }
       }
     }
-
-    if (node.attrs.style) {
-
-    }
   }
 
+  console.log(node)
+  // 处理表达式
   if (node.type === 1 && node.expression) {
-
+    console.log(node);
+    
   }
 }
 
@@ -173,12 +172,12 @@ function vFor (node, val, componentConf) {
           _obj_['${node.forArgs.key}'] = _container_[_i_]
         }
 
-        _hookFunction_()
+        _hookFunction_(_i_, _container_.length)
       }
     }
   `)
 
-  function createForChild () {
+  function createForChild (i, length) {
     for (let j = 0; j < children.length; j++) {
       const newChild = copyNode(children[j])
       node.children[index] = newChild
@@ -186,6 +185,9 @@ function vFor (node, val, componentConf) {
       dealSingleNode(newChild, componentConf)
       index++
     }
+
+    if (i + 1 === length) {
+      complierTemplate(node.children, componentConf)}
   }
 
   fun.call(componentConf, componentConf.data, createForChild)
@@ -216,21 +218,33 @@ function vIf (node, val, componentConf) {
 }
 
 function bind (node, key, val, componentConf) {
-  const attrName = key.split(':')[1].trim()
+  const attrName = key.includes('v-bind')
+    ? key.split(':')[1].trim()
+    : key
+
   if (!attrName) return
 
-  console.log(val);
   if (attrName === 'style') {
+    function formatStyle (style) {
+      let styleStr = ''
+      for (const key of Object.keys(style)) {
+        styleStr += `${key}: ${style[key]}; `
+      }
+  
+      return styleStr
+    }
+
     const style = createFunction(`
       with(_obj_) {
-        const _style_ = {}
-
-        for
+        return ${val}
       }
     `).call(componentConf, componentConf.data)
-    console.log(style);
+    
+    node.attrs.style = formatStyle(style)
+    complierTemplate(node.children, componentConf)
     return
   }
 
-  node.attrs.push({ [attrName]: val})
+  node.attrs[attrName] = val
+  complierTemplate(node.children, componentConf)
 }

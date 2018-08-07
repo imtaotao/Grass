@@ -24,7 +24,7 @@ export function compilerText () {
 
 	const htmlStr = `
 		<template>
-			<div :style="{float: a > 2 : 'left' : 'right'}">
+			<div :style="{width: 10 + 'px', height: this.height(a)}" style="float: left; ">
 				<div v-for="(val, i) of num" name="tt" class="121">
 					<span v-text="val">{{val}}, {{i}}</span>
 				</div>
@@ -37,6 +37,9 @@ export function compilerText () {
 			a: 3,
 			style: {float: 'left'},
 			num: ['tt', 'ff', 'cc']
+		},
+		height (arg) {
+			return '30px'
 		},
 		template: htmlStr,
 		component: {}
