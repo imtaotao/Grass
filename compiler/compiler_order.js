@@ -1,58 +1,77 @@
 import { priority } from './directives'
-import { isObject } from '../utils'
+import { isObject, isNumber } from '../utils'
+import { _createStaticNode } from './parse-html'
 
-export function complierTemplate (ast, componentConf) {
+const orderLength = 5
+
+export function complierTemplate (nodes, componentConf) {
   !componentConf.data && (componentConf.data = {})
   if (!isObject(componentConf.data)) {
     throw Error('[Grass tip]: Component data must be a "Object"')
   }
 
-  dealSingleNode(ast[0].children[1], componentConf)
+  for (const node of nodes) {
+    dealSingleNode(node, componentConf)
+  }
 }
 
 function dealSingleNode (node, componentConf) {
-  console.log(node);
   // v-for v-bind v-if @
   if (node.type === 2) {
     if (node.type === 2 && node.tagName === 'template') {
       isLegalComponent(node)
-      return null
+      complierTemplate(node.children, componentConf)
+      return
     }
 
     // 处理有指令的情况
     if (node.hasBindings()) {
       const sortOrder = []
       let currentWeight = null
+
       for (const order of node.direction) {
         // 拿到各个指令的权重
-        const key = Object.keys(order)
+        const key = Object.keys(order)[0]
         const weight = priority(key)
         // 清除重复的指令
         if (weight === currentWeight) continue
 
         currentWeight = weight
         sortOrder[weight] = order[key]
+        sortOrder[weight + 'key'] = key
       }
 
       // 我们现在定义了五种指令
-      for (let i = 4; i > -1; i--) {
+      for (let i = orderLength; i > -1; i--) {
         const val = sortOrder[i]
+        const key = sortOrder[i + 'key']
+
         // 如果一个指令没有赋值，我们过滤掉
         if (!val) continue
-        const condition = delOrder(i, val, node, componentConf)
+
+        const condition = delOrder(i, key, val, node, componentConf)
         // 我们需要判断 v-if，如果是 false 我们根本就没有必要继续下去
-        if (i === 0 && condition === false) {
-          return condition
+        if (i === 4 && condition === false) {
+          return
         }
       }
     }
+
+    if (node.attrs.style) {
+
+    }
+  }
+
+  if (node.type === 1 && node.expression) {
+
   }
 }
 
-function delOrder (key, val, node, componentConf) {
-  switch (key) {
+function delOrder (weight, key, val, node, componentConf) {
+  switch (weight) {
     case 0 :
-      return show(node, val, componentConf)
+      show(node, val, componentConf)
+      break
     case 1 :
       vFor(node, val, componentConf)
       break
@@ -63,8 +82,10 @@ function delOrder (key, val, node, componentConf) {
       text(node, val, componentConf)
       break
     case 4 :
-      vIf(node, val, componentConf)
+      bind(node, key, val, componentConf)
       break
+    case 5 :
+      return vIf(node, val, componentConf)
   }
 }
 
@@ -80,28 +101,94 @@ function isLegalComponent (node) {
       componentNumber++
 
       if (componentNumber > 1) {
-        throw Error('[Grass tip]: Template component only one child')
+        throw Error('[Grass tip]: Template component can only have one child element')
       }
     }
   }
 }
 
+// 深拷贝 node
+function copyNode (node, parent = null) {
+  const newNode = new node.constructor
+
+  if (isNumber(node.type)) {
+    newNode.parent = parent
+    newNode.isCopyNode = true
+  }
+
+  for (const key of Object.keys(node)) {
+    const val = node[key]
+
+    // parent 我们不深拷贝，因为会导致无穷的递归
+    // 函数我们也不深拷贝
+    if (
+        (isObject(val) ||
+        Array.isArray(val)) &&
+        key !== 'parent'
+    ) {
+      newNode[key] = copyNode(val, newNode)
+      continue
+    }
+
+    newNode[key] = val
+  }
+
+  return newNode
+}
+
 function createFunction (funStr) {
-  return new Function('_obj', funStr)
+  return new Function('_obj_', '_hookFunction_', funStr)
 }
 
 function show (node, val, componentConf) {
   const fun = createFunction(`
-    with(_obj) {
+    with(_obj_) {
       return !!(${val})
     }
   `)
 
-  return fun.call(componentConf, componentConf.data || {})
+  if (!fun.call(componentConf, componentConf.data)) {
+    bind(node, 'style', {
+      style: "display: 'none'",
+    }, componentConf)
+  }
 }
 
 function vFor (node, val, componentConf) {
-  console.log(val);
+  if (!node.forArgs) return
+  let index = 0
+  const children = node.children.splice(0)
+
+  const fun = createFunction(`
+    var _isMultiple_ = ${node.forArgs.isMultiple}
+
+    with(_obj_) {
+      var _container_ = ${node.forArgs.data}
+
+      for (var _i_ = 0; _i_ < _container_.length; _i_++) {
+        if (_isMultiple_) {
+          _obj_['${node.forArgs.key[0]}'] = _container_[_i_]
+          _obj_['${node.forArgs.key[1]}'] = _i_
+        } else {
+          _obj_['${node.forArgs.key}'] = _container_[_i_]
+        }
+
+        _hookFunction_()
+      }
+    }
+  `)
+
+  function createForChild () {
+    for (let j = 0; j < children.length; j++) {
+      const newChild = copyNode(children[j])
+      node.children[index] = newChild
+
+      dealSingleNode(newChild, componentConf)
+      index++
+    }
+  }
+
+  fun.call(componentConf, componentConf.data, createForChild)
 }
 
 function on (node, val, componentConf) {
@@ -109,9 +196,41 @@ function on (node, val, componentConf) {
 }
 
 function text (node, val, componentConf) {
+  const content = createFunction(`
+    with(_obj_) {
+      return ${val}
+    }
+  `).call(componentConf, componentConf.data)
 
+  node.children.unshift(_createStaticNode(content, node))
 }
 
 function vIf (node, val, componentConf) {
+  const fun = createFunction(`
+    with(_obj_) {
+      return !!(${val})
+    }
+  `)
 
+  return fun.call(componentConf, componentConf.data)
+}
+
+function bind (node, key, val, componentConf) {
+  const attrName = key.split(':')[1].trim()
+  if (!attrName) return
+
+  console.log(val);
+  if (attrName === 'style') {
+    const style = createFunction(`
+      with(_obj_) {
+        const _style_ = {}
+
+        for
+      }
+    `).call(componentConf, componentConf.data)
+    console.log(style);
+    return
+  }
+
+  node.attrs.push({ [attrName]: val})
 }

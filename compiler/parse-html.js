@@ -75,12 +75,12 @@ export function parseHtml (html) {
   		while (!(end = html.match(startTagClose)) && (attr = html.match(attribute))) {
   			advance(attr[0].length)
   			attrName = attr[1]
-  			attrValue = attr[3] || attr[4] || attr[5]
-  			singleAttr = {[attrName]: attrValue}
+				attrValue = attr[3] || attr[4] || attr[5]
+
   			if (/^v-|@|:+/.test(attrName)) {
-          conversionDirection(singleAttr)
+          conversionDirection({ [attrName]: attrValue })
   			} else {
-  				scope.attrs.push(singleAttr)
+  				scope.attrs[attrName] = attrValue
   			}
   		}
 
@@ -184,14 +184,40 @@ export function parseHtml (html) {
   function advance (n) {
     index += n
     html = html.substring(n)
-  }
+	}
+
+	function getForArgs (attr) {
+		const args = /((\w+)|(\([^\(]+\)))\s+of\s+([\w\.\(\)]+)/g.exec(attr['v-for'])
+		if (args) {
+			let key = args[1]
+			if (key.includes(',')) {
+				key = key
+					.replace(/[\(\)]/g, '')
+					.split(',')
+					.map(val => val.trim())
+			}
+
+			return {
+				key,
+				data: args[4],
+				isMultiple: Array.isArray(key),
+			}
+		}
+
+		return null
+	}
 
   function conversionDirection (vAttr) {
+		let bind,on
     let key = Object.keys(vAttr)[0]
-    let bind,on
+
     if (key === 'v-for' && vAttr[key]) {
-      scope.for = true
-    }
+			const args = getForArgs(vAttr)
+
+			scope.forMultipleArg = Array.isArray(args)
+			scope.forArgs = args
+		}
+
     if (key === 'v-if') {
       scope.if = true
     }
@@ -210,7 +236,7 @@ export function parseHtml (html) {
   		type: TAG,
   		tagName,
   		children: [],
-  		attrs: [],
+			attrs: {},
   		start: index,
   		end: null,
   		parent,
@@ -235,13 +261,17 @@ export function parseHtml (html) {
   }
 
   function createStaticNode (content, parent) {
-  	return {
-  		type: TEXT,
-  		start: index,
-  		parent,
-  		end: null,
-  		content,
-  		static: true,
-  	}
+  	return _createStaticNode(content, parent)
   }
+}
+
+export function _createStaticNode (content, parent, index = null) {
+	return {
+		type: TEXT,
+		start: index,
+		parent,
+		end: null,
+		content,
+		static: true,
+	}
 }

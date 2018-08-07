@@ -1,4 +1,4 @@
-import './index.css'
+// import './index.css'
 import { test, compilerText } from './test'
 import { log } from '@/type-check'
 
