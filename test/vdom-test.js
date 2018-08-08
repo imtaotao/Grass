@@ -33,7 +33,7 @@ function text () {
 
 function reorder () {
   const oldRoot = vnode('ul', {id: 'list'}, [
-      vnode('li', {key: 'a'}),
+      vnode('li', {key: 'a'}, ['1']),
       vnode('li', {key: 'b'}),
       vnode('li', {key: 'c', style: 'shit'}),
       vnode('li', {key: 'd'}),

@@ -1,8 +1,9 @@
 import { parseHtml } from './parse-html'
 import { optimize } from './static-optimize'
-import { createRenderConf } from './create_render'
-import { complierTemplate } from './compiler_order'
+import { createVnodeTree } from './create_render'
+import { extend } from '../utils'
 
+let dom
 export function createAst (html) {
 	const ast = parseHtml(html.trim())
 	optimize(ast[0] || {})
@@ -11,9 +12,33 @@ export function createAst (html) {
 }
 
 export function createComponent (component) {
-	const ast = createAst(component.template)
+	const astObj = {ast: {}}
+	component = extendComponent(component, astObj)
+	astObj.ast = createAst(component.template)
+	return createVnodeTree(astObj.ast, component)
+}
 
-	// / 我们需要把各种模板语法给解析
-  const newAst = complierTemplate(ast, component)
-	const renderConfig = createRenderConf(newAst)
+function extendComponent (component, astObj) {
+	return extend(component, {
+		setState (state) {
+			setState(component, astObj, state)
+		}
+	})
+}
+
+function setState (component, astObj, state) {
+	component.state = Object.assign({}, component.state, state)
+
+	const newDom = createVnodeTree(astObj.ast, component).render()
+	const root = document.getElementById('root')
+
+	root.removeChild(dom)
+	root.appendChild(newDom)
+
+	dom = newDom
+}
+
+export function mount (root, component) {
+	dom = component.render()
+	document.getElementById('root').appendChild(dom)
 }

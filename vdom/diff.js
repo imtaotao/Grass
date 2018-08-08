@@ -1,128 +1,101 @@
-import * as _ from '../utils'
+import * as util from '../utils'
 import patch from './patch'
-import { listDiff } from './list-diff'
+import { listDiff } from '../analysis-listdiff'
 
-export function diff (oldTree, newTree) {
-  const index = 0
-  const pathchs = {}
-
-  return deepWalk(oldTree, newTree, index, pathchs)
+export function diff(oldTree, newTree) {
+    var index = 0;
+    var patches = {};
+    dfsWalk(oldTree, newTree, index, patches);
+    return patches;
 }
 
-function deepWalk (oldN, newN, index, patches) {
-  if (oldN === newN) { return }
-  // Contrast the difference between oldNode and newNode, record it.
-  const currentPatch = []
 
-  if (newN === null) {
-    // Real dom will be removed when perform reordering
-    // Dot't anthing
-  }
-  // If text node
-  else if (_.isString(oldN) && _.isString(newN)) {
-  	if (oldN !== newN) {
-      currentPatch.push({
-        type: patch.TEXT,
-        content: newN
-      })
+function dfsWalk(oldNode, newNode, index, patches) {
+    var currentPatch = [];
+    if (newNode === null) {
+        //依赖listdiff算法进行标记为删除
+    } else if (util.isString(oldNode) && util.isString(newNode)) {
+        if (oldNode !== newNode) {
+            //如果是文本节点则直接替换文本
+            currentPatch.push({
+                type: patch.TEXT,
+                content: newNode
+            });
+        }
+    } else if (oldNode.tagName === newNode.tagName && oldNode.key === newNode.key) {
+        //节点类型相同
+        //比较节点的属性是否相同
+        var propsPatches = diffProps(oldNode, newNode);
+        if (propsPatches) {
+            currentPatch.push({
+                type: patch.PROPS,
+                props: propsPatches
+            });
+        }
+        //比较子节点是否相同
+        diffChildren(oldNode.children, newNode.children, index, patches, currentPatch);
+    } else {
+        //节点的类型不同，直接替换
+        currentPatch.push({ type: patch.REPLACE, node: newNode });
     }
-  }
-  // Node is the same，But the properties and child of the nodes are different
-  else if (
-      oldN.tagName === newN.tagName &&
-      oldN.key === newN.key
-  ) {
-    // diff props
-    const propsPatches = diffProps(oldN, newN)
-    propsPatches && currentPatch.push({
-      type: patch.PROPS,
-      props: propsPatches
-    })
 
-    // Diff child, If the node has a 'ignore' property, don't diff child
-    if (!isIgnoreChild(newN)) {
-      diffChild(
-        oldN.children,
-        newN.children,
-        index,
-        patches,
-        currentPatch
-      )
+    if (currentPatch.length) {
+        patches[index] = currentPatch;
     }
-  }
-  // Default is replace old node.
-  else {
-    currentPatch.push({
-      type: patch.REPLACE,
-      node: newN
-    })
-  }
-
-  currentPatch.length && (patches[index] = currentPatch)
-  return patches
 }
 
-function diffChild (oldC, newC, index, patches, currentPatch) {
-  // Write later by myself 😂
-  const diffs = listDiff(oldC, newC, 'key')
-  newC = diffs.children
+function diffProps(oldNode, newNode) {
+    var count = 0;
+    var oldProps = oldNode.props;
+    var newProps = newNode.props;
+    var key, value;
+    var propsPatches = {};
 
-  if (diffs.moves.length) {
-    currentPatch.push({
-      type: patch.REORDER,
-      moves: diffs.moves
-    })
-  }
+    //找出不同的属性
+    for (key in oldProps) {
+        value = oldProps[key];
+        if (newProps[key] != value) {
+            count++;
+            propsPatches[key] = newProps[key];
+        }
+    };
 
+    //找出新增的属性
+    for (key in newProps) {
+        value = newProps[key];
+        if (!oldProps.hasOwnProperty(key)) {
+            count++;
+            propsPatches[key] = newProps[key];
+        }
+    }
 
-  let leftNode = null
-  let currentNodeIndex = index
-  _.each(oldC, (child, i) => {
-    const newChild = newC[i]
-    currentNodeIndex = leftNode && leftNode.count
-      ? currentNodeIndex + leftNode.count + 1
-      : currentNodeIndex + 1
+    if (count === 0) {
+        return null;
+    }
 
-    deepWalk(child, newChild, currentNodeIndex, patches)
-    leftNode = child
-  })
+    return propsPatches;
 }
 
-function diffProps (oldN, newN) {
-  let count = 0
-  let propsPatches = {}
-  const oldProps = oldN.props
-  const newProps = newN.props
-  if (!oldProps || !newProps) { return null }
-  const oldKeyName = Object.keys(oldProps)
-  const newKeyName = Object.keys(newProps)
-  const oLength = oldKeyName.length
-  const nLength = newKeyName.length
 
-  // Find out different properties
-  for (let i = 0; i < oLength; i++) {
-    const oVal = oldProps[oldKeyName[i]]
-    const nVal = newProps[newKeyName[i]]
-    if (oVal !== nVal) {
-      count++
-      propsPatches[oldKeyName[i]] = nVal
+function diffChildren(oldChildren, newChildren, index, patches, currentPatch) {
+    var diffs = listDiff(oldChildren, newChildren, 'key');
+    newChildren = diffs.children;
+
+    console.log(diffs);
+    if (diffs.moves && diffs.moves.length) {
+        var reorderPatch = {
+            type: patch.REORDER,
+            moves: diffs.moves
+        };
+        currentPatch.push(reorderPatch);
     }
-  }
 
-  // Find out new property
-  for (let j = 0; j < nLength; j++) {
-    const val = newProps[newKeyName[j]]
-    if (!oldProps.hasOwnProperty(newKeyName[j])) {
-      count++
-      propsPatches[newKeyName[j]] = val
-    }
-  }
-
-  // If properties all are identical
-  if (count === 0) { return null }
-  return propsPatches
-}
-
-function isIgnoreChild (node) {
-  return (node.props && node.props.hasOwnProperty('ignore'))
+    var leftNode = null;
+    var currentNodeIndex = index;
+    util.each(oldChildren, function(child, i) {
+        var newChild = newChildren[i];
+        currentNodeIndex = (leftNode && leftNode.count) ? currentNodeIndex + leftNode.count + 1 : currentNodeIndex + 1;
+        dfsWalk(child, newChild, currentNodeIndex, patches);
+        leftNode = child;
+    });
 }

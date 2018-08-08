@@ -1,7 +1,7 @@
 // https://github.com/Matt-Esch/virtual-dom/blob/master/vtree/diff.js#L222
 
 // List diff, naive left to right reordering
-function reorder(aChildren, bChildren) {
+export function listDiff(aChildren, bChildren) {
     // O(M) time, O(M) memory
     // 得到新tree的 key 和 free
     var bChildIndex = keyIndex(bChildren)

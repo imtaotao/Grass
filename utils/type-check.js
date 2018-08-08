@@ -18,6 +18,15 @@ export function isFunction (fun) {
   return typeOf(fun) === '[object Function]'
 }
 
+export function isPrimitive (value) {
+  return (
+    typeof value === 'string' ||
+    typeof value === 'number' ||
+    typeof value === 'symbol' ||
+    typeof value === 'boolean'
+  )
+}
+
 export function log (...args) {
   console.log(...args)
 }

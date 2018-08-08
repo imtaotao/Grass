@@ -68,6 +68,7 @@ function setProps (node, props) {
 
 // replace new node
 function replaceNode (oldN, node) {
+  console.log(oldN, node);
   const newN = _.isString(node)
     ? document.createTextNode(node)
     : node.render()

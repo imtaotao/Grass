@@ -1,5 +1,5 @@
 import * as _ from '../utils'
-import { createComponent } from '../compiler'
+import { createComponent, mount } from '../compiler'
 
 export function compilerText () {
 	// const htmlStr = `
@@ -24,24 +24,42 @@ export function compilerText () {
 
 	const htmlStr = `
 		<template>
-			<div :style="{width: 10 + 'px', height: this.height(a)}" style="float: left; ">
+			<div v-if="a > 2" id='test'>
+				<span> {{a}} </span>
+				<Customize />
 				<div v-for="(val, i) of num" name="tt" class="121">
-					<span v-text="val">{{val}}, {{i}}</span>
+					<span @click="this.click.bind(this, val)">
+						{{val}} -- {{ this.tt(i) }} <span>{{this.height()}}</span>
+					</span>
+					<br />
 				</div>
 			</div>
 		</template>
 	`
 
-	const componentConfig = createComponent({
-		data: {
+	const component = createComponent({
+		state: {
 			a: 3,
 			style: {float: 'left'},
-			num: ['tt', 'ff', 'cc']
+			num: ['tt', 'ff', 'cc', 1, 2, 3]
 		},
 		height (arg) {
 			return '30px'
 		},
+		click (val) {
+			console.log(val);
+			this.setState({ a: 1 })
+
+			setTimeout(() => {
+				this.setState({ a: 4 })
+			}, 5000);
+		},
+		tt (arg) {
+			return arg * 2
+		},
 		template: htmlStr,
 		component: {}
 	})
+
+	mount(document.getElementById('root'), component)
 }

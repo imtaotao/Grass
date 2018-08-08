@@ -71,7 +71,8 @@ export function parseHtml (html) {
   		scope = tagNode
   		advance(tagStr.length)
 
-  		let end, attr, attrName, attrValue, isUnaryTag, singleAttr
+			let end, attr, attrName, attrValue
+
   		while (!(end = html.match(startTagClose)) && (attr = html.match(attribute))) {
   			advance(attr[0].length)
   			attrName = attr[1]
@@ -81,7 +82,7 @@ export function parseHtml (html) {
           conversionDirection({ [attrName]: attrValue })
   			} else {
   				scope.attrs[attrName] = attrValue
-  			}
+				}
   		}
 
   		if (end[1] ) {
@@ -103,15 +104,14 @@ export function parseHtml (html) {
   	let text
   	if (!match || !match[0]) { return false }
   	if (match && (text = match[0])) {
-  		let expressionMatch = text.match(defaultTagRE)
   		// 纯静态文本
-  		if (!expressionMatch) {
+  		if (!defaultTagRE.test(text)) {
   			const textNode = createStaticNode(text, scope)
   			advance(text.length)
   			textNode.end = index
   			scope.children.push(textNode)
   		} else {
-  			const expression = parseTextExpression(text, expressionMatch)
+  			const expression = parseTextExpression(text)
   			const staticTag = createStaticTag(text, expression, scope)
   			advance(text.length)
   			staticTag.end = index
@@ -121,25 +121,23 @@ export function parseHtml (html) {
   	return true
   }
 
-  function parseTextExpression (text, firstMatch) {
-  	let f = 0
-  	let l = firstMatch.index
-  	let resultText = `"${text.slice(f, l)}" + _s(${firstMatch[1]})`
-  	l += firstMatch[0].length
-  	text = text.substring(l)
+  function parseTextExpression (text) {
+		let l = 0
+		let first = true
+		let match = null
+		let resultText = ''
+		const reg = new RegExp(defaultTagRE, 'g')
 
-  	while (text) {
-  		const match = text.match(defaultTagRE)
-  		if (match) {
-  			f = l
-  			l += match.index
-  			resultText += `+ "${text.slice(0, l - f)}" + _s(${match[1]})`
-  		} else {
-  			resultText += `+ "${text}"`
-  		}
-  		text = ''
-  	}
-  	return resultText
+		while (match = reg.exec(text)) {
+			resultText += first
+			? `\`${text.slice(l, match.index)}\` + _s(${match[1]}) `
+			: `+ \`${text.slice(l, match.index)}\` + _s(${match[1]}) `
+
+			l = match.index + match[0].length
+			first && (first = false)
+		}
+
+		return resultText
   }
 
   function parseEnd () {
@@ -216,6 +214,7 @@ export function parseHtml (html) {
 
 			scope.forMultipleArg = Array.isArray(args)
 			scope.forArgs = args
+			scope.for = true
 		}
 
     if (key === 'v-if') {
@@ -234,7 +233,9 @@ export function parseHtml (html) {
   	const root = parent ? false : true
   	return {
   		type: TAG,
-  		tagName,
+			tagName,
+			isHTMLTag: _.isHTMLTag(tagName),
+			isSvg: _.isSVG(tagName),
   		children: [],
 			attrs: {},
   		start: index,

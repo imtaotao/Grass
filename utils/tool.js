@@ -31,7 +31,7 @@ export function each (arr, cb) {
   let i = 0
   // Deal array and like-array
   if (
-      Array.isArray(arr) || 
+      Array.isArray(arr) ||
       (isObject(arr) && arr.length)
   ) {
     const length = arr.length
@@ -81,6 +81,13 @@ export function toString (val) {
     : typeof val === 'object'
       ? JSON.stringify(val, null, 2)
       : String(val)
+}
+
+export function extend (to, _from) {
+  for (const key in _from) {
+    to[key] = _from[key]
+  }
+  return to
 }
 
 export function logtag (node, name, callback) {

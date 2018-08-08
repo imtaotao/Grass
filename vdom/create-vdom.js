@@ -12,11 +12,10 @@ class vnode {
     this.setParam(tagName, props, children, order)
   }
 
-  setParam (tagName, props, children, order) {
+  setParam (tagName, props, children) {
     this.props = props || {}
     this.key = props ? props.key : undefined
     this.children = children || []
-    this.order = order
 
     let count = 0
     _.each(this.children, (child, i) => {
@@ -35,6 +34,10 @@ class vnode {
 
     // set element prop
     _.each(props, (prop, key) => {
+      if (key === 'event') {
+        _.each(prop, (fun, name) => element['on' + name] = fun)
+        return
+      }
       _.setAttr(element, key, prop)
     })
 
