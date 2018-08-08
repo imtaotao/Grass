@@ -90,6 +90,16 @@ export function extend (to, _from) {
   return to
 }
 
+export function warn (msg, isError) {
+  const errorInfor = `[Grass tip]: ${msg}`
+  if (!isError) {
+    console.error(errorInfor)
+    return
+  }
+
+  throw Error(errorInfor)
+}
+
 export function logtag (node, name, callback) {
   if (node.tagName === name) {
     console.log('元素 【'+ name +'】 为:', node)

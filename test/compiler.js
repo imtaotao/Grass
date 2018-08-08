@@ -22,11 +22,28 @@ export function compilerText () {
 	// 	</template>
 	// `
 
+	function customize () {
+		const html = `
+			<template id='cus'>
+				<div v-for="val of ns">
+					<span>- {{val}} -</span><br />
+				</div>
+			</template>
+		`
+
+		return createComponent({
+			state: {
+				ns: [11, 22, 33]
+			},
+			template: html
+		})
+	}
+
 	const htmlStr = `
 		<template>
-			<div v-if="a > 2" id='test'>
+			<div v-show="a > 2" id='test'>
 				<span> {{a}} </span>
-				<Customize />
+				<customize />
 				<div v-for="(val, i) of num" name="tt" class="121">
 					<span @click="this.click.bind(this, val)">
 						{{val}} -- {{ this.tt(i) }} <span>{{this.height()}}</span>
@@ -47,18 +64,20 @@ export function compilerText () {
 			return '30px'
 		},
 		click (val) {
-			console.log(val);
+			console.log(this);
 			this.setState({ a: 1 })
 
 			setTimeout(() => {
 				this.setState({ a: 4 })
-			}, 5000);
+			}, 2000);
 		},
 		tt (arg) {
 			return arg * 2
 		},
 		template: htmlStr,
-		component: {}
+		component: {
+			customize: customize(),
+		}
 	})
 
 	mount(document.getElementById('root'), component)

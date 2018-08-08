@@ -1,5 +1,6 @@
 import * as W from './directives'
-import { isObject, copyNode } from '../utils'
+import { compilerComponent } from './compiler_component'
+import { isObject, copyNode, warn } from '../utils'
 import {
   TAG,
   TEXT,
@@ -13,7 +14,7 @@ const orderLength = 5
 export function complierTemplate (nodes, componentConf) {
   !componentConf.state && (componentConf.state = {})
   if (!isObject(componentConf.state)) {
-    throw Error('[Grass tip]: Component "state" must be a "Object"')
+    return warn('Component "state" must be a "Object"')
   }
 
   for (const node of nodes) {
@@ -24,6 +25,10 @@ export function complierTemplate (nodes, componentConf) {
 }
 
 function dealSingleNode (node, componentConf) {
+  if (!node.isHTMLTag && !node.isSvgTag) {
+    return
+  }
+  
   if (node.type === TAG) {
     if (node.tagName === 'template') {
       isLegalComponent(node)
@@ -118,7 +123,7 @@ function isLegalComponent (node) {
       componentNumber++
 
       if (componentNumber > 1) {
-        throw Error('[Grass tip]: Template component can only have one child element')
+        return warn('Template component can only have one child element')
       }
     }
   }

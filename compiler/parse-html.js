@@ -235,7 +235,7 @@ export function parseHtml (html) {
   		type: TAG,
 			tagName,
 			isHTMLTag: _.isHTMLTag(tagName),
-			isSvg: _.isSVG(tagName),
+			isSvgTag: _.isSVG(tagName),
   		children: [],
 			attrs: {},
   		start: index,
