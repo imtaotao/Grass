@@ -225,7 +225,8 @@ export function parseHtml (html) {
     }
     if ((on = key.match(/^@(.+)/))) {
       vAttr = {['v-on:' + on[1]]: vAttr[key]}
-    }
+		}
+
     scope.direction.push(vAttr)
   }
 

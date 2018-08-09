@@ -1,4 +1,4 @@
-import { makeMap } from './complier-util'
+import { makeMap } from './complier_util'
 
 export const isHTMLTag = makeMap(
   'html,body,base,head,link,meta,style,title,' +

@@ -1,5 +1,3 @@
-import * as _ from '../utils'
-
 const priorityWeight = {
   'v-show': 0,
   'v-for': 1,

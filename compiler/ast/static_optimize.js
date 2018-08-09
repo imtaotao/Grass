@@ -1,5 +1,5 @@
 import * as _ from '../utils'
-import { TEXT, STATICTAG, TAG} from './parse-html'
+import { TEXT, STATICTAG, TAG} from './parse_html'
 
 const genStaticKeysCached = _.cached(genStaticKeys)
 let isStaticKey, isPlatformReservedTag

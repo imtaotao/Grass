@@ -1,4 +1,4 @@
-import { isNumber, isObject } from './type-check'
+import { isNumber, isObject } from './type_check'
 
 export function cached (fn) {
   const cache = Object.create(null)

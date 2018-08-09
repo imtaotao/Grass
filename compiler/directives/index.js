@@ -1,37 +1,37 @@
-import * as W from './directives'
-import { compilerComponent } from './compiler_component'
+import * as W from './weight'
 import { isObject, copyNode, warn } from '../utils'
 import {
   TAG,
   TEXT,
   STATICTAG,
   _createStaticNode,
-} from './parse-html'
+} from '../ast/parse_html'
 
 // 指令数量
 const orderLength = 5
+const styleString = /\{[^\}]*\}/
 
-export function complierTemplate (nodes, componentConf) {
+export function complierTemplate (nodes, componentConf, compName) {
   !componentConf.state && (componentConf.state = {})
   if (!isObject(componentConf.state)) {
-    return warn('Component "state" must be a "Object"')
+    return warn(`Component "state" must be a "Object"  \n\n  ---> ${[componentName]}\n`)
   }
 
   for (const node of nodes) {
-    dealSingleNode(node, componentConf)
+    dealSingleNode(node, componentConf, compName)
   }
 
   return nodes
 }
 
-function dealSingleNode (node, componentConf) {
-  if (!node.isHTMLTag && !node.isSvgTag) {
+function dealSingleNode (node, componentConf, compName) {
+  if (node.type === TAG && !node.isHTMLTag && !node.isSvgTag) {
     return
   }
-  
+
   if (node.type === TAG) {
     if (node.tagName === 'template') {
-      isLegalComponent(node)
+      isLegalComponent(node, compName)
       node.tagName = 'div'
       complierTemplate(node.children, componentConf)
       return
@@ -46,12 +46,30 @@ function dealSingleNode (node, componentConf) {
         // 拿到各个指令的权重
         const key = Object.keys(order)[0]
         const weight = W.priority(key)
-        // 清除重复的指令
-        if (weight === currentWeight) continue
 
+        // 清除重复的指令，但是需要排除事件和bind
+        if (
+            weight !== W.BIND &&
+            weight !== W.ON &&
+            weight === currentWeight
+        ) continue
+
+        // 对于 bind 和 on 我们保存为一个数组中
         currentWeight = weight
-        sortOrder[weight] = order[key]
-        sortOrder[weight + 'key'] = key
+
+        if (weight === W.BIND || weight === W.ON) {
+          const detail = {
+            attrName: key.split(':')[1].trim(),
+            value: order[key]
+          }
+
+          !sortOrder[weight]
+            ? sortOrder[weight] = [detail]
+            : sortOrder[weight].push(detail)
+        } else {
+          sortOrder[weight] = order[key]
+          sortOrder[weight + 'key'] = key
+        }
       }
 
       // 我们现在定义了五种指令
@@ -63,7 +81,7 @@ function dealSingleNode (node, componentConf) {
         if (!val) continue
 
         // 我们需要判断 v-if，如果是 false 我们根本就没有必要继续下去
-        if (delOrder(i, key, val, node, componentConf) === false && i === W.IF) {
+        if (dealOrder(i, key, val, node, componentConf) === false && i === W.IF) {
           node.type = TEXT
           node.content = ''
           node.tagName = null
@@ -89,7 +107,7 @@ function dealSingleNode (node, componentConf) {
   }
 }
 
-function delOrder (weight, key, val, node, componentConf) {
+function dealOrder (weight, key, val, node, componentConf) {
   switch (weight) {
     case W.SHOW :
       show(node, val, componentConf)
@@ -98,20 +116,20 @@ function delOrder (weight, key, val, node, componentConf) {
       vFor(node, val, componentConf)
       break
     case W.ON :
-      onEvent(node, key, val, componentConf)
+      onEvent(node, val, componentConf)
       break
     case W.TEXT :
       text(node, val, componentConf)
       break
     case W.BIND :
-      bind(node, key, val, componentConf)
+      bind(node, val, componentConf)
       break
     case W.IF :
       return vIf(node, val, componentConf)
   }
 }
 
-function isLegalComponent (node) {
+function isLegalComponent (node, compName) {
   let componentNumber = 0
 
   for (const child of node.children) {
@@ -123,7 +141,7 @@ function isLegalComponent (node) {
       componentNumber++
 
       if (componentNumber > 1) {
-        return warn('Template component can only have one child element')
+        return warn(`Template component can only have one child element  \n\n  --->  [${compName}]\n`)
       }
     }
   }
@@ -140,9 +158,14 @@ function show (node, val, componentConf) {
     }
   `)
 
-  if (!fun.call(componentConf, componentConf.state)) {
-    bind(node, 'style', '{ style: "display: none" }', componentConf)
-  }
+  const value = fun.call(componentConf, componentConf.state)
+    ? ''
+    : 'display: none'
+
+  bind(node, {
+    attrName: 'style',
+    value: value,
+  }, componentConf)
 }
 
 function vFor (node, val, componentConf) {
@@ -185,18 +208,18 @@ function vFor (node, val, componentConf) {
   fun.call(componentConf, componentConf.state, createForChild)
 }
 
-function onEvent (node, key, val, componentConf) {
+function onEvent (node, events, componentConf) {
   if (node.isHTMLTag) {
-    const eventName = key.split(':')[1].trim()
-    const eventFun = createFunction(`
-      with (_obj_) {
-        return ${val};
-      }
-    `).call(componentConf, componentConf.state)
+    for (const event of events) {
+      const eventName = event.attrName
+      const eventFun = createFunction(`
+        with (_obj_) {
+          return ${event.value};
+        }
+      `).call(componentConf, componentConf.state)
 
-    node.attrs.event
-      ? node.attrs.event[eventName] = eventFun
-      : node.attrs.event = { [eventName]: eventFun }
+      node.attrs['on' + eventName] = eventFun
+    }
   }
 }
 
@@ -220,32 +243,67 @@ function vIf (node, val, componentConf) {
   return fun.call(componentConf, componentConf.state)
 }
 
-function bind (node, key, val, componentConf) {
-  const attrName = key.includes('v-bind')
-    ? key.split(':')[1].trim()
-    : key
-
-  if (!attrName) return
-
-  if (attrName === 'style') {
-    function formatStyle (style) {
-      let styleStr = ''
-      for (const key of Object.keys(style)) {
-        styleStr += `${style[key]}; `
-      }
-
-      return styleStr
-    }
-
-    const style = createFunction(`
-      with(_obj_) {
-        return ${val};
-      }
-    `).call(componentConf, componentConf.state)
-
-    node.attrs.style = formatStyle(style)
+function bind (node, props, componentConf) {
+  if (!Array.isArray(props)) {
+    dealSingleBindVal(node, props, componentConf)
     return
   }
 
-  node.attrs[attrName] = val
+  for (const prop of props) {
+    dealSingleBindVal(node, prop, componentConf)
+  }
+}
+
+function dealSingleBindVal (node, { attrName, value }, componentConf) {
+  if (attrName === 'style') {
+    if (!styleString.test(value)) {
+      node.attrs[attrName] = spliceStyle(node.attrs[attrName], value)
+      return
+    }
+
+    node.attrs.style = spliceStyle(
+      node.attrs[attrName],
+      getFormatStyle(getValue())
+    )
+    return
+  }
+
+  // 其他所有的属性都直接添加到 node 的 attrs 中
+  node.attrs[attrName] = getValue()
+
+
+  // 计算模板表达式
+  function getValue () {
+    return createFunction(`
+      with(_obj_) {
+        return ${value};
+      }
+    `).call(componentConf, componentConf.state)
+  }
+
+  // 转换 css 属性名驼峰
+  function getNormalStyleKey (key) {
+    return key.replace(/[A-Z]/g, (k1) => {
+      return '-' + k1.toLocaleLowerCase()
+    })
+  }
+
+  // 把 style 的对象格式化为浏览器可以解析的格式
+  function getFormatStyle (v) {
+    let result = ''
+    for (const key of Object.keys(v)) {
+      result += `${getNormalStyleKey(key)}: ${v[key]};`
+    }
+
+    return result
+  }
+
+  // 拼接新旧两个 style
+  function spliceStyle (o, n) {
+    if (!o) return n
+    if (o[o.length - 1] === ';')
+      return o + n
+
+    return o + ';' + n
+  }
 }

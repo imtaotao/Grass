@@ -1,4 +1,0 @@
-@import '@/../test-css/index.css';
-html{
-  font-size: calc(85px + 120 * (100vw - 568px) / 800);
-}

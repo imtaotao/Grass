@@ -1,4 +1,4 @@
-import { isObject } from './type-check'
+import { isObject } from './type_check'
 
 export function setAttr (node, key, value) {
   if (!value && value !== 0) {
@@ -90,32 +90,12 @@ export function extend (to, _from) {
   return to
 }
 
-export function warn (msg, isError) {
+export function warn (msg, noError) {
   const errorInfor = `[Grass tip]: ${msg}`
-  if (!isError) {
+  if (noError) {
     console.error(errorInfor)
     return
   }
 
   throw Error(errorInfor)
-}
-
-export function logtag (node, name, callback) {
-  if (node.tagName === name) {
-    console.log('元素 【'+ name +'】 为:', node)
-    callback && callback(node)
-  }
-}
-
-export function logid (node, id, callback) {
-  if (!node.attrs) return
-  const searchId = node.attrs.find((val) => {
-    if (val.id != null) {
-      return val
-    }
-  })
-  if (searchId && searchId.id === id) {
-    console.log('元素 【'+ node.tagName +'】 为:', node)
-    callback && callback(node)
-  }
 }
