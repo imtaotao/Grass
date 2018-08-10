@@ -1,10 +1,10 @@
 import { h, create } from 'virtual-dom'
-import { complierTemplate } from './directives'
+import complierAst from './directives'
 import * as _ from './utils'
 import { TAG } from './ast/parse_html'
 
 export function createVnodeTree (ast, component, compName) {
-  const newAst =  complierTemplate(_.copyNode(ast), component, compName)
+  const newAst =  complierAst(_.copyNode(ast), component, compName)
 
   return handleNode(newAst[0], newAst, component, compName)[0]
 }

@@ -3,6 +3,7 @@ import runExecutContext from './execution_env'
 const styleString = /\{[^\}]*\}/
 
 export default function bind (node, props, compConf, compName) {
+  console.log(props);
   if (!Array.isArray(props)) {
     dealSingleBindVal(node, props, compConf, compName)
     return

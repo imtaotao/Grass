@@ -9,7 +9,7 @@ import text from './text'
 import runExecutContext from './execution_env'
 import { TAG, TEXT, STATICTAG } from '../ast/parse_html'
 
-export function complierTemplate (nodes, compConf, compName) {
+export default function complierAst (nodes, compConf, compName) {
   const state = compConf.state
   if (_.isFunction(state)) {
     const res = state()

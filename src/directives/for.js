@@ -38,4 +38,7 @@ export default function vfor (node, compConf, compName) {
       index++
     }
   })
+
+  // 绑定用到的 state 属性名
+  node.bindState[node.forArgs.data] = true
 }

@@ -36,7 +36,7 @@ function chentao () {
 function customize () {
   const html = `
     <template id='cus'>
-      <div v-for="val of ns" v-show="ns[0] > 1">
+      <div v-for="val of ns" v-show="ns > 1">
         <chentao />
         <span @click="this.e.bind(this)">{{val}}</span>
       </div>
@@ -65,11 +65,10 @@ const htmlStr = `
   <template>
     <div v-show="show" :style="{height: '20px', marginRight: '20px'}" :id='a'>
       <span id='ttt'>
-        <customize />
       </span>
-      <div v-for="(val, i) of num" name="tt" class="121">
+      <div v-for="(val, i) of num" name="tt" :className="\`\${a}121\`">
         <span @click="this.click.bind(this, val)" @mousedown="this.height">
-          {{val}} -- {{ this.tt(i) }} <span>{{this.height()}}</span>
+          {{val}} -- {{ this.tt(i) }}
         </span>
         <br />
       </div>
@@ -77,12 +76,13 @@ const htmlStr = `
   </template>
 `
 
+console.log(htmlStr);
 const component = createComponent({
   state: {
     show: true,
     a: 3,
     style: {float: 'left'},
-    num: ['tt', 'ff', 'cc', 1, 2, 3],
+    num: ['tt', 'ff', 'cc'],
   },
   height (arg) {
     return '30px'
@@ -95,14 +95,14 @@ const component = createComponent({
     }, 2000);
   },
   tt (arg) {
-    return arg * 2
+    return arg + 1 + '.1'
   },
   aa (res) {
     console.log(res);
   },
   template: htmlStr,
   component: {
-    customize: customize(),
+    // customize: customize(),
   }
 })
 

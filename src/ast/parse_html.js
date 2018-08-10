@@ -189,7 +189,7 @@ export function parseHtml (html) {
   }
 
   function getForArgs (attr) {
-    const args = /((\w+)|(\([^\(]+\)))\s+of\s+([\w\.\(\)]+)/g.exec(attr['v-for'])
+    const args = /((\w+)|(\([^\(]+\)))\s+of\s+([\w\.\(\)\[\]]+)/g.exec(attr['v-for'])
     if (args) {
       let key = args[1]
       if (key.includes(',')) {
@@ -241,6 +241,7 @@ export function parseHtml (html) {
       tagName,
       isHTMLTag: _.isHTMLTag(tagName),
       isSvgTag: _.isSVG(tagName),
+      bindState: [],
       children: [],
       attrs: {},
       start: index,
@@ -259,6 +260,7 @@ export function parseHtml (html) {
     return {
       type: STATICTAG,
       start: index,
+      bindState: [],
       parent,
       end: null,
       expression,
