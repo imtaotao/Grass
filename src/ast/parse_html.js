@@ -137,6 +137,10 @@ export function parseHtml (html) {
 			first && (first = false)
 		}
 
+		if (l === text.length)
+			return resultText
+
+		resultText += `+ \`${text.slice(l, text.length)}\``
 		return resultText
   }
 

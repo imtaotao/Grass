@@ -10,6 +10,10 @@ export function isObject (obj) {
   return obj !== null && typeof obj === 'object'
 }
 
+export function isPlainObject (obj) {
+  return typeOf(str) === '[object Object]'
+}
+
 export function isNumber (num) {
   return typeOf(num) === '[object Number]' && !isNaN(num)
 }

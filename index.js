@@ -1,4 +1,4 @@
-import { createComponent, mount } from './compiler'
+import { createComponent, mount } from './src'
 
 // const htmlStr = `
 // 	<template>
@@ -19,11 +19,26 @@ import { createComponent, mount } from './compiler'
 // 		</div>
 // 	</template>
 // `
+
+function chentao () {
+  const html = `
+    <div>{{ff}}</div>
+  `
+
+  return createComponent({
+    state: {
+      ff: 'fangfang'
+    },
+    template: html
+  })
+}
+
 function customize () {
   const html = `
     <template id='cus'>
-      <div v-for="val of ns" v-if="ns[0] > 1">
-        <span @click="this.e.bind(this)">- {{val}} </span><br />
+      <div v-for="val of ns" v-show="ns[0] > 1">
+        <chentao />
+        <span @click="this.e.bind(this)">{{val}}</span>
       </div>
     </template>
   `
@@ -33,10 +48,14 @@ function customize () {
       ns: [11, 22, 33]
     },
     e () {
-      this.setState({ns: [0, 2, 3]})
+      console.log(11);
+      this.setState({ns: [0, 22, 33]})
       setTimeout(() => {
-        this.setState({ns: [11]})
-      }, 200)
+        this.setState({ns: [11, 22, 33]})
+      }, 2000)
+    },
+    component: {
+      chentao: chentao()
     },
     template: html
   })
@@ -44,9 +63,10 @@ function customize () {
 
 const htmlStr = `
   <template>
-    <div v-if="show" :style="{height: '20px', marginRight: '20px'}" :id='a'>
-      <span> {{a}} </span>
-      <customize />
+    <div v-show="show" :style="{height: '20px', marginRight: '20px'}" :id='a'>
+      <span id='ttt'>
+        <customize />
+      </span>
       <div v-for="(val, i) of num" name="tt" class="121">
         <span @click="this.click.bind(this, val)" @mousedown="this.height">
           {{val}} -- {{ this.tt(i) }} <span>{{this.height()}}</span>
@@ -62,7 +82,7 @@ const component = createComponent({
     show: true,
     a: 3,
     style: {float: 'left'},
-    num: ['tt', 'ff', 'cc', 1, 2, 3]
+    num: ['tt', 'ff', 'cc', 1, 2, 3],
   },
   height (arg) {
     return '30px'
@@ -76,6 +96,9 @@ const component = createComponent({
   },
   tt (arg) {
     return arg * 2
+  },
+  aa (res) {
+    console.log(res);
   },
   template: htmlStr,
   component: {

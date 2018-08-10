@@ -4,11 +4,6 @@ import { optimize } from './ast/static_optimize'
 import { createVnodeTree } from './vnode'
 import * as _ from './utils'
 
-// 我们现在对状态的变化统一对整个 virtul dom 树进行 diff
-// 对整个 real dom 进行更改
-// 后续进行优化，针对每个单独的 vnode 进行 diff
-let dom
-let oldVnode
 export function createComponent (component) {
 	if (!_.isString(component.template)) {
 		return _.warn('Component template must a "string"')
@@ -17,8 +12,11 @@ export function createComponent (component) {
 }
 
 export function mount (root, component) {
-	oldVnode = component.$createVnode('Root').vnode
-	dom = create(oldVnode)
+	const vnode = component.$createVnode('Root').vnode
+	const dom = create(vnode)
+
+	// connectComponent(dom, component)
+	component.$renderState({ dom, vnode	})
 
 	root.appendChild(dom)
 }
@@ -31,13 +29,14 @@ function extendComponent (component) {
 		// 带 $ 号的是内部方法
 		const newComponent = _.extend(component, {
 			setState: getSetState(component),
+			$renderState: catchRenderDom(),
 			$createVnode (componentName) {
 				// 每次产生一个新的 vnode 都会重新编译一遍指令
 				// 我们采用对象引用的方式，保证每个子组件的 vnode 变化都会
 				// 响应到其对应的父组件 vnode 中
 				_v.vnode = createVnodeTree(_ast, newComponent, componentName)
 				return _v
-			}
+			},
 		})
 
 		_ast = createAst(newComponent.template)
@@ -52,6 +51,16 @@ function createAst (html) {
 	return ast
 }
 
+export function catchRenderDom () {
+	let renderState = null
+	return (_renderState) => {
+		if (!_renderState) return renderState
+
+		renderState = _renderState
+		return _renderState
+	}
+}
+
 function getSetState (component) {
 	let flag = true
 	return function setState (state) {
@@ -60,12 +69,15 @@ function getSetState (component) {
 		if (flag) {
 			flag = false
 			Promise.resolve().then(() => {
+				const compState = component.$renderState()
 				const newVnode = component.$createVnode().vnode
-				const patchs = diff(oldVnode, newVnode)
+				const patchs = diff(compState.vnode, newVnode)
 
-				patch(dom, patchs)
+				patch(compState.dom, patchs)
 
-				oldVnode = newVnode
+				compState.vnode = newVnode
+				component.$renderState(compState)
+
 				flag = true
 			})
 		}
