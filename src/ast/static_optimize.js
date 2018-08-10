@@ -1,10 +1,10 @@
 import * as _ from '../utils'
-import { TEXT, STATICTAG, TAG} from './parse_html'
+import { TEXT, STATICTAG, TAG} from './parse_template'
 
 const genStaticKeysCached = _.cached(genStaticKeys)
 let isStaticKey, isPlatformReservedTag
 
-export function optimize (astRoot, options = {}) {
+export default function optimize (astRoot, options = {}) {
   if (!astRoot.root) return
   isStaticKey = genStaticKeysCached(options.staticKeys || '')
   isPlatformReservedTag = _.isReservedTag || _.no

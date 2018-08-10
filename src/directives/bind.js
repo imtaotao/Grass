@@ -2,19 +2,18 @@ import runExecutContext from './execution_env'
 
 const styleString = /\{[^\}]*\}/
 
-export default function bind (node, props, compConf, compName) {
-  console.log(props);
+export default function bind (node, props, comp) {
   if (!Array.isArray(props)) {
-    dealSingleBindVal(node, props, compConf, compName)
+    dealSingleBindVal(node, props, comp)
     return
   }
 
   for (const prop of props) {
-    dealSingleBindVal(node, prop, compConf, compName)
+    dealSingleBindVal(node, prop, comp)
   }
 }
 
-function dealSingleBindVal (node, {attrName, value}, compConf, compName) {
+function dealSingleBindVal (node, {attrName, value}, comp) {
   if (attrName === 'style') {
     if (!styleString.test(value)) {
       node.attrs[attrName] = spliceStyle(node.attrs[attrName], value)
@@ -33,7 +32,7 @@ function dealSingleBindVal (node, {attrName, value}, compConf, compName) {
 
   // 计算模板表达式
   function getValue () {
-    return runExecutContext(`with($obj_) { return ${value}; }`, compConf, compName)
+    return runExecutContext(`with($obj_) { return ${value}; }`, comp)
   }
 }
 

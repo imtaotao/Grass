@@ -11,7 +11,7 @@ export function isObject (obj) {
 }
 
 export function isPlainObject (obj) {
-  return typeOf(str) === '[object Object]'
+  return typeOf(obj) === '[object Object]'
 }
 
 export function isNumber (num) {

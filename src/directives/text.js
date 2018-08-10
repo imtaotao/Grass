@@ -1,12 +1,12 @@
 import runExecutContext from './execution_env'
-import { _createStaticNode } from '../ast/parse_html'
+import { _createStaticNode } from '../ast/parse_template'
 
-export default function text (node, val, compConf, compName) {
+export default function text (node, val, comp) {
   const code = `
     with(_obj_) {
       return ${val};
     }
   `
-  const content = runExecutContext(code, compConf, compName)
+  const content = runExecutContext(code, comp)
   node.children.unshift(_createStaticNode(content, node))
 }

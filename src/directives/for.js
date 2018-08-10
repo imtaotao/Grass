@@ -1,9 +1,9 @@
 import * as _ from '../utils'
-import { parseSingleNode } from './index'
+import { parseSingleNode } from '.'
 import runExecutContext from './execution_env'
-import { TAG } from '../ast/parse_html'
+import { TAG } from '../ast/parse_template'
 
-export default function vfor (node, compConf, compName) {
+export default function vfor (node, comp) {
   if (node.for && !node.forArgs) return
   let index = 0
   const children = node.children.splice(0)
@@ -26,7 +26,7 @@ export default function vfor (node, compConf, compName) {
     }
   `
 
-  runExecutContext(code, compConf, compName, (i, length) => {
+  runExecutContext(code, comp, (i, length) => {
     for (let j = 0; j < children.length; j++) {
       const newChild = _.copyNode(children[j])
       node.children[index] = newChild
@@ -34,7 +34,11 @@ export default function vfor (node, compConf, compName) {
       if (newChild.type === TAG) {
         newChild.attrs.key = index
       }
-      parseSingleNode(newChild, compConf)
+
+      // 此处是回调是在创建的允许时环境里面允许的
+      // 所以此时继续编译如果报错，报错信息会叠加
+      // 等于是一个 for 就叠加一层
+      parseSingleNode(newChild, comp)
       index++
     }
   })

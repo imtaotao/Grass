@@ -7,60 +7,61 @@ import vif from './if'
 import show from './show'
 import text from './text'
 import runExecutContext from './execution_env'
-import { TAG, TEXT, STATICTAG } from '../ast/parse_html'
+import { TAG, TEXT, STATICTAG } from '../ast/parse_template'
 
-export default function complierAst (nodes, compConf, compName) {
-  const state = compConf.state
+export default function complierAst (nodes, comp) {
+  const state = comp.state
+  
   if (_.isFunction(state)) {
     const res = state()
     _.isPlainObject(res)
-      ? compConf.state = res
-      : _.warn(`Component "state" must be a "Object"  \n\n  ---> ${[compName || '']}\n`)
+      ? comp.state = res
+      : _.warn(`Component "state" must be a "Object"  \n\n  ---> ${comp.name}\n`)
   }
 
-  return complierMultipleNode(nodes, compConf, compName)
+  return complierMultipleNode(nodes, comp)
 }
 
-export function complierMultipleNode (nodes, compConf, compName) {
+export function complierMultipleNode (nodes, comp) {
   for (let i = 0; i < nodes.length; i++) {
-    parseSingleNode(nodes[i], compConf, compName)
+    parseSingleNode(nodes[i], comp, )
   }
   return nodes
 }
 
-export function parseSingleNode (node, compConf, compName) {
+export function parseSingleNode (node, comp) {
   if (isCustomComp(node)) return
 
   switch (node.type) {
     case TAG :
-      const res = parseTagNode(node, compConf, compName)
+      const res = parseTagNode(node, comp)
       // 当 node 的 v-if 为 false 的时候，就没必要便利子元素了
       if (res === false)
         return
 
     case STATICTAG :
-      parseStaticNode(node, compConf, compName)
+      parseStaticNode(node, comp)
   }
 
   // 继续递归便利子节点，for 指令处理过的除外，因为已经在处理的时候顺带把子指令处理了
   if (!node.for && node.children) {
-    complierMultipleNode(node.children, compConf, compName)
+    complierMultipleNode(node.children, comp)
   }
 }
 
-function parseTagNode (node, compConf, compName) {
+function parseTagNode (node, comp) {
   if (node.tagName === 'template') {
-    isLegalComp(node, compName)
+    isLegalComp(node, comp.name)
     node.tagName = 'div'
   }
 
   // 处理有指令的情况，我们会在每个指令的执行过程中进行递归调用，编译其 children
   if (node.hasBindings()) {
-    return complierDirect(node, compConf, compName)
+    return complierDirect(node, comp)
   }
 }
 
-function complierDirect (node, compConf, compName) {
+function complierDirect (node, comp) {
   const directs = node.direction
   const nomalDirects = []
   let currentWeight = null
@@ -87,7 +88,7 @@ function complierDirect (node, compConf, compName) {
     const directValue = nomalDirects[w]
     if (!directValue) continue
 
-    const execResult = executSingleDirect(w, directValue, node, compConf, compName)
+    const execResult = executSingleDirect(w, directValue, node, comp)
 
     // 我们需要判断 v-if，如果是 false 我们根本就没有必要继续下去
     if (execResult === false && w === W.IF) {
@@ -124,7 +125,7 @@ function complierDirect (node, compConf, compName) {
   }
 }
 
-function parseStaticNode (node, compConf, compName) {
+function parseStaticNode (node, comp, ) {
   const code = `
     with ($obj_) {
       function _s (_val_) { return _val_ };
@@ -132,28 +133,28 @@ function parseStaticNode (node, compConf, compName) {
     }
   `
 
-  node.content = runExecutContext(code, compConf, compName)
+  node.content = runExecutContext(code, comp)
 }
 
-function executSingleDirect (weight, val, node, compConf, compName) {
+function executSingleDirect (weight, val, node, comp) {
   switch (weight) {
     case W.SHOW :
-      show(node, val, compConf, compName)
+      show(node, val, comp)
       break
     case W.FOR :
-      vfor(node, compConf, compName)
+      vfor(node, comp)
       break
     case W.ON :
-      vevent(node, val, compConf, compName)
+      vevent(node, val, comp)
       break
     case W.TEXT :
-      text(node, val, compConf, compName)
+      text(node, val, comp)
       break
     case W.BIND :
-      bind(node, val, compConf, compName)
+      bind(node, val, comp)
       break
     case W.IF :
-      return vif(val, compConf, compName)
+      return vif(val, comp)
   }
 }
 

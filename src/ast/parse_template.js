@@ -35,7 +35,7 @@ export const TEXT = 0 // 文本
 export const STATICTAG = 1 // 静态节点
 export const TAG = 2 // 元素节点
 
-export function parseHtml (html) {
+export function parseTemplate (html) {
   let index = 0
   let ast = []
   let scope = ast
