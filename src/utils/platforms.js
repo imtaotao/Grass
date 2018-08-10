@@ -28,6 +28,6 @@ export const isReservedTag = (tag) => {
   return isHTMLTag(tag) || isSVG(tag)
 }
 
-export function noop (a, b, c) {}
+export function noop () {}
 
-export const no = (a, b, c) => false
+export const no = () => false

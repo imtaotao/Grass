@@ -14,6 +14,8 @@ const directWeight = {
   'v-if': IF
 }
 
+export const DIRECTLENGTH = Object.keys(directWeight).length
+
 export function getWeight (direct) {
   let wight = directWeight[direct]
   if (direct.includes('v-bind')) wight = BIND

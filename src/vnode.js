@@ -18,7 +18,6 @@ function handleNode (parent, nodes, comp, compName) {
           return _.warn(`Component [${child.tagName}] is not registered  \n\n  --->  [${compName}]\n`)
         }
 
-        // 构建引导属性，我们会在这个标识的真实 dom 中插入子元素
         return createComment(res, child.tagName)
       }
 

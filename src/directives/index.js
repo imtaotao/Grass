@@ -9,9 +9,6 @@ import text from './text'
 import runExecutContext from './execution_env'
 import { TAG, TEXT, STATICTAG } from '../ast/parse_html'
 
-// 指令数量
-const DIRECTLENGTH = 5
-
 export function complierTemplate (nodes, compConf, compName) {
   const state = compConf.state
   if (_.isFunction(state)) {
@@ -40,6 +37,7 @@ export function parseSingleNode (node, compConf, compName) {
       // 当 node 的 v-if 为 false 的时候，就没必要便利子元素了
       if (res === false)
         return
+
     case STATICTAG :
       parseStaticNode(node, compConf, compName)
   }
@@ -52,7 +50,7 @@ export function parseSingleNode (node, compConf, compName) {
 
 function parseTagNode (node, compConf, compName) {
   if (node.tagName === 'template') {
-    isLegalComponent(node, compName)
+    isLegalComp(node, compName)
     node.tagName = 'div'
   }
 
@@ -85,7 +83,7 @@ function complierDirect (node, compConf, compName) {
   }
 
   // 按照指令的权重进行指令的编译
-  for (let w = DIRECTLENGTH; w > -1; w--) {
+  for (let w = W.DIRECTLENGTH - 1; w > -1; w--) {
     const directValue = nomalDirects[w]
     if (!directValue) continue
 
@@ -159,7 +157,7 @@ function executSingleDirect (weight, val, node, compConf, compName) {
   }
 }
 
-function isLegalComponent (node, compName) {
+function isLegalComp (node, compName) {
   let componentNumber = 0
 
   for (const child of node.children) {
