@@ -1,11 +1,11 @@
 import Component from '../src'
 
-export default class child11 extends Component {
+export default class child extends Component {
   constructor () {
     super()
     this.state = {
       show: true,
-      name: '我是 child1 组件'
+      name: '我是 child 组件'
     }
   }
 
@@ -13,7 +13,7 @@ export default class child11 extends Component {
     this.setState({name: false})
 
     setTimeout(() => {
-      this.setState({name: '我是 child1 组件'})
+      this.setState({name: '我是 child 组件'})
     }, 2000)
   }
 
@@ -21,12 +21,9 @@ export default class child11 extends Component {
     return `
       <div @click="this.isShow.bind(this)" v-show="show">
         {{ name }}
-        <Root />
       </div>
     `
   }
 
-  componnet () {
-    return [Root]
-  }
+  componnet () { }
 }

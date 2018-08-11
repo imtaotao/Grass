@@ -1,5 +1,5 @@
 import Component from '../src'
-import child1 from './child1'
+import child from './child'
 
 export default class Root extends Component {
   constructor () {
@@ -15,13 +15,13 @@ export default class Root extends Component {
       <div>
         {{ root }}
         <div v-for="val of arr">
-          <child11 />
+          <child />
         </div>
       </div>
     `
   }
 
   component () {
-    return [child1]
+    return [child]
   }
 }

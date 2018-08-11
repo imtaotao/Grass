@@ -83,7 +83,6 @@ function createConstomComp (node, comp) {
     return
   }
   
-  return
   if (!childComp.constructor.$ast) {
     childComp.constructor.$ast = createAst(childComp)
   }
