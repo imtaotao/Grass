@@ -27,9 +27,9 @@ export default class Component {
 
     this.state = Object.assign({}, this.state, newState)
 
-		if (this.$cacheState.setStateFlag) {
+    if (this.$cacheState.setStateFlag) {
       this.$cacheState.setStateFlag = false
-			Promise.resolve().then(() => {
+      Promise.resolve().then(() => {
         if (this.willUpdate(this.state) === false) {
           return
         }
@@ -40,12 +40,12 @@ export default class Component {
         const patchs = diff(oldTree, newTree)
 
         patch(dom, patchs)
-        
+
         this.didUpdate(dom)
         this.$cacheState.vTree = newTree
-				this.$cacheState.setStateFlag = true
-			})
-		}
+        this.$cacheState.setStateFlag = true
+      })
+    }
   }
 
   get name () {
