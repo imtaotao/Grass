@@ -1,4 +1,6 @@
 // import { createComponent, mount } from './src'
+import component from './src'
+import Root from './demo'
 
 // // const htmlStr = `
 // // 	<template>
@@ -107,74 +109,73 @@
 
 // mount(document.getElementById('root'), component)
 
-import component from './src/component'
 
-class tt extends component {
-  constructor () {
-    super()
-    this.state = {
-      show: true,
-      a: [1, 2]
-    }
-  }
+// class tt extends component {
+//   constructor () {
+//     super()
+//     this.state = {
+//       show: true,
+//       a: [1, 2]
+//     }
+//   }
 
-  c (val) {
-    this.setState({ show: false })
+//   c (val) {
+//     this.setState({ show: false })
 
-    setTimeout(() => {
-      this.setState({ show: true })
-    }, 3000)
-  }
+//     setTimeout(() => {
+//       this.setState({ show: true })
+//     }, 3000)
+//   }
 
-  template () {
-    return `<div v-for="val of a" v-show="show">
-      <div @click="this.c.bind(this, val)"> {{ val }} </div>
-    </div>`
-  }
-}
+//   template () {
+//     return `<div v-for="val of a" v-show="show">
+//       <div @click="this.c.bind(this, val)"> {{ val }} </div>
+//     </div>`
+//   }
+// }
 
-var str = 
-`<template>
-  <div v-show="show" :style="{height: '20px', marginRight: height + 'px'}" :id='a'>
-    <tt />
-    <div v-for="(val, i) of num" name="tt" :className="\`\${a}121\`">
-      <span @click="this.click.bind(this, val)" @mousedown="this.height">
-        {{val}} -- {{ this.tt(i) }}
-      </span>
-      <br />
-    </div>
-  </div>
-</template>`
+// var str = 
+// `<template>
+//   <div v-show="show" :style="{height: '20px', marginRight: height + 'px'}" :id='a'>
+//     <tt />
+//     <div v-for="(val, i) of num" name="tt" :className="\`\${a}121\`">
+//       <span @click="this.click.bind(this, val)" @mousedown="this.height">
+//         {{val}} -- {{ this.tt(i) }}
+//       </span>
+//       <br />
+//     </div>
+//   </div>
+// </template>`
 
-class Root extends component {
-  constructor () {
-    super()
-    this.state = {
-      a: 1,
-      show: true,
-      num: [1],
-      height: 20
-    }
-  }
+// class Root extends component {
+//   constructor () {
+//     super()
+//     this.state = {
+//       a: 1,
+//       show: true,
+//       num: [1],
+//       height: 20
+//     }
+//   }
 
-  tt (i) {
-    return i * 2
-  }
+//   tt (i) {
+//     return i * 2
+//   }
 
-  click(val) {
-    console.log(val);
-    this.setState({ height: 10 })
-  }
+//   click(val) {
+//     console.log(val);
+//     this.setState({ height: 10 })
+//   }
 
-  template () {
-    return str
-  }
+//   template () {
+//     return str
+//   }
 
-  get component () {
-    return [tt]
-  }
-}
+//   get component () {
+//     return [tt]
+//   }
+// }
 
 
 component.mount(document.getElementById('root'), Root)
-.then(dom => console.log(dom))
+// .then(dom => console.log(dom))

@@ -45,12 +45,16 @@ function generatorVnode (ast, comp) {
 
 function createConstomComp (node, comp) {
   let res
-  const childComps = comp.component
+  let childComps = comp.component
   const errorInfor = `Component [${node.tagName}] is not registered  \n\n  --->  [${comp.name}]\n`
   
   if (!childComps) {
     _.warn(errorInfor)
     return
+  }
+
+  if (typeof childComps === 'function') {
+    childComps = childComps()
   }
   
   if (_.isPlainObject(childComps)) {
@@ -72,6 +76,14 @@ function createConstomComp (node, comp) {
   }
   
   const childComp = new res
+
+  // 避免组件自己引用自己
+  if (res.prototype === Object.getPrototypeOf(comp)) {
+    _.warn(`Component can not refer to themselves  \n\n  --->  [${comp.name}]\n`)
+    return
+  }
+  
+  return
   if (!childComp.constructor.$ast) {
     childComp.constructor.$ast = createAst(childComp)
   }

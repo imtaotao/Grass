@@ -30,7 +30,7 @@ export default class Component {
 		if (this.$cacheState.setStateFlag) {
       this.$cacheState.setStateFlag = false
 			Promise.resolve().then(() => {
-        if (willUpdate(this.state) === false) {
+        if (this.willUpdate(this.state) === false) {
           return
         }
 

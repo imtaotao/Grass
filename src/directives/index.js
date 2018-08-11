@@ -9,8 +9,23 @@ import text from './text'
 import runExecutContext from './execution_env'
 import { TAG, TEXT, STATICTAG } from '../ast/parse_template'
 
+/**
+ *  vnodeConf 作为一个创建 vnodeTree 的配置项
+ *  避免每次 diff 创建 vnode 都需要对整个 ast 进行复制编译
+ *  因为现在没有办法做到针对单个指令进行编译
+ *  所以我们只能尽量降低每次编译指令时的开销
+ *  ：
+ *    {
+ *      type: TAG | TEXT | STATICTAG
+ *      tagName ?: string
+ *      children : array
+ *      content ?: string 
+ *    }
+ */
+
 export default function complierAst (nodes, comp) {
   const state = comp.state
+  const vnodeConf = {}
   
   if (_.isFunction(state)) {
     const res = state()
@@ -22,7 +37,7 @@ export default function complierAst (nodes, comp) {
   return complierMultipleNode(nodes, comp)
 }
 
-export function complierMultipleNode (nodes, comp) {
+export function complierMultipleNode (nodes, comp, vnodeConf) {
   for (let i = 0; i < nodes.length; i++) {
     parseSingleNode(nodes[i], comp, )
   }
