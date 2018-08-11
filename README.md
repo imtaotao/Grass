@@ -1,7 +1,8 @@
 ## 一个简单的模板编译与 virtual dom，个人学习之用，我把他叫为 Grass
-+ 现在还没有设计构造函数怎么弄
++ 现在还没有想好构造函数怎么弄
 
 ### 现在的用法
+其实在 [demo](./demo/index.js) 中有写例子
 ```js
   import Component from './src'
   import child from 'xx/childComponent'
