@@ -1,6 +1,6 @@
-import runExecutContext from './execution_env'
+import runExecuteContext from './execution_env'
 
-export default function vevent (node, events, comp) {
+export default function vevent (node, events, comp, vnodeConf) {
   if (node.isHTMLTag || node.isSvgTag) {
     for (const event of events) {
       const name = event.attrName
@@ -9,7 +9,7 @@ export default function vevent (node, events, comp) {
           return ${event.value};
         }
       `
-      node.attrs['on' + name] = runExecutContext(code, comp)
+      vnodeConf.attrs['on' + name] = runExecuteContext(code, comp)
     }
   }
 }

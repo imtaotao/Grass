@@ -1,10 +1,10 @@
-import runExecutContext from './execution_env'
+import runExecuteContext from './execution_env'
 
 export default function vif (val, comp) {
   const code = `
-    with(_obj_) {
+    with($obj_) {
       return !!(${val});
     }
   `
-  return runExecutContext(code, comp)
+  return runExecuteContext(code, comp)
 }

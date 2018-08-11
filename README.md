@@ -47,7 +47,7 @@
     template () {
       return `
         <div>
-          <span v-show="show" @click="change.bind(this)">{{ name }}<span/>
+          <span v-show="show" @click="this.change.bind(this)">{{ name }}<span/>
           <child />
         </div>
       `

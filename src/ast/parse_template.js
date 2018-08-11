@@ -11,7 +11,7 @@ const startTagClose = /^\s*(\/?)>/
 const endTag = new RegExp(`^<\\/${qnameCapture}[^>]*>`)
 
 // 匹配文本节点
-const textRE = /[^<]*/
+const textREG = /[^<]*/
 const defaultTagRE = /\{\{((?:.|\n)+?)\}\}/
 
 // 匹配注释节点,doctype,ie hack节点
@@ -35,15 +35,22 @@ export const TEXT = 0 // 文本
 export const STATICTAG = 1 // 静态节点
 export const TAG = 2 // 元素节点
 
-export function parseTemplate (html) {
+export function parseTemplate (html, compName) {
   let index = 0
+  let searchEndCount = 0
   let ast = []
   let scope = ast
 
   filter()
   while(html) {
+    searchEndCount++
     parseStart()
     parseEnd()
+
+    // 一个结束标签最少有四个字符 </a>
+    if (searchEndCount > html.length / 4) {
+      _.warn(`Parsing template error\n\n   Missing end tag  \n\n  ---> ${compName}\n`)
+    }
   }
 
   return ast
@@ -87,6 +94,7 @@ export function parseTemplate (html) {
         scope.isUnaryTag = true
         scope.end = index
         scope = scope.parent
+        searchEndCount = 0
       } else {
         scope.isUnaryTag = false
       }
@@ -98,7 +106,7 @@ export function parseTemplate (html) {
 
   function parseStaticTag () {
     filter()
-    const match = html.match(textRE)
+    const match = html.match(textREG)
     let text
     if (!match || !match[0])
     return false
@@ -146,9 +154,13 @@ export function parseTemplate (html) {
 
   function parseEnd () {
     const match = html.match(endTag)
+
     if (match && match[0]) {
       const [tagStr, tagName] = match
       if (scope.type === TAG && scope.tagName === tagName) {
+        // 找到结束标签，清空
+        searchEndCount = 0
+
         advance(tagStr.length)
         scope.end = index
         scope = scope.parent
@@ -269,17 +281,13 @@ export function parseTemplate (html) {
   }
 
   function createStaticNode (content, parent) {
-    return _createStaticNode(content, parent)
-  }
-}
-
-export function _createStaticNode (content, parent, index = null) {
-  return {
-    type: TEXT,
-    start: index,
-    parent,
-    end: null,
-    content,
-    static: true,
+    return {
+      type: TEXT,
+      start: index,
+      parent,
+      end: null,
+      content,
+      static: true,
+    }
   }
 }

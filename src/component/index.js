@@ -1,8 +1,9 @@
 import * as _ from '../utils'
 import createVnode from './createVnode'
-import optimize from '../ast/static_optimize'
-import { parseTemplate } from '../ast/parse_template'
-import { diff, patch, create } from 'virtual-dom'
+import createElement from './overrides'
+import { diff, patch } from 'virtual-dom'
+
+import { createAst } from './createVnode'
 
 export default class Component {
   constructor () {
@@ -63,44 +64,21 @@ export default class Component {
     compClass.$ast = createAst(comp)
     return mountComponent(rootDOM, comp)
   }
-
-  static didMount () {}
-}
-
-
-export function createAst (comp) {
-  let template = comp.template
-  const error = text => {
-    return `Component template ${text}, But now is "${typeof template}"  \n\n  --->  [${comp.name}]\n`
-  }
-  
-  if (!_.isString(template) && !_.isFunction(template)) {
-    _.warn(error('must a "string" or "function"'))
-    return
-  }
-
-  if (typeof template === 'function') {
-    template = template()
-    if (!_.isString(template)) {
-      _.warn(error('function must return "string"'))
-      return
-    }
-  }
-
-  const ast = parseTemplate(template.trim())
-  optimize(ast[0] || {})
-  return ast
 }
 
 function mountComponent (rootDOM, comp) {
   return new Promise(resolve => {
+    comp.createBefore()
     const vTree = createVnode(comp)
-    const dom = create(vTree)
+
+    if (!vTree) return
+    const dom = createElement(vTree)
     
     comp.$cacheState.dom = dom
     comp.$cacheState.vTree = vTree
     rootDOM.appendChild(dom)
 
+    comp.create(dom)
     resolve(dom)
   })
 }

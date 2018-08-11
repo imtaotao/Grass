@@ -1,19 +1,14 @@
-import runExecutContext from './execution_env'
+import runExecuteContext from './execution_env'
 import bind from './bind'
 
-export default function show (node, val, comp) {
-  const code = `
-    with($obj_) {
-      return !!(${val});
-    }
-  `
-
-  const value = runExecutContext(code, comp)
+export default function show (val, comp, vnodeConf) {
+  const code = `with($obj_) { return !!(${val}); }`
+  const value = runExecuteContext(code, comp)
     ? ''
     : 'display: none'
 
-  bind(node, {
+  bind({
     attrName: 'style',
     value: value,
-  }, comp)
+  }, comp, vnodeConf)
 }

@@ -1,43 +1,43 @@
-import runExecutContext from './execution_env'
+import runExecuteContext from './execution_env'
 
 const styleString = /\{[^\}]*\}/
 
-export default function bind (node, props, comp) {
+export default function bind (props, comp, vnodeConf) {
   if (!Array.isArray(props)) {
-    dealSingleBindVal(node, props, comp)
+    dealSingleBindAttr(props, comp, vnodeConf)
     return
   }
 
   for (const prop of props) {
-    dealSingleBindVal(node, prop, comp)
+    dealSingleBindAttr(prop, comp, vnodeConf)
   }
 }
 
-function dealSingleBindVal (node, {attrName, value}, comp) {
+function dealSingleBindAttr ({attrName, value}, comp, vnodeConf) {
   if (attrName === 'style') {
     if (!styleString.test(value)) {
-      node.attrs[attrName] = spliceStyle(node.attrs[attrName], value)
+      vnodeConf.attrs.style = spliceStyleStr(vnodeConf.attrs[attrName], value)
       return
     }
 
-    node.attrs.style = spliceStyle(
-      node.attrs[attrName],
+    vnodeConf.attrs.style = spliceStyleStr(
+      vnodeConf.attrs[attrName],
       getFormatStyle(getValue())
     )
     return
   }
 
-  // 其他所有的属性都直接添加到 node 的 attrs 中
-  node.attrs[attrName] = getValue()
+  // 其他所有的属性都直接添加到 vnodeConf 的 attrs 中
+  vnodeConf.attrs[attrName] = getValue()
 
   // 计算模板表达式
   function getValue () {
-    return runExecutContext(`with($obj_) { return ${value}; }`, comp)
+    return runExecuteContext(`with($obj_) { return ${value}; }`, comp)
   }
 }
 
 function getNormalStyleKey (key) {
-  return key.replace(/[A-Z]/g, (k1) => {
+  return key.replace(/[A-Z]/g, k1 => {
     return '-' + k1.toLocaleLowerCase()
   })
 }
@@ -47,11 +47,10 @@ function getFormatStyle (v) {
   for (const key of Object.keys(v)) {
     result += `${getNormalStyleKey(key)}: ${v[key]};`
   }
-
   return result
 }
 
-function spliceStyle (o, n) {
+function spliceStyleStr (o, n) {
   if (!o) return n
   if (o[o.length - 1] === ';')
     return o + n

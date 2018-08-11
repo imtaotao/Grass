@@ -1,9 +1,10 @@
 import * as _ from '../utils'
-import { h, create } from 'virtual-dom'
-import { createAst } from './index'
+import { h } from 'virtual-dom'
 import { TAG } from '../ast/parse_template'
+import optimize from '../ast/static_optimize'
+import { parseTemplate } from '../ast/parse_template'
 import complierAst from '../directives'
-
+import createElement from './overrides'
 
 export default function createVnode (comp) {
   const ast = complierAst(_.copyNode(comp.constructor.$ast), comp)
@@ -13,9 +14,10 @@ export default function createVnode (comp) {
 
 function generatorVnode (ast, comp) {
   const vnodeTree = []
-
+  
   for (let i = 0; i < ast.length; i++) {
     const node = ast[i]
+
     if (node.type === TAG) {
       if (!_.isReservedTag(node.tagName)) {
         
@@ -43,10 +45,34 @@ function generatorVnode (ast, comp) {
   return vnodeTree
 }
 
+export function createAst (comp) {
+  let template = comp.template
+  const error = text => {
+    return `Component template ${text}, But now is "${typeof template}"  \n\n  --->  ${comp.name}\n`
+  }
+  
+  if (!_.isString(template) && !_.isFunction(template)) {
+    _.warn(error('must a "string" or "function"'))
+    return
+  }
+
+  if (typeof template === 'function') {
+    template = template()
+    if (!_.isString(template)) {
+      _.warn(error('function must return "string"'))
+      return
+    }
+  }
+
+  const ast = parseTemplate(template.trim(), comp.name)
+  optimize(ast[0] || {})
+  return ast
+}
+
 function createConstomComp (node, comp) {
   let res
   let childComps = comp.component
-  const errorInfor = `Component [${node.tagName}] is not registered  \n\n  --->  [${comp.name}]\n`
+  const errorInfor = `Component [${node.tagName}] is not registered  \n\n  --->  ${comp.name}\n`
   
   if (!childComps) {
     _.warn(errorInfor)
@@ -79,7 +105,7 @@ function createConstomComp (node, comp) {
 
   // 避免组件自己引用自己
   if (res.prototype === Object.getPrototypeOf(comp)) {
-    _.warn(`Component can not refer to themselves  \n\n  --->  [${comp.name}]\n`)
+    _.warn(`Component can not refer to themselves  \n\n  --->  ${comp.name}\n`)
     return
   }
   
@@ -97,17 +123,18 @@ function createSingleCompVnode (comp) {
   // 我们只有一个子节点，就当前组件
   ComponentElement.prototype.count = 1
   ComponentElement.prototype.init = function() {
-    comp.createBefore()
-    const vTree = createVnode(comp)
-    const dom = create(vTree)
-    
-    comp.$cacheState.dom = dom
-    comp.$cacheState.vTree = vTree
-    
-    // 执行自定义指令的回调
-    comp.$executeDirect(dom)
-    comp.create(dom)
-    return dom
+    let vTree
+    if (vTree = createVnode(comp)) {
+      comp.createBefore()
+      const dom = createElement(vTree)
+      
+      comp.$cacheState.dom = dom
+      comp.$cacheState.vTree = vTree
+      
+      comp.create(dom)
+      return dom
+    }
+    return null
   }
 
   ComponentElement.prototype.update = function(previous, domNode) {

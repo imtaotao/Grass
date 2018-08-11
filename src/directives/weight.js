@@ -23,3 +23,7 @@ export function getWeight (direct) {
 
   return wight
 }
+
+export function isConstomDirect (direct) {
+  return direct.includes('v-') && !directWeight[direct]
+}
