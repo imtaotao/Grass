@@ -6,8 +6,13 @@ import { diff, patch } from 'virtual-dom'
 import { createAst } from './createVnode'
 
 export default class Component {
-  constructor () {
+  constructor (attrs, requireList) {
+    if (attrs && !_.isPlainObject(attrs)) {
+      _.warn(`Component "props" must be an object(inset error 😁). \n\n ---> ${this.name}`)
+      return
+    }
     this.state = {}
+    this.props = _.setProps(attrs || {}, requireList, this.name)
     this.$cacheState  = {
       setStateFlag: true,
     }

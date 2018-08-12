@@ -24,7 +24,7 @@ export const isSVG = makeMap(
 
 export const isPreTag = tag => tag === 'pre'
 
-export const isReservedTag = (tag) => {
+export const isReservedTag = tag => {
   return isHTMLTag(tag) || isSVG(tag)
 }
 

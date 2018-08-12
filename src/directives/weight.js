@@ -1,7 +1,7 @@
-export const SHOW = 0
-export const FOR = 1
-export const ON = 2
-export const TEXT = 3
+export const FOR = 0
+export const TEXT = 1
+export const SHOW = 2
+export const ON = 3
 export const BIND = 4
 export const IF = 5
 

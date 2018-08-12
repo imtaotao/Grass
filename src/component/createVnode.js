@@ -1,44 +1,46 @@
 import * as _ from '../utils'
 import { h } from 'virtual-dom'
 import { TAG } from '../ast/parse_template'
-import optimize from '../ast/static_optimize'
+// import optimize from '../ast/static_optimize'
 import { parseTemplate } from '../ast/parse_template'
 import complierAst from '../directives'
 import createElement from './overrides'
 
 export default function createVnode (comp) {
-  const ast = complierAst(_.copyNode(comp.constructor.$ast), comp)
+  const vnodeConf = complierAst(comp.constructor.$ast, comp)
 
-  return generatorVnode(ast, comp)[0]
+  // console.log(vnodeConf);
+  return h(vnodeConf.tagName,
+    vnodeConf.attrs, generatorChildren(vnodeConf.children, comp))
 }
 
-function generatorVnode (ast, comp) {
+function generatorChildren (children, comp) {
   const vnodeTree = []
   
-  for (let i = 0; i < ast.length; i++) {
-    const node = ast[i]
+  for (let i = 0; i < children.length; i++) {
+    const conf = children[i]
 
-    if (node.type === TAG) {
-      if (!_.isReservedTag(node.tagName)) {
+    if (conf.type === TAG) {
+      if (!_.isReservedTag(conf.tagName)) {
         
         // 自定义组件
-        vnodeTree.push(createConstomComp(node, comp))
+        vnodeTree.push(createConstomComp(conf, comp))
         continue
       }
 
       // 递归创建 vnode
       vnodeTree.push(h(
-        node.tagName,
-        node.attrs,
-        generatorVnode(node.children, comp)
+        conf.tagName,
+        conf.attrs,
+        generatorChildren(conf.children, comp)
       ))
 
       continue
     }
 
     // 文本节点直接添加文件就好了，过滤掉换行空格
-    if (node.content.trim()) {
-      vnodeTree.push(node.content)
+    if (conf.content.trim()) {
+      vnodeTree.push(conf.content)
     }
   }
 
@@ -65,14 +67,17 @@ export function createAst (comp) {
   }
 
   const ast = parseTemplate(template.trim(), comp.name)
-  optimize(ast[0] || {})
+  if (!ast) {
+    _.warn('xxx error')
+  }
+  // optimize(ast)
   return ast
 }
 
-function createConstomComp (node, comp) {
+function createConstomComp (conf, comp) {
   let res
   let childComps = comp.component
-  const errorInfor = `Component [${node.tagName}] is not registered  \n\n  --->  ${comp.name}\n`
+  const errorInfor = `Component [${conf.tagName}] is not registered  \n\n  --->  ${conf.name}\n`
   
   if (!childComps) {
     _.warn(errorInfor)
@@ -84,12 +89,12 @@ function createConstomComp (node, comp) {
   }
   
   if (_.isPlainObject(childComps)) {
-    res = childComps[node.tagName]
+    res = childComps[conf.tagName]
   }
 
   if (Array.isArray(childComps)) {
     for (let i = 0; i < childComps.length; i++) {
-      if (node.tagName === childComps[i].name) {
+      if (conf.tagName === childComps[i].name) {
         res = childComps[i]
         break
       }
@@ -100,8 +105,8 @@ function createConstomComp (node, comp) {
     _.warn(errorInfor)
     return
   }
-  
-  const childComp = new res
+ 
+  const childComp = new res(conf.attrs)
 
   // 避免组件自己引用自己
   if (res.prototype === Object.getPrototypeOf(comp)) {
@@ -113,18 +118,20 @@ function createConstomComp (node, comp) {
     childComp.constructor.$ast = createAst(childComp)
   }
 
-  return createSingleCompVnode(childComp)
+  return createSingleCompVnode(conf, childComp)
 }
 
-function createSingleCompVnode (comp) {
+function createSingleCompVnode (parentConf, comp) {
   function ComponentElement () {}
 
   ComponentElement.prototype.type = 'Widget'
   // 我们只有一个子节点，就当前组件
   ComponentElement.prototype.count = 1
   ComponentElement.prototype.init = function() {
+    console.log(comp.name);
     let vTree
     if (vTree = createVnode(comp)) {
+      // console.log(parentConf, vTree);
       comp.createBefore()
       const dom = createElement(vTree)
       
@@ -146,4 +153,29 @@ function createSingleCompVnode (comp) {
   }
 
   return new ComponentElement
+}
+
+function getNomalAst (vnodeConf) {
+  // 如果组件的内容只有一个节点我们就用这个节点，否则我们就用一个 div 给包裹起来
+}
+
+export function isLegalComp (node, compName) {
+  let componentNumber = 0
+  const children = node.children || node
+  for (const child of children) {
+    if (!isTag(child)) {
+      _.warn(`Child elements of template must be unique tags  \n\n  --->  ${compName}\n`)
+    }
+
+    if (++componentNumber > 1) {
+      _.warn(`Template component can only have one child element  \n\n  --->  ${compName}\n`)
+      return 
+    }
+  }
+
+  function isTag (child) {
+    return child.type === TAG
+      ? true
+      : !child.content.trim()
+  }
 }

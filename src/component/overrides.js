@@ -7,10 +7,11 @@ import handleThunk from 'virtual-dom/vnode/handle-thunk'
 import { warn } from '../utils'
 
 export default function createElement (vnode, opts) {
+  console.log(vnode);
   const doc = opts ? opts.document || document : document
 
   vnode = handleThunk(vnode).a
-
+  
   if (isWidget(vnode)) {
       return vnode.init()
   } else if (isVText(vnode)) {

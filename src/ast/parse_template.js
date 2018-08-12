@@ -53,7 +53,8 @@ export function parseTemplate (html, compName) {
     }
   }
 
-  return ast
+  // 我们规定一个组件的模板只能有一个根节点
+  return ast[0]
 
   function parseStart () {
     const match = html.match(startTagOpen)
@@ -117,6 +118,10 @@ export function parseTemplate (html, compName) {
         const textNode = createStaticNode(text, scope)
         advance(text.length)
         textNode.end = index
+        
+        if (scope === null) {
+          _.warn(`Component can only have one root node \n\n  --->  ${compName}\n`)
+        }
         scope.children.push(textNode)
       } else {
         const expression = parseTextExpression(text)

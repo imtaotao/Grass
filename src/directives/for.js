@@ -1,13 +1,15 @@
 import * as _ from '../utils'
-import { parseSingleNode } from '.'
+import { parseSingleNode } from './index'
 import runExecuteContext from './execution_env'
-import { TAG } from '../ast/parse_template'
 
 export default function vfor (node, comp, vnodeConf) {
-  if (node.for && !node.forArgs) return
-  
-  let index = 0
-  const children = node.children
+  if (!node.for || !node.forArgs) return
+  if (!node.parent) {
+    _.sendDirectWarn('v-for', comp.name)
+    return
+  }
+
+  const cloneNodes = []
   const args = node.forArgs
   const code = `
     var $isMultiple_ = ${args.isMultiple};
@@ -28,19 +30,30 @@ export default function vfor (node, comp, vnodeConf) {
   `
 
   runExecuteContext(code, comp, (i, length) => {
-    for (let j = 0; j < children.length; j++) {
-      const child = _.vnodeConf(children[j], vnodeConf)
-      vnodeConf.children[index] = child
+    const cloneNode = _.vnodeConf(node, vnodeConf.parent)
+    cloneNode.attrs['key'] = i
+    cloneNodes[i] = cloneNode
 
-      if (child.type === TAG) {
-        child.attrs.key = index
-      }
-
-      // 此处是回调是在创建的允许时环境里面允许的
-      // 所以此时继续编译如果报错，报错信息会叠加
-      // 等于是一个 for 就叠加一层
-      parseSingleNode(children[j], comp, child)
-      index++
-    }
+    // 我们要避免无限递归的进入 for 指令
+    node.for = false
+    parseSingleNode(node, comp, cloneNode)
   })
+
+  const index = serachIndex(vnodeConf)
+  replaceWithLoopRes(vnodeConf, cloneNodes, index)
+  node.for = true
+}
+
+function serachIndex (node) {
+  const children = node.parent.children
+  const length = children.length
+  for (let i = 0; i < length; i++) {
+    if (children[i] === node)
+      return i 
+  }
+}
+
+function replaceWithLoopRes (node, res, i) {
+  const children = node.parent.children
+  children.splice(i, 1, ...res)
 }

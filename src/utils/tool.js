@@ -93,7 +93,7 @@ export function extend (to, _from) {
 export function warn (msg, noError) {
   const errorInfor = `[Grass tip]: ${msg}`
   if (noError) {
-    console.error(errorInfor)
+    console.warn(errorInfor)
     return
   }
 

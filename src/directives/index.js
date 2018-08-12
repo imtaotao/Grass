@@ -7,6 +7,7 @@ import vif from './if'
 import show from './show'
 import text from './text'
 import runExecuteContext from './execution_env'
+import { isLegalComp } from '../component/createVnode'
 import { TAG, TEXT, STATICTAG } from '../ast/parse_template'
 
 /**
@@ -25,12 +26,11 @@ import { TAG, TEXT, STATICTAG } from '../ast/parse_template'
  *    }
  */
 
-export default function complierAst (nodes, comp) {
+export default function complierAst (ast, comp) {
   const state = comp.state
-  const vnodeConf = new nodes.constructor(nodes.length)
+  const vnodeConf = _.vnodeConf(ast)
+  vnodeConf.props = Object.create(null)
 
-  setTimeout(() => console.log(vnodeConf[0]))
-  
   if (_.isFunction(state)) {
     const res = state()
     _.isPlainObject(res)
@@ -38,27 +38,22 @@ export default function complierAst (nodes, comp) {
       : _.warn(`Component "state" must be a "Object"  \n\n  ---> ${comp.name}\n`)
   }
 
-  for (let i = 0; i < nodes.length; i++) {
-    vnodeConf[i] = Object.create(null)
-  }
+  parseSingleNode(ast, comp, vnodeConf)
 
-  return complierMultipleNode(nodes, comp, vnodeConf)
+  return vnodeConf
 }
 
-export function complierMultipleNode (nodes, comp, vnodeConf) {
-  for (let i = 0; i < nodes.length; i++) {
+export function complierMultipleNode (node, comp, vnodeConf) {
+  const children = node.children
+  for (let i = 0; i < children.length; i++) {
     // 复制一个副本
-    vnodeConf[i] = _.vnodeConf(nodes[i], vnodeConf)
-
-    parseSingleNode(nodes[i], comp, vnodeConf[i])
+    const childVnodeConf = _.vnodeConf(children[i], vnodeConf)
+    vnodeConf.children.push(childVnodeConf)
+    parseSingleNode(children[i], comp, childVnodeConf)
   }
-  
-  return nodes
 }
 
 export function parseSingleNode (node, comp, vnodeConf) {
-  if (isCustomComp(node)) return
-
   switch (node.type) {
     case TAG :
       const res = parseTagNode(node, comp, vnodeConf)
@@ -74,16 +69,11 @@ export function parseSingleNode (node, comp, vnodeConf) {
 
   // 继续递归便利子节点，for 指令处理过的除外，因为已经在处理的时候顺带把子指令处理了
   if (!node.for && node.children) {
-    complierMultipleNode(node.children, comp, vnodeConf.children)
+    complierMultipleNode(node, comp, vnodeConf)
   }
 }
 
 function parseTagNode (node, comp, vnodeConf) {
-  if (node.tagName === 'template') {
-    isLegalComp(node, comp.name)
-    node.tagName = 'div'
-  }
-
   // 处理有指令的情况，我们会在每个指令的执行过程中进行递归调用，编译其 children
   if (node.hasBindings()) {
     return complierDirect(node, comp, vnodeConf)
@@ -179,25 +169,7 @@ function executSingleDirect (weight, val, node, comp, vnodeConf) {
       bind(val, comp, vnodeConf)
       break
     case W.IF :
-      return vif(val, comp)
-  }
-}
-
-function isLegalComp (node, compName) {
-  let componentNumber = 0
-
-  for (const child of node.children) {
-    if (
-        child.type === 2 ||
-        child.expression ||
-        child.content && child.content.trim()
-    ) {
-      componentNumber++
-
-      if (componentNumber > 1) {
-        return _.warn(`Template component can only have one child element  \n\n  --->  ${compName}\n`)
-      }
-    }
+      return vif(node, val, comp)
   }
 }
 
