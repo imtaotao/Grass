@@ -6,11 +6,10 @@ import { parseTemplate } from '../ast/parse_template'
 import complierAst from '../directives'
 import createElement from './overrides'
 
-export default function createVnode (comp) {
+export default function createVnode (parentConf, comp) {
   const vnodeConf = complierAst(comp.constructor.$ast, comp)
 
-  // 我们这里其实需要迁移父子组件之间的数据
-  //  xxx
+  _.migrateCompStatus(parentConf, vnodeConf)
 
   return h(vnodeConf.tagName,
     vnodeConf.attrs, generatorChildren(vnodeConf.children, comp))
@@ -95,7 +94,7 @@ function createConstomComp (conf, comp) {
   return createSingleCompVnode(conf, childComp)
 }
 
-function createSingleCompVnode (parentConf, comp) {
+function createSingleCompVnode (compConf, comp) {
   function ComponentElement () {}
 
   ComponentElement.prototype.type = 'Widget'
@@ -104,8 +103,10 @@ function createSingleCompVnode (parentConf, comp) {
   ComponentElement.prototype.count = 0
 
   ComponentElement.prototype.init = function() {
-    let vTree = createVnode(comp)
+    const vTree = createVnode(compConf, comp)
+    
     comp.createBefore()
+
     const dom = createElement(vTree)
 
     comp.$cacheState.dom = dom

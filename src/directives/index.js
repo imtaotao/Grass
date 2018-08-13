@@ -157,7 +157,6 @@ function executSingleDirect (weight, val, node, comp, vnodeConf) {
       vevent(node, val, comp, vnodeConf)
       break
     case W.TEXT :
-      console.count('if');
       text(val, comp, vnodeConf)
       break
     case W.BIND :

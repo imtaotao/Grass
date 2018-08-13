@@ -41,7 +41,7 @@ export default class Component {
 
         const dom = this.$cacheState.dom
         const oldTree = this.$cacheState.vTree
-        const newTree = createVnode(this)
+        const newTree = createVnode(null, this)
         const patchs = diff(oldTree, newTree)
 
         patch(dom, patchs)
@@ -73,9 +73,7 @@ export default class Component {
 function mountComponent (rootDOM, comp) {
   return new Promise(resolve => {
     comp.createBefore()
-    const vTree = createVnode(comp)
-
-    if (!vTree) return
+    const vTree = createVnode(null, comp)
     const dom = createElement(vTree)
 
     comp.$cacheState.dom = dom

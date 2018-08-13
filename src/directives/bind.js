@@ -16,7 +16,8 @@ export default function bind (props, comp, vnodeConf) {
 function dealSingleBindAttr ({attrName, value}, comp, vnodeConf) {
   if (attrName === 'style') {
     if (!styleString.test(value)) {
-      vnodeConf.attrs.style = spliceStyleStr(vnodeConf.attrs[attrName], value)
+      vnodeConf.attrs.style = spliceStyleStr(vnodeConf.attrs[attrName], 
+        comp ? getValue() : value)
       return
     }
 
@@ -28,7 +29,9 @@ function dealSingleBindAttr ({attrName, value}, comp, vnodeConf) {
   }
 
   // 其他所有的属性都直接添加到 vnodeConf 的 attrs 中
-  vnodeConf.attrs[attrName] = getValue()
+  vnodeConf.attrs[attrName] = comp
+    ? getValue()
+    : value
 
   // 计算模板表达式
   function getValue () {

@@ -1,4 +1,5 @@
-import { warn } from './tool'
+import bind from '../directives/bind'
+import { warn, hasOwn } from './tool'
 import { TAG, TEXT } from '../ast/parse_template'
 import { isNumber, isObject, isPlainObject, isPrimitive } from './type_check'
 
@@ -138,9 +139,18 @@ export function removeChild (parent, child, notOnly) {
   }
 }
 
-export function migrateCompStatus (moveOutNode, acceptNode) {
+export function migrateCompStatus (outputNode, acceptNode) {
+  if (!outputNode || !acceptNode) return
   // 我们需要迁移的数据 vTextResult、vShowResult
-  console.log(moveOutNode, acceptNode);
+  if (hasOwn(outputNode, 'vTextResult')) {
+    const res = outputNode['vTextResult']
+    acceptNode.children.unshift(vText(res, acceptNode))
+  }
+
+  if (hasOwn(outputNode, 'vShowResult')) {
+    const res = outputNode['vShowResult']
+    bind(res, null, acceptNode)
+  }
 }
 
 const filterPropsList = {

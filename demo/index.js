@@ -9,21 +9,23 @@ export default class Root extends Component {
       arr: [false, '2t', '3t'],
       h: 20,
       show: true,
+      text: 'tt的text'
     }
   }
 
   c () {
-    this.setState({show: false, h: 25})
+    this.setState({arr: [true, '2t', '3t'], text: '变化了'})
 
     setTimeout(() => {
-      this.setState({show: true, h: 30})
+      this.setState({arr: [false, '2t', '3t'], text: 'tt的text'})
     }, 2000);
   }
 
   template () {
     return `
       <div @click="this.c.bind(this)" :tt="show">
-        <tt v-for="(val, i) of arr" v-show="val" :prop="val"/>
+        {{arr[0]}}
+        <tt v-for="(val, i) of arr" v-if="val" v-text="text" :prop="val"/>
       </div>
     `
   }
