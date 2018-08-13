@@ -1,9 +1,9 @@
-export const FOR = 0
-export const TEXT = 1
-export const SHOW = 2
-export const ON = 3
-export const BIND = 4
-export const IF = 5
+export const TEXT = 0
+export const SHOW = 1
+export const ON = 2
+export const BIND = 3
+export const IF = 4
+export const FOR = 5
 
 const directWeight = {
   'v-show': SHOW,

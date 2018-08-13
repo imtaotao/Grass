@@ -17,7 +17,7 @@ export default class Component {
       setStateFlag: true,
     }
   }
-  
+
   $executeDirect () {}
 
   createBefore () {}
@@ -60,7 +60,7 @@ export default class Component {
 
   static mount (rootDOM, compClass) {
     const comp = new compClass
-    
+
     if (!(comp instanceof Component)) {
       _.warn('The second parameter must be a component')
       return
@@ -78,7 +78,7 @@ function mountComponent (rootDOM, comp) {
 
     if (!vTree) return
     const dom = createElement(vTree)
-    
+
     comp.$cacheState.dom = dom
     comp.$cacheState.vTree = vTree
     rootDOM.appendChild(dom)

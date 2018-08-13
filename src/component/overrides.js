@@ -7,15 +7,14 @@ import handleThunk from 'virtual-dom/vnode/handle-thunk'
 import { warn } from '../utils'
 
 export default function createElement (vnode, opts) {
-  console.log(vnode);
   const doc = opts ? opts.document || document : document
 
   vnode = handleThunk(vnode).a
-  
+
   if (isWidget(vnode)) {
-      return vnode.init()
+    return vnode.init()
   } else if (isVText(vnode)) {
-      return doc.createTextNode(vnode.text)
+    return doc.createTextNode(vnode.text)
   } else if (!isVNode(vnode)) {
     warn('Item is not a valid virtual dom node')
     return null
@@ -40,6 +39,6 @@ export default function createElement (vnode, opts) {
   if (vnode.renderCompleted) {
     vnode.renderCompleted(node)
   }
-  
+
   return node
 }

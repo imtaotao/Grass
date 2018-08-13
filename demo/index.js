@@ -6,7 +6,7 @@ export default class Root extends Component {
     super()
     this.state = {
       root: '我是 root 组件',
-      arr: ['1t', '2t'],
+      arr: [false, '2t', '3t'],
       h: 20,
       show: true,
     }
@@ -22,9 +22,9 @@ export default class Root extends Component {
 
   template () {
     return `
-      <div @click="this.c.bind(this)" :tt="show">
+      <div @click="this.c.bind(this)" :tt="show" v-text="h">
         11
-        <tt v-for="val of arr" v-text="h" test="121" :height="h"/>
+        <tt v-for="val of arr" v-text="h" test="121" :height="val" v-show="val"/>
       </div>
     `
   }

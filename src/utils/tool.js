@@ -1,5 +1,9 @@
 import { isObject } from './type_check'
 
+export function random (max = 100000, min = 0, fractionDigits = 0) {
+  return +(Math.random() * (max - min) + min).toFixed(fractionDigits)
+}
+
 export function setAttr (node, key, value) {
   if (!value && value !== 0) {
     node.removeAttribute(key)
