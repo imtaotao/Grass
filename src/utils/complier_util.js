@@ -139,6 +139,39 @@ export function removeChild (parent, child, notOnly) {
   }
 }
 
+const filterAttr = {
+  'namespace': 1,
+  'className': 1,
+  'styleName': 1,
+  'style': 1,
+  'class': 1,
+  'key': 1,
+  'id': 1,
+}
+
+function isFilter (key) {
+  return filterAttr[key] || key.slice(0, 2) === 'on'
+}
+
+export function modifyOrdinayAttrAsLibAttr (node) {
+  if (!node.attrs) return
+  const keyWord = 'attributes'
+  const attrs = node.attrs
+  const originAttr = attrs[keyWord]
+  const keys = Object.keys(attrs)
+
+  attrs[keyWord] = Object.create(null)
+
+  for (let i = 0, len = keys.length; i < len; i++) {
+    const key = keys[i]
+    if (isFilter(key)) continue
+    attrs[keyWord][key] = attrs[key]
+  }
+
+  if (originAttr)
+    attrs[keyWord][keyWord] = originAttr
+}
+
 export function migrateCompStatus (outputNode, acceptNode) {
   if (!outputNode || !acceptNode) return
   // 我们需要迁移的数据 vTextResult、vShowResult

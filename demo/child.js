@@ -5,7 +5,8 @@ export default class child extends Component {
     super(props, ['prop'])
     this.state = {
       show: true,
-      name: '我是 child 组件'
+      name: '我是 child 组件',
+      dt: '测试自定义属性',
     }
   }
 
@@ -19,7 +20,7 @@ export default class child extends Component {
 
   template () {
     return `
-      <div @click="this.isShow.bind(this)">
+      <div @click="this.isShow.bind(this)" id='1212' aa="11" :bb="22" :data-test="dt" :attributes="{ id: 121 }">
         {{ name }} -- {{this.props.prop}}
       </div>
     `

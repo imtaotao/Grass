@@ -1,5 +1,5 @@
 import runExecuteContext from './execution_env'
-
+import * as _ from '../utils'
 const styleString = /\{[^\}]*\}/
 
 export default function bind (props, comp, vnodeConf) {
@@ -10,6 +10,11 @@ export default function bind (props, comp, vnodeConf) {
 
   for (const prop of props) {
     dealSingleBindAttr(prop, comp, vnodeConf)
+  }
+
+  // 我们对 attrs 做处理，使其能够适用 virtual-dom 这个库的行为
+  if (_.isReservedTag(vnodeConf)) {
+    _.modifyOrdinayAttrAsLibAttr(vnodeConf)
   }
 }
 

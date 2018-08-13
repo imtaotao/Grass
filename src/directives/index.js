@@ -7,8 +7,7 @@ import vif from './if'
 import show from './show'
 import text from './text'
 import runExecuteContext from './execution_env'
-import { isLegalComp } from '../component/createVnode'
-import { TAG, TEXT, STATICTAG } from '../ast/parse_template'
+import { TAG, STATICTAG } from '../ast/parse_template'
 
 /**
  *  vnodeConf 作为一个创建 vnodeTree 的配置项
@@ -39,7 +38,7 @@ export default function complierAst (ast, comp) {
   }
 
   parseSingleNode(ast, comp, vnodeConf)
-
+  
   return vnodeConf
 }
 
