@@ -24,8 +24,8 @@ export const isSVG = makeMap(
 
 export const isPreTag = tag => tag === 'pre'
 
-export const isReservedTag = tag => {
-  return isHTMLTag(tag) || isSVG(tag)
+export function isReservedTag (node) {
+  return !!node.tagName && (isHTMLTag(node.tagName) || isSVG(node.tagName))
 }
 
 export function noop () {}

@@ -2,7 +2,7 @@ import Component from '../src'
 
 export default class child extends Component {
   constructor (props) {
-    super(props, ['test', 'height'])
+    super(props, ['prop'])
     this.state = {
       show: true,
       name: '我是 child 组件'
@@ -19,8 +19,8 @@ export default class child extends Component {
 
   template () {
     return `
-      <div @click="this.isShow.bind(this)" v-show="show">
-        {{ name }} -- {{this.props.height}}
+      <div @click="this.isShow.bind(this)">
+        {{ name }} -- {{this.props.prop}}
       </div>
     `
   }

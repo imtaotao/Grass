@@ -22,9 +22,8 @@ export default class Root extends Component {
 
   template () {
     return `
-      <div @click="this.c.bind(this)" :tt="show" v-text="h">
-        11
-        <tt v-for="val of arr" v-text="h" test="121" :height="val" v-show="val"/>
+      <div @click="this.c.bind(this)" :tt="show">
+        <tt v-for="(val, i) of arr" v-show="val" :prop="val"/>
       </div>
     `
   }

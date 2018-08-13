@@ -9,7 +9,9 @@ import createElement from './overrides'
 export default function createVnode (comp) {
   const vnodeConf = complierAst(comp.constructor.$ast, comp)
 
-  // console.log(vnodeConf);
+  // 我们这里其实需要迁移父子组件之间的数据
+  //  xxx
+
   return h(vnodeConf.tagName,
     vnodeConf.attrs, generatorChildren(vnodeConf.children, comp))
 }
@@ -18,10 +20,10 @@ function generatorChildren (children, comp) {
   const vnodeTree = []
 
   for (let i = 0; i < children.length; i++) {
+    if (!children[i]) continue
     const conf = children[i]
-
     if (conf.type === TAG) {
-      if (!_.isReservedTag(conf.tagName)) {
+      if (!_.isReservedTag(conf)) {
         // 自定义组件
         vnodeTree.push(createConstomComp(conf, comp))
         continue
@@ -97,21 +99,20 @@ function createSingleCompVnode (parentConf, comp) {
   function ComponentElement () {}
 
   ComponentElement.prototype.type = 'Widget'
+
   // 我们构建的这个组件节点现在并没有一个子元素，否则会在 patch 的时候计算错误
   ComponentElement.prototype.count = 0
+
   ComponentElement.prototype.init = function() {
-    let vTree
-    if (vTree = createVnode(comp)) {
-      comp.createBefore()
-      const dom = createElement(vTree)
+    let vTree = createVnode(comp)
+    comp.createBefore()
+    const dom = createElement(vTree)
 
-      comp.$cacheState.dom = dom
-      comp.$cacheState.vTree = vTree
+    comp.$cacheState.dom = dom
+    comp.$cacheState.vTree = vTree
 
-      comp.create(dom)
-      return dom
-    }
-    return null
+    comp.create(dom)
+    return dom
   }
 
   ComponentElement.prototype.update = function(previous, domNode) {
@@ -142,17 +143,4 @@ export function createAst (comp) {
   }
 
   return ast
-}
-
-export function isLegalComp (node) {
-  let componentNumber = 0
-  const children = node.children || node
-  const isTag = child => child.type !== TAG ?
-    !child.content.trim()
-    : true
-
-  for (const child of children) {
-    if (!isTag(child)) return false
-    if (++componentNumber > 1) return false
-  }
 }

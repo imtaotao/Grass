@@ -21,6 +21,12 @@ export function makeMap (str, expectsLowerCase) {
     : val => map[val]
 }
 
+export function sendDirectWarn (direct, compName) {
+  warn(`Cannot make "${direct}" directives on the root node of a component，
+  Maybe you can specify the "${direct}" command on "<${compName} ${direct}="xxx" />"
+    \n\n  ---> ${compName}\n`)
+}
+
 // export const isBuiltInTag = makeMap('slot,component', true)
 
 // export const isInserComponents = makeMap('component,transition,transition-group,keep-alive,slot')
@@ -132,15 +138,9 @@ export function removeChild (parent, child, notOnly) {
   }
 }
 
-export function sendDirectWarn (direct, compName) {
-  warn(`Cannot make "${direct}" directives on the root node of a component，
-  Maybe you can specify the "${direct}" command on "<${compName} ${direct}="xxx" />"
-    \n\n  ---> ${compName}\n`)
-}
-
-export function migrateCompStatus (compLabelNode, compRootNode) {
-  // 我们需要迁移的数据 vTextResult
-  
+export function migrateCompStatus (moveOutNode, acceptNode) {
+  // 我们需要迁移的数据 vTextResult、vShowResult
+  console.log(moveOutNode, acceptNode);
 }
 
 const filterPropsList = {
@@ -175,6 +175,6 @@ export function setProps (attrs, requireList, compName) {
       )
     }
   }
-  
+
   return props
 }

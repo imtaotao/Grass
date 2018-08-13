@@ -1,4 +1,4 @@
-import { isObject } from './type_check'
+import { isPlainObject } from './type_check'
 
 export function random (max = 100000, min = 0, fractionDigits = 0) {
   return +(Math.random() * (max - min) + min).toFixed(fractionDigits)
@@ -34,10 +34,7 @@ export function setAttr (node, key, value) {
 export function each (arr, cb) {
   let i = 0
   // Deal array and like-array
-  if (
-      Array.isArray(arr) ||
-      (isObject(arr) && arr.length)
-  ) {
+  if (Array.isArray(arr) || arr.length) {
     const length = arr.length
     for (; i < length; i++) {
       if (cb(arr[i], i) === false) {
@@ -48,7 +45,7 @@ export function each (arr, cb) {
   }
 
   // Deal object
-  if (isObject(arr)) {
+  if (isPlainObject(arr)) {
     const keyName = Object.keys(arr)
     const length  = keyName.length
     for (; i < length; i++) {

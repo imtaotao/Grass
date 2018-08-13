@@ -22,7 +22,7 @@ import { TAG, TEXT, STATICTAG } from '../ast/parse_template'
  *      tagName ?: string
  *      attrs ?: array
  *      children ?: array
- *      content ?: string 
+ *      content ?: string
  *    }
  */
 
@@ -43,10 +43,11 @@ export default function complierAst (ast, comp) {
   return vnodeConf
 }
 
-export function complierMultipleNode (node, comp, vnodeConf) {
+export function complierChildrenNode (node, comp, vnodeConf) {
   const children = node.children
+  if (!children || !children.length) return
+
   for (let i = 0; i < children.length; i++) {
-    // 复制一个副本
     const childVnodeConf = _.vnodeConf(children[i], vnodeConf)
     vnodeConf.children.push(childVnodeConf)
     parseSingleNode(children[i], comp, childVnodeConf)
@@ -56,20 +57,16 @@ export function complierMultipleNode (node, comp, vnodeConf) {
 export function parseSingleNode (node, comp, vnodeConf) {
   switch (node.type) {
     case TAG :
-      const res = parseTagNode(node, comp, vnodeConf)
-      // 当 node 的 v-if 为 false 的时候，就没必要便利子元素了
-      if (res === false) {
-        return
-      }
+      if (parseTagNode(node, comp, vnodeConf) === false)
+        return false
       break
     case STATICTAG :
       parseStaticNode(node, comp, vnodeConf)
       break
   }
 
-  // 继续递归便利子节点，for 指令处理过的除外，因为已经在处理的时候顺带把子指令处理了
-  if (!node.for && node.children) {
-    complierMultipleNode(node, comp, vnodeConf)
+  if (!node.for) {
+    complierChildrenNode(node, comp, vnodeConf)
   }
 }
 
@@ -103,17 +100,14 @@ function complierDirect (node, comp, vnodeConf) {
   }
 
   // 按照指令的权重进行指令的编译
+  // 我们只在 for 指令第一次进入的时候只执行 for 指令，后续复制的 vnodeconf 都需要全部执行
   for (let w = W.DIRECTLENGTH - 1; w > -1; w--) {
+    if (!nomalDirects[w]) continue
     const directValue = nomalDirects[w]
-    if (!directValue) continue
-
     const execResult = executSingleDirect(w, directValue, node, comp, vnodeConf)
 
-    // 我们需要判断 v-if，如果是 false 我们根本就没有必要继续下去
-    if (execResult === false && w === W.IF) {
-      _.removeChild(vnodeConf.parent, vnodeConf)
-      return false
-    }
+    if (node.for) return
+    if (execResult === false) return false
   }
 
   function addMultipleDirect (direct, weight, key) {
@@ -163,16 +157,13 @@ function executSingleDirect (weight, val, node, comp, vnodeConf) {
       vevent(node, val, comp, vnodeConf)
       break
     case W.TEXT :
+      console.count('if');
       text(val, comp, vnodeConf)
       break
     case W.BIND :
       bind(val, comp, vnodeConf)
       break
     case W.IF :
-      return vif(node, val, comp)
+      return vif(node, val, comp, vnodeConf)
   }
-}
-
-function isCustomComp (node) {
-  return node.type === TAG && !node.isHTMLTag && !node.isSvgTag
 }

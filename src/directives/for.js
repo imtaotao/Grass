@@ -1,5 +1,5 @@
 import * as _ from '../utils'
-import { parseSingleNode } from './index'
+import { parseSingleNode, complierChildrenNode } from './index'
 import runExecuteContext from './execution_env'
 
 export default function vfor (node, comp, vnodeConf) {
@@ -24,19 +24,21 @@ export default function vfor (node, comp, vnodeConf) {
           $obj_['${args.key}'] = $container_[$index_];
         }
 
-        $callback_($index_, $container_.length);
+        $callback_($index_);
       }
     }
   `
 
-  runExecuteContext(code, comp, (i, length) => {
+  runExecuteContext(code, comp, (i) => {
     const cloneNode = _.vnodeConf(node, vnodeConf.parent)
     cloneNode.attrs['key'] = i
-    cloneNodes[i] = cloneNode
 
     // 我们要避免无限递归的进入 for 指令
     node.for = false
-    parseSingleNode(node, comp, cloneNode)
+
+    cloneNodes[i] = parseSingleNode(node, comp, cloneNode) === false
+        ? null
+        : cloneNode
   })
 
   const index = serachIndex(vnodeConf)
@@ -49,7 +51,7 @@ function serachIndex (node) {
   const length = children.length
   for (let i = 0; i < length; i++) {
     if (children[i] === node)
-      return i 
+      return i
   }
 }
 

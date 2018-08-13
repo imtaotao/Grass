@@ -2,7 +2,6 @@ import * as _ from '../utils'
 import createVnode from './createVnode'
 import createElement from './overrides'
 import { diff, patch } from 'virtual-dom'
-
 import { createAst } from './createVnode'
 
 export default class Component {

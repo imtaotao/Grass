@@ -1,3 +1,5 @@
+// 我们要保证 for 循环得到的变量在其他指令中都能用上
+// v-if 第二个执行，因为 if 可能为 false，我们尽量避免不必要的指令执行
 export const TEXT = 0
 export const SHOW = 1
 export const ON = 2
