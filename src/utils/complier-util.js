@@ -1,7 +1,7 @@
 import bind from '../directives/bind'
 import { warn, hasOwn } from './tool'
-import { TAG, TEXT } from '../ast/parse_template'
-import { isNumber, isObject, isPlainObject, isPrimitive } from './type_check'
+import { TAG, TEXT } from '../ast/parse-template'
+import { isNumber, isObject, isPlainObject, isPrimitive } from './type-check'
 
 export function cached (fn) {
   const cache = Object.create(null)
@@ -194,6 +194,7 @@ export function setProps (attrs, requireList, compName) {
   // 如果定义了需要的 props 列表，我们就按照列表得到来
   // 而且我们需要过滤掉内部用到的属性，例如 "key"
   const props = Object.create(null)
+  if (!attrs) return props
   const keys = Object.keys(attrs)
   let index = null
 

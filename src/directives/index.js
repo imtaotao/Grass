@@ -6,8 +6,8 @@ import vfor from './for'
 import vif from './if'
 import show from './show'
 import text from './text'
-import runExecuteContext from './execution_env'
-import { TAG, STATICTAG } from '../ast/parse_template'
+import runExecuteContext from './execution-env'
+import { TAG, STATICTAG } from '../ast/parse-template'
 
 /**
  *  vnodeConf 作为一个创建 vnodeTree 的配置项

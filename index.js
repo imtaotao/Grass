@@ -1,5 +1,5 @@
 // import { createComponent, mount } from './src'
-import component from './src'
+import * as Grass from './src'
 import Root from './demo'
 
 // // const htmlStr = `
@@ -177,5 +177,5 @@ import Root from './demo'
 // }
 
 
-component.mount(document.getElementById('root'), Root)
-// .then(dom => console.log(dom))
+Grass.mount(document.getElementById('root'), Root)
+.then(dom => console.log(dom))

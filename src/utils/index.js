@@ -1,4 +1,4 @@
 export * from './tool'
-export * from './type_check'
-export * from './complier_util'
+export * from './type-check'
+export * from './complier-util'
 export * from './platforms'

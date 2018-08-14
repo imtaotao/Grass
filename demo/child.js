@@ -1,4 +1,5 @@
-import Component from '../src'
+import { Component } from '../src'
+import taotao from './tao'
 
 export default class child extends Component {
   constructor (props) {
@@ -11,20 +12,21 @@ export default class child extends Component {
   }
 
   isShow (e) {
-    this.setState({name: false})
+    // this.setState({name: false})
 
-    setTimeout(() => {
-      this.setState({name: '我是 child 组件'})
-    }, 2000)
+    // setTimeout(() => {
+    //   this.setState({name: '我是 child 组件'})
+    // }, 2000)
   }
 
   template () {
     return `
       <div @click="this.isShow.bind(this)" id='1212' aa="11" :bb="22" :data-test="dt" :attributes="{ id: 121 }">
         {{ name }} -- {{this.props.prop}}
+        <taotao :height="this.props.prop"/>
       </div>
     `
   }
 
-  componnet () { }
+  component () { return {taotao: taotao} }
 }

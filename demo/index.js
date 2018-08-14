@@ -1,4 +1,4 @@
-import Component from '../src'
+import { Component } from '../src'
 import child from './child'
 
 export default class Root extends Component {
@@ -14,7 +14,7 @@ export default class Root extends Component {
   }
 
   c () {
-    this.setState({arr: [true, '2t', '3t'], text: '变化了'})
+    this.setState({arr: [true, 'tt', '3tt'], text: '变化了'})
 
     setTimeout(() => {
       this.setState({arr: [false, '2t', '3t'], text: 'tt的text'})

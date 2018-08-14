@@ -1,6 +1,6 @@
 import * as _ from '../utils'
-import { parseSingleNode, complierChildrenNode } from './index'
-import runExecuteContext from './execution_env'
+import { parseSingleNode } from './index'
+import runExecuteContext from './execution-env'
 
 export default function vfor (node, comp, vnodeConf) {
   if (!node.for || !node.forArgs) return
