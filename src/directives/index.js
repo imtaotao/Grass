@@ -6,8 +6,10 @@ import vfor from './for'
 import vif from './if'
 import show from './show'
 import text from './text'
+import runCustomDirect from './custom-direct'
 import runExecuteContext from './execution-env'
 import { TAG, STATICTAG } from '../ast/parse-template'
+import { haveRegisteredCustomDirect } from '../global-api/constom-directive'
 
 /**
  *  vnodeConf 作为一个创建 vnodeTree 的配置项
@@ -24,7 +26,6 @@ import { TAG, STATICTAG } from '../ast/parse-template'
  *      content ?: string
  *    }
  */
-
 export default function complierAst (ast, comp) {
   const state = comp.state
   const vnodeConf = _.vnodeConf(ast)
@@ -79,13 +80,25 @@ function parseTagNode (node, comp, vnodeConf) {
 function complierDirect (node, comp, vnodeConf) {
   const directs = node.direction
   const nomalDirects = []
-  let currentWeight = null
+  const customDirects = {}
+  let currentWeight = null // 当前保留指令
+  let currentCustomDirect = null  // 当前自定义指令
 
   for (let i = 0; i < directs.length; i++) {
     const direct = directs[i]
     const key = Object.keys(direct)[0]
-    const weight = W.getWeight(key)
 
+    // 添加自定义指令集合
+    if (!W.isReservedDirect(key)) {
+      if (!haveRegisteredCustomDirect(key) || key === currentCustomDirect) {
+        continue
+      }
+      currentCustomDirect = key
+      customDirects[key] = runCustomDirect(direct[key], comp, vnodeConf)
+      continue
+    }
+
+    const weight = W.getWeight(key)
     if (isSameDirect(weight)) continue
 
     currentWeight = weight
@@ -97,6 +110,9 @@ function complierDirect (node, comp, vnodeConf) {
 
     nomalDirects[weight] = direct[key]
   }
+
+  // 指定自定义指令
+  vnodeConf.customDirection = customDirects
 
   // 按照指令的权重进行指令的编译
   // 我们只在 for 指令第一次进入的时候只执行 for 指令，后续复制的 vnodeconf 都需要全部执行
@@ -163,5 +179,7 @@ function executSingleDirect (weight, val, node, comp, vnodeConf) {
       break
     case W.IF :
       return vif(node, val, comp, vnodeConf)
+    default :
+      customDirect(val, comp, vnodeConf)
   }
 }

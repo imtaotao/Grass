@@ -1,7 +1,7 @@
-import { Component } from '../src'
+import Grass from '../src'
 import taotao from './tao'
 
-export default class child extends Component {
+export default class child extends Grass.Component {
   constructor (props) {
     super(props, ['prop'])
     this.state = {
@@ -12,11 +12,11 @@ export default class child extends Component {
   }
 
   isShow (e) {
-    // this.setState({name: false})
+    this.setState({name: false})
 
-    // setTimeout(() => {
-    //   this.setState({name: '我是 child 组件'})
-    // }, 2000)
+    setTimeout(() => {
+      this.setState({name: '我是 child 组件'})
+    }, 2000)
   }
 
   template () {

@@ -91,6 +91,13 @@ export function extend (to, _from) {
   return to
 }
 
+export function isEmptyObj (obj) {
+  for (const val in obj) {
+    return false
+  }
+  return true
+}
+
 export function warn (msg, noError) {
   const errorInfor = `[Grass tip]: ${msg}`
   if (noError) {

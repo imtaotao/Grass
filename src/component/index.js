@@ -28,6 +28,7 @@ export class Component {
     if (this.$cacheState.setStateFlag) {
       this.$cacheState.setStateFlag = false
       Promise.resolve().then(() => {
+        console.time('t')
         if (this.willUpdate(this.state) === false) {
           return
         }
@@ -42,6 +43,7 @@ export class Component {
         this.didUpdate(dom)
         this.$cacheState.vTree = newTree
         this.$cacheState.setStateFlag = true
+        console.timeEnd('t')
       })
     }
   }
@@ -61,7 +63,7 @@ export function mount (rootDOM, compClass) {
 
     comp.createBefore()
     const vTree = createVnode(null, comp)
-    const dom = createElement(vTree)
+    const dom = createElement(comp, vTree)
     
     comp.$cacheState.dom = dom
     comp.$cacheState.vTree = vTree

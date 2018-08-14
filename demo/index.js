@@ -1,7 +1,7 @@
-import { Component } from '../src'
+import Grass from '../src'
 import child from './child'
 
-export default class Root extends Component {
+export default class Root extends Grass.Component {
   constructor () {
     super()
     this.state = {
@@ -24,8 +24,8 @@ export default class Root extends Component {
   template () {
     return `
       <div @click="this.c.bind(this)">
-        {{arr[0]}}
-        <tt v-for="(val, i) of arr" v-if="val" v-text="text" :prop="val"/>
+        <span>{{h}}</span>
+        <tt v-for="(val, i) of arr" v-taotao='1' :prop="val"/>
       </div>
     `
   }

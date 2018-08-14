@@ -1,8 +1,11 @@
-import { Component } from '../src'
+import Grass from '../src'
 
-export default class taotao extends Component {
+export default class taotao extends Grass.Component {
   constructor (props) {
     super(props, ['height'])
+    this.state = {
+      a: 1,
+    }
   }
 
   c () {
@@ -12,7 +15,7 @@ export default class taotao extends Component {
   template () {
     return `
       <div @click="this.c.bind(this)">
-        {{this.props.height}}
+        <span> {{a}} </span>
       </div>
     `
   }

@@ -10,8 +10,8 @@ export default function createVnode (parentConf, comp) {
 
   _.migrateCompStatus(parentConf, vnodeConf)
 
-  return h(vnodeConf.tagName,
-    vnodeConf.attrs, generatorChildren(vnodeConf.children, comp))
+  return _h(vnodeConf.tagName, vnodeConf.attrs,
+    vnodeConf.customDirection, generatorChildren(vnodeConf.children, comp))
 }
 
 function generatorChildren (children, comp) {
@@ -23,18 +23,18 @@ function generatorChildren (children, comp) {
     if (conf.type === TAG) {
       if (!_.isReservedTag(conf)) {
         // 自定义组件
-        vnodeTree.push(createConstomComp(conf, comp))
+        vnodeTree.push(createCustomComp(conf, comp))
         continue
       }
 
       // 递归创建 vnode
       const _children = generatorChildren(conf.children, comp)
-      vnodeTree.push(h(conf.tagName, conf.attrs, _children))
+      vnodeTree.push(_h(conf.tagName, conf.attrs, conf.customDirection, _children))
       continue
     }
 
     // 文本节点直接添加文件就好了，过滤掉换行空格
-    if (String(conf.content).trim()) {
+    if (_.toString(conf.content).trim()) {
       vnodeTree.push(conf.content)
     }
   }
@@ -42,7 +42,7 @@ function generatorChildren (children, comp) {
   return vnodeTree
 }
 
-function createConstomComp (conf, comp) {
+function createCustomComp (conf, comp) {
   const childComp = getChildComp(comp, conf.tagName)
   if (!childComp) {
     _.warn(`Component [${conf.tagName}] is not registered  \n\n  --->  ${comp.name}\n`)
@@ -105,4 +105,16 @@ export function createAst (comp) {
   }
 
   return ast
+}
+
+function _h (tagName, attrs, customDirection, children) {
+  const vnode = h(tagName, attrs, children)
+  // customDirection 设置为只读属性，避免被 vritual-dom 这个库给修改了
+  Object.defineProperty(vnode, 'customDirection', {
+    get () {
+      return customDirection || null
+    }
+  })
+
+  return vnode
 }

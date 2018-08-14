@@ -4,15 +4,18 @@ import isVNode from 'virtual-dom/vnode/is-vnode'
 import isVText from 'virtual-dom/vnode/is-vtext'
 import isWidget from 'virtual-dom/vnode/is-widget'
 import handleThunk from 'virtual-dom/vnode/handle-thunk'
+import { elementCreated } from '../global-api/constom-directive'
 import { warn } from '../utils'
 
-export default function createElement (vnode, opts) {
+export default function createElement (comp, vnode, opts) {
   const doc = opts ? opts.document || document : document
 
   vnode = handleThunk(vnode).a
 
   if (isWidget(vnode)) {
-    return vnode.init()
+    const node = vnode.init()
+    elementCreated(comp, node, vnode.customDirection)
+    return node
   } else if (isVText(vnode)) {
     return doc.createTextNode(vnode.text)
   } else if (!isVNode(vnode)) {
@@ -30,7 +33,7 @@ export default function createElement (vnode, opts) {
   const children = vnode.children
 
   for (let i = 0; i < children.length; i++) {
-    const childNode = createElement(children[i], opts)
+    const childNode = createElement(comp, children[i], opts)
     if (childNode) {
       node.appendChild(childNode)
     }
@@ -40,5 +43,6 @@ export default function createElement (vnode, opts) {
     vnode.renderCompleted(node)
   }
 
+  elementCreated(comp, node, vnode.customDirection)
   return node
 }

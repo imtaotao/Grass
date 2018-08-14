@@ -13,7 +13,7 @@ export default function createCompVnode (compConf, comp) {
     comp.createBefore()
     
     const vTree = createVnode(compConf, comp)
-    const dom = createElement(vTree)
+    const dom = createElement(comp, vTree)
 
     comp.$cacheState.dom = dom
     comp.$cacheState.vTree = vTree
@@ -31,5 +31,13 @@ export default function createCompVnode (compConf, comp) {
     comp.destroy(dom)
   }
 
-  return new ComponentElement
+  const vnode = new ComponentElement
+
+  Object.defineProperty(vnode, 'customDirection', {
+    get () {
+      return compConf.customDirection || null
+    }
+  })
+
+  return vnode
 }
