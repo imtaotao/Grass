@@ -1,23 +1,16 @@
 import * as _ from '../utils'
-import createVnode from './createVnode'
 import createElement from './overrides'
-import { createCompInstance } from './createVnode'
 import { diff, patch } from 'virtual-dom'
+import createVnode, { createCompInstance } from './create-vnode'
 
 export class Component {
   constructor (attrs, requireList) {
-    if (attrs && !_.isPlainObject(attrs)) {
-      _.warn(`Component "props" must be an object(inset error 😁). \n\n ---> ${this.name}`)
-      return
-    }
     this.state = {}
     this.props = _.setProps(attrs, requireList, this.name)
     this.$cacheState  = {
       setStateFlag: true,
     }
   }
-
-  $executeDirect () {}
 
   createBefore () {}
   create () {}
