@@ -28,7 +28,6 @@ export class Component {
     if (this.$cacheState.setStateFlag) {
       this.$cacheState.setStateFlag = false
       Promise.resolve().then(() => {
-        console.time('t')
         if (this.willUpdate(this.state, this.props) === false) {
           return
         }
@@ -43,7 +42,6 @@ export class Component {
         this.didUpdate(dom)
         this.$cacheState.vTree = newTree
         this.$cacheState.setStateFlag = true
-        console.timeEnd('t')
       })
     }
   }

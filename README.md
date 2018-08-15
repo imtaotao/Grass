@@ -89,27 +89,25 @@
     // component 为当前元素所在的组件，所有你可以在此处进行 state 的操作
     // dom 真实的 dom 节点
     // val 指令传入过来的值
-    console.log(component, dom, val) // CM, div, 'Who are you'
+    console.log(component, dom, val) // CM, div, 'true'
 
     dom.onclick = e => {
       component.setState({
-        b: 'I’m taotao',
+        a: !component.state.a,
       })
     }
   })
 
   class CM extends Grass.Component {
     constructor (props) {
-      // 可以选择只接受 height prop
       super(props)
       this.state = {
-        a: 'test',
-        b: 'Who are you',
+        a: true,
       }
     }
 
     template () {
-      return '<div v-taotao="b">{{ this.props.a }}</div>'
+      return '<div v-taotao="a">{{ this.props.a }}</div>'
     }
   }
 
