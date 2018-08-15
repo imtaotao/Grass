@@ -29,7 +29,7 @@ export class Component {
       this.$cacheState.setStateFlag = false
       Promise.resolve().then(() => {
         console.time('t')
-        if (this.willUpdate(this.state) === false) {
+        if (this.willUpdate(this.state, this.props) === false) {
           return
         }
 

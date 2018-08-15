@@ -4,10 +4,10 @@
 ### 现在的用法
 其实在 [demo](./demo/index.js) 中有写例子
 ```js
-  import Component from './src'
+  import Grass from './src'
   import child from 'xx/childComponent'
 
-  class Root extends Component {
+  class Root extends Grass.Component {
     constructor () {
       super()
       this.state = {
@@ -27,11 +27,15 @@
     }
 
     // 更新，return false 会阻止更新，现在还没有对 props 做处理，后续要改 
-    willUpdate (state) {
+    willUpdate (state, props) {
       // ...
     }
 
     didUpdate (dom) {
+      // ...
+    }
+
+    destroy (dom) {
       // ...
     }
 
@@ -66,6 +70,8 @@
       return [child]
     }
   }
+
+  Grass.mount(document.getElementById('root'), Root)
 ```
 
 ### 定义了几个指令
@@ -74,6 +80,56 @@
   + `v-if`
   + `v-show`
   + `v-text`
-  + `v-for`（好像写错了，现在只对当前元素的所有子元素进行复制😓）
+  + `v-for`
+  + 还可以自定义指令
 
-但是，妈个蛋的还有很多问题，很方
+```js
+  // 自定义指令
+  Grass.directive('taotao', (compnent, dom, val) => {
+    // component 为当前元素所在的组件，所有你可以在此处进行 state 的操作
+    // dom 真实的 dom 节点
+    // val 指令传入过来的值
+    console.log(component, dom, val) // CM, div, 'Who are you'
+
+    dom.onclick = e => {
+      component.setState({
+        b: 'I’m taotao',
+      })
+    }
+  })
+
+  class CM extends Grass.Component {
+    constructor (props) {
+      // 可以选择只接受 height prop
+      super(props)
+      this.state = {
+        a: 'test',
+        b: 'Who are you',
+      }
+    }
+
+    template () {
+      return '<div v-taotao="b">{{ this.props.a }}</div>'
+    }
+  }
+
+```
+### 组件之间的通信
+
++ 父级组件可以通过 props 给子组件传递信息
+```js
+  class Child extends Grass.Component {
+    constructor (props) {
+      // 可以选择只接受 height prop
+      super(props, ['height'])
+
+      this.state = {}
+    }
+
+    template () {
+      return '<div>{{ this.props.height }}</div>'
+    }
+  }
+```
+
++ 子组件状态变化通知父组件正在开发中
