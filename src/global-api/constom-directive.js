@@ -18,7 +18,7 @@ export function elementCreated (comp, dom, direaction) {
   for (let i = 0, len = keys.length; i < len; i++) {
     const key = keys[i]
     const val = directContainer[key]
-    val.map(callback => {
+    val.safePipe(callback => {
       callback(comp, dom, direaction[key])
     })
   }

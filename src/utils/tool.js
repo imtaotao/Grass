@@ -102,6 +102,10 @@ export function setOnlyReadAttr (obj, key, val) {
   })
 }
 
+export function isUndef (val) {
+  return val === undefined || val === null
+}
+
 export function warn (msg, noError) {
   const errorInfor = `[Grass tip]: ${msg}`
   if (noError) {

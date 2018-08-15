@@ -1,16 +1,24 @@
+import * as _ from '../utils'
+
 export default class Container {
   constructor (val) {
     this._value = val
   }
 
-  isUndef () {
-    return this._value === undefined || this._value === null
+  pipe (fun) {
+    return Container.of(fun(this._value))
   }
 
-  map (fun) {
-    return this.isUndef()
+  safePipe (fun) {
+    return _.isUndef(this._value)
       ? Container.of(null)
       : Container.of(fun(this._value))
+  }
+
+  maybe (fun) {
+    return fun
+      ? fun(this._value)
+      : this._value
   }
 
   static

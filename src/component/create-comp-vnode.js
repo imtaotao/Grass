@@ -26,11 +26,12 @@ export default function createCompVnode (compConf, comp) {
   }
 
   ComponentElement.prototype.update = function(previous, domNode) {
-    console.log(previous, domNode);
+    console.log('component update', previous, domNode);
   }
 
   ComponentElement.prototype.destroy = function(dom) {
     comp.destroy(dom)
+    comp.$destroy()
   }
 
   const vnode = new ComponentElement

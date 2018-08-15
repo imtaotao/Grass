@@ -19,6 +19,8 @@ export default class Root extends Grass.Component {
     setTimeout(() => {
       this.setState({arr: [false, '2t', '3t'], text: 'tt的text'})
     }, 2000);
+
+    this.done(this.state.h).next(this.state.h)
   }
 
   template () {
