@@ -128,6 +128,23 @@
       return '<div>{{ this.props.height }}</div>'
     }
   }
+
+  class Parent extends Grass.component {
+    constructor (props) {
+      super(props)
+      this.state = {
+        h: '20px',
+      }
+    }
+
+    template () {
+      return '<div><Child :height="h" /></div>'
+    }
+
+    component () {
+      return [Child]
+    }
+  }
 ```
 
 + 子组件状态变化通知父组件正在开发中
