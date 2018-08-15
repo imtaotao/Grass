@@ -5,6 +5,8 @@ import isVText from 'virtual-dom/vnode/is-vtext'
 import isWidget from 'virtual-dom/vnode/is-widget'
 import handleThunk from 'virtual-dom/vnode/handle-thunk'
 import { elementCreated } from '../global-api/constom-directive'
+import * as _ from '../utils'
+import { h } from 'virtual-dom'
 import { warn } from '../utils'
 
 export default function createElement (comp, vnode, opts) {
@@ -45,4 +47,11 @@ export default function createElement (comp, vnode, opts) {
 
   elementCreated(comp, node, vnode.customDirection)
   return node
+}
+
+export function _h (tagName, attrs, customDirection, children) {
+  const vnode = h(tagName, attrs, children)
+  // customDirection 设置为只读属性，避免被 vritual-dom 这个库给修改了
+  _.setOnlyReadAttr(vnode, 'customDirection', customDirection || null)
+  return vnode
 }

@@ -11,6 +11,10 @@ export default class child extends Grass.Component {
     }
   }
 
+  destroy(dom) {
+    // console.log(dom);
+  }
+
   isShow (e) {
     this.setState({name: false})
 
@@ -21,9 +25,8 @@ export default class child extends Grass.Component {
 
   template () {
     return `
-      <div @click="this.isShow.bind(this)" id='1212' aa="11" :bb="22" :data-test="dt" :attributes="{ id: 121 }">
+      <div @click="this.isShow.bind(this)" aa="11" :bb="22" :data-test="dt" :attributes="{ id: 121 }">
         {{ name }} -- {{this.props.prop}}
-        <taotao :height="this.props.prop"/>
       </div>
     `
   }

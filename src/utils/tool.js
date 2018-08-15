@@ -37,9 +37,7 @@ export function each (arr, cb) {
   if (Array.isArray(arr) || arr.length) {
     const length = arr.length
     for (; i < length; i++) {
-      if (cb(arr[i], i) === false) {
-        return
-      }
+      if (cb(arr[i], i) === false) return
     }
     return
   }
@@ -96,6 +94,12 @@ export function isEmptyObj (obj) {
     return false
   }
   return true
+}
+
+export function setOnlyReadAttr (obj, key, val) {
+  Object.defineProperty(obj, key, {
+    get () { return val }
+  })
 }
 
 export function warn (msg, noError) {

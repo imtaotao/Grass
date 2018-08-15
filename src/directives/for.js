@@ -23,17 +23,16 @@ export default function vfor (node, comp, vnodeConf) {
         } else {
           $obj_['${args.key}'] = $container_[$index_];
         }
-
         $callback_($index_);
       }
     }
   `
 
-  runExecuteContext(code, comp, (i) => {
+  runExecuteContext(code, 'for', vnodeConf.tagName, comp, function vforCallback (i) {
     const cloneNode = _.vnodeConf(node, vnodeConf.parent)
     cloneNode.attrs['key'] = i
 
-    // 我们要避免无限递归的进入 for 指令
+    // // 我们要避免无限递归的进入 for 指令
     node.for = false
 
     cloneNodes[i] = parseSingleNode(node, comp, cloneNode) === false

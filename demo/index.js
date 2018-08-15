@@ -24,8 +24,8 @@ export default class Root extends Grass.Component {
   template () {
     return `
       <div @click="this.c.bind(this)">
-        <span>{{h}}</span>
-        <tt v-for="(val, i) of arr" v-taotao='1' :prop="val"/>
+        <span v-for="val of arr" v-taotao="val">{{val}}</span>
+        <!-- <tt v-for="(val, i) of arr" v-taotao='h' :prop="h"/> -->
       </div>
     `
   }

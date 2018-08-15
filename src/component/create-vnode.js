@@ -1,5 +1,5 @@
 import * as _ from '../utils'
-import { h } from 'virtual-dom'
+import { _h } from './overrides'
 import { TAG } from '../ast/parse-template'
 import { parseTemplate } from '../ast/parse-template'
 import complierAst from '../directives'
@@ -21,7 +21,7 @@ function generatorChildren (children, comp) {
     if (!children[i]) continue
     const conf = children[i]
     if (conf.type === TAG) {
-      if (!_.isReservedTag(conf)) {
+      if (!_.isReservedTag(conf.tagName)) {
         // 自定义组件
         vnodeTree.push(createCustomComp(conf, comp))
         continue
@@ -34,8 +34,9 @@ function generatorChildren (children, comp) {
     }
 
     // 文本节点直接添加文件就好了，过滤掉换行空格
-    if (_.toString(conf.content).trim()) {
-      vnodeTree.push(conf.content)
+    const content = _.toString(conf.content)
+    if (content.trim()) {
+      vnodeTree.push(content)
     }
   }
 
@@ -105,16 +106,4 @@ export function createAst (comp) {
   }
 
   return ast
-}
-
-function _h (tagName, attrs, customDirection, children) {
-  const vnode = h(tagName, attrs, children)
-  // customDirection 设置为只读属性，避免被 vritual-dom 这个库给修改了
-  Object.defineProperty(vnode, 'customDirection', {
-    get () {
-      return customDirection || null
-    }
-  })
-
-  return vnode
 }

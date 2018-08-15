@@ -30,7 +30,3 @@ export function isPrimitive (value) {
     typeof value === 'boolean'
   )
 }
-
-export function log (...args) {
-  console.log(...args)
-}

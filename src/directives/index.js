@@ -27,7 +27,7 @@ import { haveRegisteredCustomDirect } from '../global-api/constom-directive'
  *    }
  */
 export default function complierAst (ast, comp) {
-  const state = comp.state
+  const state = comp.state;
   const vnodeConf = _.vnodeConf(ast)
   vnodeConf.props = Object.create(null)
 
@@ -39,7 +39,7 @@ export default function complierAst (ast, comp) {
   }
 
   parseSingleNode(ast, comp, vnodeConf)
-  
+
   return vnodeConf
 }
 
@@ -94,7 +94,9 @@ function complierDirect (node, comp, vnodeConf) {
         continue
       }
       currentCustomDirect = key
-      customDirects[key] = runCustomDirect(direct[key], comp, vnodeConf)
+      customDirects[key] = function delay () {
+        customDirects[key] = runCustomDirect(key, vnodeConf.tagName, direct[key], comp, vnodeConf)
+      }
       continue
     }
 
@@ -124,6 +126,9 @@ function complierDirect (node, comp, vnodeConf) {
     if (node.for) return
     if (execResult === false) return false
   }
+
+  // 在所有保留指令执行过后再执行自定义指令
+  _.each(customDirects, val => val())
 
   function addMultipleDirect (direct, weight, key) {
     const detail = {
@@ -157,7 +162,7 @@ function parseStaticNode (node, comp, vnodeConf) {
       return ${node.expression};
     }
   `
-  vnodeConf.content = runExecuteContext(code, comp)
+  vnodeConf.content = runExecuteContext(code, 'Text expression("{{}}")', vnodeConf.tagName, comp)
 }
 
 function executSingleDirect (weight, val, node, comp, vnodeConf) {
@@ -169,7 +174,7 @@ function executSingleDirect (weight, val, node, comp, vnodeConf) {
       vfor(node, comp, vnodeConf)
       break
     case W.ON :
-      vevent(node, val, comp, vnodeConf)
+      vevent(val, comp, vnodeConf)
       break
     case W.TEXT :
       text(val, comp, vnodeConf)

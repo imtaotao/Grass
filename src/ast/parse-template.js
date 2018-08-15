@@ -118,7 +118,7 @@ export function parseTemplate (html, compName) {
         const textNode = createStaticNode(text, scope)
         advance(text.length)
         textNode.end = index
-        
+
         if (scope === null) {
           _.warn(`Component can only have one root node \n\n  --->  ${compName}\n`)
         }
@@ -256,8 +256,6 @@ export function parseTemplate (html, compName) {
     return {
       type: TAG,
       tagName,
-      isHTMLTag: _.isHTMLTag(tagName),
-      isSvgTag: _.isSVG(tagName),
       bindState: [],
       children: [],
       attrs: {},

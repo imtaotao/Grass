@@ -2,11 +2,15 @@ import Grass from './src'
 import Root from './demo'
 
 Grass.directive('taotao', (component, dom, val) => {
-  console.log(component, dom, val);
+  console.log(val);
+  // dom.onclick = e => {
+  //   component.setState({h: 121})
+  // }
+  // console.log(component, dom, val);
 })
 
 Grass.directive('tt', (component, dom, val) => {
-  console.log(component, dom, val);
+  // console.log(component, dom, val);
 })
 
 console.time('t')

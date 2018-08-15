@@ -20,7 +20,7 @@ export class Component {
 
   setState (newState) {
     if (typeof newState === 'function') {
-      newState = state(this.state)
+      newState = newState(this.state)
     }
 
     this.state = Object.assign({}, this.state, newState)
@@ -61,8 +61,9 @@ export function mount (rootDOM, compClass) {
 
     comp.createBefore()
     const vTree = createVnode(null, comp)
+    window.d = vTree.children
     const dom = createElement(comp, vTree)
-    
+
     comp.$cacheState.dom = dom
     comp.$cacheState.vTree = vTree
 

@@ -1,7 +1,8 @@
 import runExecuteContext from './execution-env'
+import * as _ from '../utils'
 
-export default function vevent (node, events, comp, vnodeConf) {
-  if (node.isHTMLTag || node.isSvgTag) {
+export default function vevent (events, comp, vnodeConf) {
+  if (_.isReservedTag(vnodeConf.tagName)) {
     for (const event of events) {
       const name = event.attrName
       const code = `
@@ -9,7 +10,8 @@ export default function vevent (node, events, comp, vnodeConf) {
           return ${event.value};
         }
       `
-      vnodeConf.attrs['on' + name] = runExecuteContext(code, comp)
+
+      vnodeConf.attrs['on' + name] = runExecuteContext(code, 'on', vnodeConf.tagName, comp)
     }
   }
 }

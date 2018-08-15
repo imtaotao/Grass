@@ -1,15 +1,11 @@
 import * as _ from '../utils'
 
-export default function runExecuteContext (runCode, comp, callback) {
-  const fun = new Function('$obj_', '$callback_', runCode)
-
-  return run(fun, comp, callback)
-}
-
-function run (fun, comp, callback) {
+export default function runExecuteContext (runCode, directName, tagName, comp, callback) {
   try {
+    const fun = new Function('$obj_', '$callback_', runCode)
     return fun.call(comp, comp.state || {}, callback)
   } catch (error) {
-    _.warn(`Component template compilation error  \n\n   ${error}\n\n  --->  ${comp.name}\n`)
+    _.warn(`Component directive compilation error  \n\n  "v-${directName}":  ${error}\n\n
+      --->  ${comp.name}: <${tagName || ''}/>\n`)
   }
 }

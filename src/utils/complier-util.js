@@ -1,5 +1,5 @@
 import bind from '../directives/bind'
-import { warn, hasOwn } from './tool'
+import { warn, hasOwn, toString } from './tool'
 import { TAG, TEXT } from '../ast/parse-template'
 import { isNumber, isObject, isPlainObject, isPrimitive } from './type-check'
 
@@ -166,10 +166,15 @@ export function modifyOrdinayAttrAsLibAttr (node) {
     const key = keys[i]
     if (isFilter(key)) continue
     attrs[keyWord][key] = attrs[key]
+
+    if (key !== keyWord) {
+      attrs[key] = undefined
+    }
   }
 
-  if (originAttr)
+  if (originAttr) {
     attrs[keyWord][keyWord] = originAttr
+  }
 }
 
 export function migrateCompStatus (outputNode, acceptNode) {
@@ -177,7 +182,9 @@ export function migrateCompStatus (outputNode, acceptNode) {
   // 我们需要迁移的数据 vTextResult、vShowResult
   if (hasOwn(outputNode, 'vTextResult')) {
     const res = outputNode['vTextResult']
-    acceptNode.children.unshift(vText(res, acceptNode))
+    acceptNode.children.unshift(
+      vText(toString(res), acceptNode)
+    )
   }
 
   if (hasOwn(outputNode, 'vShowResult')) {
