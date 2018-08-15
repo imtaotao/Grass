@@ -1,5 +1,5 @@
 import runExecuteContext from './execution-env'
-import * as _ from '../utils'
+import * as _ from '../utils/index'
 
 export default function vevent (events, comp, vnodeConf) {
   if (_.isReservedTag(vnodeConf.tagName)) {

@@ -1,4 +1,4 @@
-import * as _ from '../utils'
+import * as _ from '../utils/index'
 import { parseSingleNode } from './index'
 import runExecuteContext from './execution-env'
 

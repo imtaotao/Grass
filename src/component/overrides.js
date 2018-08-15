@@ -5,9 +5,8 @@ import isVText from 'virtual-dom/vnode/is-vtext'
 import isWidget from 'virtual-dom/vnode/is-widget'
 import handleThunk from 'virtual-dom/vnode/handle-thunk'
 import { elementCreated } from '../global-api/constom-directive'
-import * as _ from '../utils'
+import * as _ from '../utils/index'
 import { h } from 'virtual-dom'
-import { warn } from '../utils'
 
 export default function createElement (comp, vnode, opts) {
   const doc = opts ? opts.document || document : document
@@ -21,7 +20,7 @@ export default function createElement (comp, vnode, opts) {
   } else if (isVText(vnode)) {
     return doc.createTextNode(vnode.text)
   } else if (!isVNode(vnode)) {
-    warn('Item is not a valid virtual dom node')
+    _.warn('Item is not a valid virtual dom node')
     return null
   }
 

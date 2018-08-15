@@ -1,4 +1,4 @@
-import * as _ from '../utils'
+import * as _ from '../utils/index'
 
 // 匹配属性名
 const attribute = /^\s*([^\s"'<>\/=]+)(?:\s*(=)\s*(?:"([^"]*)"+|'([^']*)'+|([^\s"'=<>`]+)))?/

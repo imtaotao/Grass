@@ -1,5 +1,5 @@
 import runExecuteContext from './execution-env'
-import * as _ from '../utils'
+import * as _ from '../utils/index'
 
 export default function text (val, comp, vnodeConf) {
   const code = `with($obj_) { return ${val}; }`

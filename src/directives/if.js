@@ -1,4 +1,4 @@
-import * as _ from '../utils'
+import * as _ from '../utils/index'
 import runExecuteContext from './execution-env'
 
 export default function vif (node, val, comp, vnodeConf) {

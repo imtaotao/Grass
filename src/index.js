@@ -1,5 +1,5 @@
-import { Component, mount } from './component'
-import initGlobalAPI from './global-api'
+import { Component, mount } from './component/index'
+import initGlobalAPI from './global-api/index'
 
 const Grass = {
   Component,

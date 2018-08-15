@@ -1,5 +1,5 @@
 import * as W from './weight'
-import * as _ from '../utils'
+import * as _ from '../utils/index'
 import bind from './bind'
 import vevent from './event'
 import vfor from './for'

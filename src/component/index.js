@@ -1,4 +1,4 @@
-import * as _ from '../utils'
+import * as _ from '../utils/index'
 import createElement from './overrides'
 import { diff, patch } from 'virtual-dom'
 import createVnode, { createCompInstance } from './create-vnode'

@@ -4,11 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dist": "cross-env NODE_ENV=production webpack",
-    "remove": "sudo rm -r -f dist",
     "dev": "cross-env NODE_ENV=development webpack-dev-server",
-    "test:node-arg": "node ./npm-cmd-test.js --tt",
-    "test:node-env": "cross-env NODE_ENV=production node ./npm-cmd-test.js --tt"
+    "build": "node build.js"
   },
   "author": "chentao",
   "license": "ISC",
@@ -23,6 +20,9 @@
     "extract-text-webpack-plugin": "^3.0.2",
     "html-webpack-plugin": "^2.30.1",
     "postcss-loader": "^2.1.0",
+    "rollup": "^0.64.1",
+    "rollup-plugin-babel": "^3.0.7",
+    "rollup-plugin-cleanup": "^3.0.0",
     "style-loader": "^0.19.0",
     "uglifyjs-webpack-plugin": "^1.1.2",
     "webpack": "^3.10.0",

@@ -1,4 +1,4 @@
-import * as _ from '../utils'
+import * as _ from '../utils/index'
 
 export default function runExecuteContext (runCode, directName, tagName, comp, callback) {
   try {

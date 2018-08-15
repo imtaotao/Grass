@@ -1,8 +1,8 @@
-import * as _ from '../utils'
+import * as _ from '../utils/index'
 import { _h } from './overrides'
 import { TAG } from '../ast/parse-template'
 import { parseTemplate } from '../ast/parse-template'
-import complierAst from '../directives'
+import complierAst from '../directives/index'
 import createCompVnode from './create-comp-vnode'
 
 export default function createVnode (parentConf, comp) {

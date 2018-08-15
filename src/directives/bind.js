@@ -1,5 +1,6 @@
 import runExecuteContext from './execution-env'
-import * as _ from '../utils'
+import * as _ from '../utils/index'
+
 const styleString = /\{[^\}]*\}/
 
 export default function bind (props, comp, vnodeConf) {

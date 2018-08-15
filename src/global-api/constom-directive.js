@@ -1,4 +1,4 @@
-import * as _ from '../utils'
+import * as _ from '../utils/index'
 import Direct from './container'
 
 const directContainer = Object.create(null)

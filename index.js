@@ -1,8 +1,9 @@
+import './forscope-test'
 import Grass from './src'
 import Root from './demo'
 
 Grass.directive('taotao', (component, dom, val) => {
-  console.log(val);
+  // console.log(val);
   // dom.onclick = e => {
   //   component.setState({h: 121})
   // }
