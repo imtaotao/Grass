@@ -36,8 +36,22 @@ export default class BaseObserver {
     }
   }
 
-  remove () {
-    this.commonFuns = []
-    this.onceFuns = []
+  remove (fun) {
+    if (!fun || typeof fun !== 'function') {
+      this.commonFuns = []
+      this.onceFuns = []
+    }
+
+    removeFun(this.commonFuns, fun)
+    removeFun(this.onceFuns, fun)
+  }
+}
+
+function removeFun (arr, fun){
+  let index
+  let breakIndex = 0
+  while (~(index = arr.indexOf(fun, breakIndex))) {
+    arr.splice(index, 1)
+    breakIndex = index
   }
 }

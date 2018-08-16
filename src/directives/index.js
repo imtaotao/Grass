@@ -6,6 +6,7 @@ import vfor from './for'
 import vif from './if'
 import show from './show'
 import text from './text'
+import scope from './scope'
 import runCustomDirect from './custom-direct'
 import runExecuteContext from './execution-env'
 import { TAG, STATICTAG } from '../ast/parse-template'
@@ -16,16 +17,8 @@ import { haveRegisteredCustomDirect } from '../global-api/constom-directive'
  *  避免每次 diff 创建 vnode 都需要对整个 ast 进行复制编译
  *  因为现在没有办法做到针对单个指令进行编译
  *  所以我们只能尽量降低每次编译指令时的开销
- *  ：
- *    {
- *      type: TAG | TEXT | STATICTAG
- *      parent: vnode
- *      tagName ?: string
- *      attrs ?: array
- *      children ?: array
- *      content ?: string
- *    }
  */
+
 export default function complierAst (ast, comp) {
   const state = comp.state;
   const vnodeConf = _.vnodeConf(ast)
@@ -40,6 +33,8 @@ export default function complierAst (ast, comp) {
 
   parseSingleNode(ast, comp, vnodeConf)
 
+  // 每个组件编译完成，都要 reset 作用域
+  scope.resetScope()
   return vnodeConf
 }
 

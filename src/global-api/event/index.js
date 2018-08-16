@@ -1,12 +1,14 @@
 import baseObserver from './base'
 
 export default function extendEvent (compClass) {
-  if (!compClass || hasExpanded(compClass)) return
+  if (!compClass || hasExpanded(compClass)) {
+    return compClass
+  }
 
   let isDone = false
-  const nextOB = new baseObserver
-  const doneOB = new baseObserver
-  const errorOB = new baseObserver
+  let nextOB = new baseObserver
+  let doneOB = new baseObserver
+  let errorOB = new baseObserver
 
   compClass.on = function on (callback) {
     if (typeof callback === 'function') {
@@ -48,25 +50,28 @@ export default function extendEvent (compClass) {
     if (!isDone) {
       doneOB.emit(val)
       isDone = true
+      remove()
     }
-    return this
   }
 
   compClass.prototype.error = function _error (reason) {
     if (!isDone) {
       errorOB.emit(creataError(reason))
       isDone = true
+      remove()
     }
-    return this
   }
 
-  compClass.$destroy = compClass.prototype.$destroy = function $destroy () {
-    console.log('event destroy');
-    down = false
-    nextOB.remove()
-    doneOB.remove()
-    errorOB.remove()
+  compClass.remove = compClass.prototype.remove = remove
+
+  function remove (fun) {
+    nextOB.remove(fun)
+    doneOB.remove(fun)
+    errorOB.remove(fun)
   }
+
+
+  return compClass
 }
 
 function hasExpanded (compClass) {

@@ -1,35 +1,22 @@
-const scope = {
-  $parent: {}
-}
-let current = scope
+let scope = null
+let chain = [scope]
 
 function create () {
-  const _c = {
-    $parent: current,
-  }
-  current._c = _c
-  current = _c
+  scope = Object.create(scope)
+  chain.push(scope)
+  return scope
 }
 
 function add (key, val) {
-  current[key] = val
-}
-
-function get (key, scope) {
-  if (!scope) throw 'no'
-  if (scope.hasOwnProperty(key)) {
-    return scope[key]
+  if (typeof key !== 'string') {
+    throw 'xxx error'
   }
-
-  return get(key, scope.$parent)
+  scope[key] = val
 }
 
-console.log(scope, current);
+function destroy () {
+  chain.pop()
+  scope = chain[chain.length - 1]
+  return scope
+}
 
-create()
-add('a', 1)
-create()
-add('b', 2)
-console.log(get('c', current));
-
-console.log(scope, current);

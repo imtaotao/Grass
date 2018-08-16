@@ -31,7 +31,6 @@ export default function createCompVnode (compConf, comp) {
 
   ComponentElement.prototype.destroy = function(dom) {
     comp.destroy(dom)
-    comp.$destroy()
   }
 
   const vnode = new ComponentElement

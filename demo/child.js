@@ -27,9 +27,10 @@ export default class child extends Grass.Component {
     return `
       <div @click="this.isShow.bind(this)" aa="11" :bb="22" :data-test="dt" :attributes="{ id: 121 }">
         {{ name }} -- {{this.props.prop}}
+        <taotao :txt='dt'/>
       </div>
     `
   }
 
-  component () { return {taotao: taotao} }
+  component () { return [taotao] }
 }

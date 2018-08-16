@@ -54,6 +54,19 @@ export function each (arr, cb) {
   }
 }
 
+export function unique (arr) {
+  const res = []
+  for(let i = 0, len = arr.length; i < len; i++) {
+    for(let j = i + 1; j < len; j++) {
+      if (arr[i] === arr[j]) {
+        j = ++i
+      }
+    }
+    res.push(arr[i])
+  }
+  return res
+}
+
 const hasOwnProperty = Object.prototype.hasOwnProperty
 export function hasOwn (obj, key) {
   return hasOwnProperty.call(obj, key)

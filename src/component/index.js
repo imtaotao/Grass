@@ -5,7 +5,7 @@ import createVnode, { createCompInstance } from './create-vnode'
 
 export class Component {
   constructor (attrs, requireList) {
-    this.state = {}
+    this.state = Object.create(null)
     this.props = _.setProps(attrs, requireList, this.name)
     this.$cacheState  = {
       setStateFlag: true,
@@ -43,6 +43,12 @@ export class Component {
         this.$cacheState.vTree = newTree
         this.$cacheState.setStateFlag = true
       })
+    }
+  }
+
+  createState (data) {
+    if (_.isPlainObject(data)) {
+      this.state = Object.setPrototypeOf(data, null)
     }
   }
 

@@ -1,4 +1,5 @@
 import * as _ from '../utils/index'
+import scope from './scope'
 import { parseSingleNode } from './index'
 import runExecuteContext from './execution-env'
 
@@ -10,35 +11,37 @@ export default function vfor (node, comp, vnodeConf) {
   }
 
   const cloneNodes = []
-  const args = node.forArgs
-  const code = `
-    var $isMultiple_ = ${args.isMultiple};
+  const { data, key, isMultiple } = node.forArgs
 
+  const code = `
     with($obj_) {
-      var $container_ = ${args.data};
-      for (var $index_ = 0; $index_ < $container_.length; $index_++) {
-        if ($isMultiple_) {
-          $obj_['${args.key[0]}'] = $container_[$index_];
-          $obj_['${args.key[1]}'] = $index_;
+      for (var $index_ = 0; $index_ < ${data}.length; $index_++) {
+        if (${isMultiple}) {
+          $scope_.add('${key[0]}', ${data}[$index_]);
+          $scope_.add('${key[1]}', $index_);
         } else {
-          $obj_['${args.key}'] = $container_[$index_];
+          $scope_.add('${key}', ${data}[$index_]);
         }
+
         $callback_($index_);
       }
     }
   `
-
-  runExecuteContext(code, 'for', vnodeConf.tagName, comp, function vforCallback (i) {
+  function vforCallback (i) {
     const cloneNode = _.vnodeConf(node, vnodeConf.parent)
     cloneNode.attrs['key'] = i
 
-    // // 我们要避免无限递归的进入 for 指令
+    // 我们要避免无限递归的进入 for 指令
     node.for = false
 
     cloneNodes[i] = parseSingleNode(node, comp, cloneNode) === false
         ? null
         : cloneNode
-  })
+  }
+
+  scope.create()
+  runExecuteContext(code, 'for', vnodeConf.tagName, comp, vforCallback)
+  // scope.destroy()
 
   const index = serachIndex(vnodeConf)
   replaceWithLoopRes(vnodeConf, cloneNodes, index)

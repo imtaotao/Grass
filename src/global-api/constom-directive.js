@@ -5,6 +5,7 @@ const directContainer = Object.create(null)
 
 export function customDirective (direct, callback) {
   directContainer['v-' + direct] = Direct.of(callback)
+  return this
 }
 
 export function haveRegisteredCustomDirect (key) {
