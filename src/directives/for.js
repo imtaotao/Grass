@@ -41,7 +41,7 @@ export default function vfor (node, comp, vnodeConf) {
 
   scope.create()
   runExecuteContext(code, 'for', vnodeConf.tagName, comp, vforCallback)
-  // scope.destroy()
+  scope.destroy()
 
   const index = serachIndex(vnodeConf)
   replaceWithLoopRes(vnodeConf, cloneNodes, index)
