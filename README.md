@@ -212,6 +212,15 @@ Grass.event(comp) // error
 ```
 
 ### 全局 API
+#### Grass.Component
+用于创建一个有状态的组件
+
+#### Grass.mount
+用于把根组件挂载到指定的元素上
+```js
+  Grass.mount(document.getElementById('root'), Root)
+```
+
 #### Grass.directive
 用于注册自定义指令
 ```js

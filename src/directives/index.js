@@ -159,7 +159,7 @@ function parseStaticNode (node, comp, vnodeConf) {
       return ${node.expression};
     }
   `
-  vnodeConf.content = runExecuteContext(code, 'Text expression("{{}}")', vnodeConf.tagName, comp)
+  vnodeConf.content = runExecuteContext(code, '{{ }}', vnodeConf.parent.tagName, comp)
 }
 
 function executSingleDirect (weight, val, node, comp, vnodeConf) {
