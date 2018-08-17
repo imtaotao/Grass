@@ -1,12 +1,12 @@
 import * as _ from '../utils/index'
 import { _h } from './overrides'
 import { TAG } from '../ast/parse-template'
-import { parseTemplate } from '../ast/parse-template'
+import { createCompInstance } from './create-instance'
 import complierAst from '../directives/index'
 import createCompVnode from './create-comp-vnode'
 
-export default function createVnode (parentConf, comp) {
-  const vnodeConf = complierAst(comp.constructor.$ast, comp)
+export default function createVnode (parentConf, ast, comp) {
+  const vnodeConf = complierAst(ast, comp)
 
   _.migrateCompStatus(parentConf, vnodeConf)
 
@@ -43,40 +43,29 @@ function generatorChildren (children, comp) {
   return vnodeTree
 }
 
-function createCustomComp (conf, comp) {
-  const childComp = getChildComp(comp, conf.tagName)
-  if (!childComp) {
+function createCustomComp (parentConf, comp) {
+  const childComp = getChildComp(comp, parentConf.tagName)
+  if (typeof childComp !== 'function') {
     _.warn(`Component [${conf.tagName}] is not registered  \n\n  --->  ${comp.name}\n`)
     return
   }
 
-  const childCompInstance = createCompInstance(childComp, conf, comp)
-  return createCompVnode(conf, childCompInstance)
+  const childCompInstance = createCompInstance(childComp, parentConf, comp)
+  return createCompVnode(parentConf, childCompInstance)
 }
 
-export function createCompInstance (comConstructor, parentConf, parentComp) {
-  const comp = new comConstructor(parentConf.attrs)
-  // 避免组件自己引用自己
-  if (comp.prototype === Object.getPrototypeOf(parentComp)) {
-    _.warn(`Component can not refer to themselves  \n\n  --->  ${parentComp.name}\n`)
-    return
-  }
-  if (!comp.constructor.$ast) {
-    comp.constructor.$ast = createAst(comp)
-  }
-
-  return comp
-}
-
+// 拿到子组件
 function getChildComp (parentComp, tagName) {
   if (!parentComp.component) return null
 
   let childComps = parentComp.component
+
   if (typeof childComps === 'function') {
     childComps = childComps()
   }
-  if (_.isPlainObject(childComps))
+  if (_.isPlainObject(childComps)) {
     return childComps[tagName]
+  }
 
   if (Array.isArray(childComps)) {
     for (let i = 0; i < childComps.length; i++) {
@@ -87,23 +76,4 @@ function getChildComp (parentComp, tagName) {
   }
 
   return null
-}
-
-export function createAst (comp) {
-  let template = comp.template
-  let ast
-  if (typeof template === 'function')
-    template = template()
-
-  if (!_.isString(template)) {
-    _.warn(error(`Component template must a "string" or "function", But now is "${typeof template}"
-      \n\n  --->  ${comp.name}\n`))
-    return
-  }
-  if (!(ast = parseTemplate(template.trim(), comp.name))) {
-    _.warn(`No string template available  \n\n  --->  ${comp.name}`)
-    return
-  }
-
-  return ast
 }

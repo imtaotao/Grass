@@ -20,16 +20,18 @@ import { haveRegisteredCustomDirect } from '../global-api/constom-directive'
  */
 
 export default function complierAst (ast, comp) {
-  const state = comp.state;
+  if (!comp.noStateComp) {
+    const state = comp.state
+    if (_.isFunction(state)) {
+      const res = state()
+      _.isPlainObject(res)
+        ? comp.state = res
+        : _.warn(`Component "state" must be a "Object"  \n\n  ---> ${comp.name}\n`)
+    }
+  }
+
   const vnodeConf = _.vnodeConf(ast)
   vnodeConf.props = Object.create(null)
-
-  if (_.isFunction(state)) {
-    const res = state()
-    _.isPlainObject(res)
-      ? comp.state = res
-      : _.warn(`Component "state" must be a "Object"  \n\n  ---> ${comp.name}\n`)
-  }
 
   parseSingleNode(ast, comp, vnodeConf)
 

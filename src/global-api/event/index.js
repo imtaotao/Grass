@@ -1,6 +1,11 @@
 import baseObserver from './base'
+import * as _ from '../../utils/index'
 
 export default function extendEvent (compClass) {
+  if (!_.isClass(compClass)) {
+    _.warn(`Cannot create observers for stateless components\n\n  ---> ${compClass.name}\n`)
+    return
+  }
   if (!compClass || hasExpanded(compClass)) {
     return compClass
   }

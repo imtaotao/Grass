@@ -30,3 +30,13 @@ export function isPrimitive (value) {
     typeof value === 'boolean'
   )
 }
+
+export function isGeneratorFunction (fun) {
+  const constructor = fun.constructor
+  if (!constructor) return false
+  if (constructor.name === 'GeneratorFunction' || constructor.displayName === 'GeneratorFunction') {
+    return true
+  }
+  const prototype = constructor.prototype
+  return typeof prototype.next === 'function' && typeof prototype.throw === 'function'
+}

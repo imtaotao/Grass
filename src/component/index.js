@@ -1,7 +1,8 @@
 import * as _ from '../utils/index'
-import createElement from './overrides'
 import { diff, patch } from 'virtual-dom'
-import createVnode, { createCompInstance } from './create-vnode'
+import { createRealDom } from './create-comp-vnode'
+import createVnode from './create-vnode'
+import { createCompInstance } from './create-instance'
 
 export class Component {
   constructor (attrs, requireList) {
@@ -31,10 +32,10 @@ export class Component {
         if (this.willUpdate(this.state, this.props) === false) {
           return
         }
-
+        const ast = this.constructor.$ast
         const dom = this.$cacheState.dom
         const oldTree = this.$cacheState.vTree
-        const newTree = createVnode(null, this)
+        const newTree = createVnode(null, ast, this)
         const patchs = diff(oldTree, newTree)
 
         patch(dom, patchs)
@@ -58,25 +59,11 @@ export class Component {
 }
 
 export function mount (rootDOM, compClass) {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     const comp = createCompInstance(compClass, {}, {})
-    if (!(comp instanceof Component)) {
-      reject('[Grass tip]: The second parameter must be a component')
-      return
-    }
-
-    comp.createBefore()
-    const vTree = createVnode(null, comp)
-    window.d = vTree.children
-    const dom = createElement(comp, vTree)
-
-    comp.$cacheState.dom = dom
-    comp.$cacheState.vTree = vTree
+    const dom = createRealDom(null, comp)
 
     rootDOM.appendChild(dom)
-
-    comp.create(dom)
-
     resolve(dom)
   })
 }

@@ -1,6 +1,10 @@
 import Grass from '../src'
 import child from './child'
 
+function test (props) {
+  return '<div>{{t}}</div>'
+}
+
 export default class Root extends Grass.Component {
   constructor () {
     super()
@@ -27,6 +31,7 @@ export default class Root extends Grass.Component {
   template () {
     return `
     <div @click="this.c.bind(this)">
+      <test :t="text" />
       <span v-for="val of arr" v-taotao="val"> - {{val}}</span>
       <tt v-for="(val, i) of arr" v-taotao='h' :prop="val"/>
     </div>
@@ -35,7 +40,8 @@ export default class Root extends Grass.Component {
 
   component () {
     return {
-      tt: child
+      tt: child,
+      test: test,
     }
   }
 }

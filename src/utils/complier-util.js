@@ -1,7 +1,7 @@
 import bind from '../directives/bind'
-import { warn, hasOwn, toString } from './tool'
+import { warn, hasOwn, toString, isEmptyObj } from './tool'
 import { TAG, TEXT } from '../ast/parse-template'
-import { isNumber, isObject, isPlainObject, isPrimitive } from './type-check'
+import { isNumber, isObject, isPlainObject, isPrimitive, isGeneratorFunction } from './type-check'
 
 export function cached (fn) {
   const cache = Object.create(null)
@@ -228,4 +228,30 @@ export function setProps (attrs, requireList, compName) {
   }
 
   return props
+}
+
+// 判断一个 function 应该是以怎样的行为进行调用
+// 箭头函数 与 async 没有 prototype
+// class 语法在原型上添加的属性不可被遍历
+// constructor 属性不可被遍历
+export function isClass (fun) {
+  const proto = fun.prototype
+  if (!proto || isGeneratorFunction(fun)) {
+    return false
+  }
+
+  if (isEmptyObj(proto)) {
+    const constructor = proto.constructor
+    if (constructor && constructor === fun) {
+      const descriptors = Object.getOwnPropertyDescriptors(proto)
+      return Object.keys(descriptors).length > 1
+        ? true
+        : false
+    }
+
+    // 如果没有 constructor，或者 constructor 被修改过
+    // 我们认为这个 function 是有可能会被当成 class 来使用
+    return true
+  }
+  return true
 }

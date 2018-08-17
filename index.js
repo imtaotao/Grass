@@ -1,4 +1,3 @@
-import './forscope-test'
 import Grass from './src'
 import Root from './demo'
 
