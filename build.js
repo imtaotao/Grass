@@ -1,6 +1,7 @@
 const rollup = require('rollup')
 const babel = require('rollup-plugin-babel')
 const cleanup = require('rollup-plugin-cleanup')
+const resolve = require('rollup-plugin-node-resolve')
 
 const esm = {
   input: 'src/index.js',
@@ -15,7 +16,7 @@ const umd = {
   output: {
     file: 'dist/grass.min.js',
     format: 'umd',
-    name: 'Promise',
+    name: 'Grass',
   }
 }
 
@@ -31,7 +32,8 @@ async function build (cfg) {
   const bundle = await rollup.rollup({
     input: cfg.input,
     plugins: [
-      cleanup(),
+      // cleanup(),
+      resolve(),
       babel({
         include: 'node_modules/virtual-dom',
         presets: ['es2015-rollup'],
