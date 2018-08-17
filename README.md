@@ -203,9 +203,7 @@ export function comp (props) {
 
 ```js
 export function comp (props) {
-  // props => { a: 1 }
-  // 我们不需要手写 props.a，此时的语法与状态组件的 state 一样
-  return '<div>{{ a }}</div>'
+  return '<div></div>'
 }
 
 Grass.event(comp) // error
