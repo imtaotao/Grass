@@ -2,6 +2,7 @@ const rollup = require('rollup')
 const babel = require('rollup-plugin-babel')
 const cleanup = require('rollup-plugin-cleanup')
 const resolve = require('rollup-plugin-node-resolve')
+const cmd = require('rollup-plugin-commonjs')
 
 const esm = {
   input: 'src/index.js',
@@ -33,11 +34,12 @@ async function build (cfg) {
     input: cfg.input,
     plugins: [
       cleanup(),
-      // resolve(),
+      resolve(),
       babel({
-        include: 'node_modules/virtual-dom',
-        presets: ['es2015-rollup'],
+        exclude: 'node_modules/**',
+        presets: ["es2015-rollup"],
       }),
+      cmd(),
     ]
   })
   await bundle.generate(cfg.output)

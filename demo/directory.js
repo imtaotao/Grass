@@ -10,11 +10,13 @@ class Dir extends Grass.Component {
         ['next', 'done', 'error'],
       ],
       titleList: ['全局', '实例', 'Event'],
+      currentApi: 'directive',
     }
   }
 
   togglePage (api) {
     this.next(api)
+    this.setState({currentApi: api})
   }
 
   template () {
@@ -26,7 +28,7 @@ class Dir extends Grass.Component {
               <li
                 @click="this.togglePage.bind(this, api)"
                 v-for="api of list"
-                :className="'api-name ' + (api === this.props.currentApi ? 'active' : '')">{{ api }}</li>
+                :className="'api-name ' + (api === currentApi ? 'active' : '')">{{ api }}</li>
             </ul>
           </div>
       </div>
