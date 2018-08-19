@@ -6,9 +6,14 @@ import { enqueueSetState } from './setState'
 export class Component {
   constructor (attrs, requireList) {
     this.state = Object.create(null)
-    this.props = _.setProps(attrs, requireList, this.name)
+    this.props = _.getProps(attrs, requireList, this.name)
+    this.$parentConf = null
     this.$cacheState  = {
       stateQueue: [],
+      childComponent: {},
+      componentElement: null,
+      dom: null,
+      vTree: null,
     }
   }
 
@@ -16,6 +21,7 @@ export class Component {
   create () {}
   willUpdate () {}
   didUpdate () {}
+  WillReceiveProps () {}
   destroy () {}
 
   setState (partialState) {
@@ -37,7 +43,7 @@ export function mount (rootDOM, compClass) {
   return new Promise((resolve) => {
     const comp = createCompInstance(compClass, {}, {})
     const dom = createRealDom(null, comp)
-
+  
     rootDOM.appendChild(dom)
     resolve(dom)
   })

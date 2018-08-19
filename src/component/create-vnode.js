@@ -4,6 +4,7 @@ import { TAG } from '../ast/parse-template'
 import { createCompInstance } from './create-instance'
 import complierAst from '../directives/index'
 import createCompVnode from './create-comp-vnode'
+import { addCache, getCache } from './cache-component'
 
 export default function createVnode (parentConf, ast, comp) {
   const vnodeConf = complierAst(ast, comp)
@@ -16,14 +17,13 @@ export default function createVnode (parentConf, ast, comp) {
 
 function generatorChildren (children, comp) {
   const vnodeTree = []
-
   for (let i = 0; i < children.length; i++) {
     if (!children[i]) continue
     const conf = children[i]
     if (conf.type === TAG) {
       if (!_.isReservedTag(conf.tagName)) {
         // 自定义组件
-        vnodeTree.push(createCustomComp(conf, comp))
+        vnodeTree.push(createCustomComp(conf, comp, i))
         continue
       }
 
@@ -39,19 +39,29 @@ function generatorChildren (children, comp) {
       vnodeTree.push(content)
     }
   }
-
   return vnodeTree
 }
 
-function createCustomComp (parentConf, comp) {
+function createCustomComp (parentConf, comp, i) {
+  const cacheInstance = getCache(comp, parentConf.tagName, i)
+
+  if (cacheInstance) {
+    // 如果有缓存的组件，我们就使用缓存
+    // 同时需要改变对子组件的 props 以及 指令，进行重新 diff
+    cacheInstance.$parentConf = parentConf
+    return createCompVnode(parentConf, comp, cacheInstance)
+  }
+
   const childComp = getChildComp(comp, parentConf.tagName)
   if (typeof childComp !== 'function') {
-    _.warn(`Component [${conf.tagName}] is not registered  \n\n  --->  ${comp.name}\n`)
+    _.warn(`Component [${parentConf.tagName}] is not registered  \n\n  --->  ${comp.name}\n`)
     return
   }
 
   const childCompInstance = createCompInstance(childComp, parentConf, comp)
-  return createCompVnode(parentConf, childCompInstance)
+  addCache(comp, parentConf.tagName, childCompInstance, i)
+
+  return createCompVnode(parentConf, comp, childCompInstance)
 }
 
 // 拿到子组件

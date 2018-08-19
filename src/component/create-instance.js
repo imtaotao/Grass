@@ -10,7 +10,7 @@ export function createCompInstance (comConstructor, parentConf, parentComp) {
     comp = new comConstructor(parentConf.attrs)
   } else {
     // 创建无状态组件
-    const props = _.setProps(parentConf.attrs)
+    const props = _.getProps(parentConf.attrs)
     const template = comConstructor(props)
     comp = {
       constructor: comConstructor,
@@ -29,26 +29,27 @@ export function createCompInstance (comConstructor, parentConf, parentComp) {
 
   // 我们把 ast 缓存到类的构造函数上
   if (!comConstructor.$ast) {
-    const { template, name } = comp
-    comConstructor.$ast = createAst(template, name)
+    
+    comConstructor.$ast = createAst(comp)
   }
 
   return comp
 }
 
-export function createAst (template, compName) {
+export function createAst (comp) {
   let ast
+  let { template, name } = comp
   if (typeof template === 'function') {
-    template = template()
+    template = template.call(comp)
   }
 
   if (!_.isString(template)) {
     _.warn(`Component template must a "string" or "function", But now is "${typeof template}"
-      \n\n  --->  ${compName}\n`)
+      \n\n  --->  ${name}\n`)
     return
   }
-  if (!(ast = parseTemplate(template.trim(), compName))) {
-    _.warn(`No string template available  \n\n  --->  ${compName}`)
+  if (!(ast = parseTemplate(template.trim(), name))) {
+    _.warn(`No string template available  \n\n  --->  ${name}`)
     return
   }
 

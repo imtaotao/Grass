@@ -7,6 +7,9 @@ import { diff, patch } from 'virtual-dom'
 const capacity = 1024
 
 export function enqueueSetState (comp, partialState) {
+  if (!_.isPlainObject(partialState) && typeof partialState !== 'function') {
+    return
+  }
   if (!comp.$cacheState.stateQueue.length) {
     updateQueue(comp)
   }
@@ -52,17 +55,40 @@ function mergeState (state, partialState) {
 }
 
 function updateDomTree (comp) {
-  if (comp.willUpdate(comp.state, comp.props) === false) {
-    return
-  }
+  comp.willUpdate()
+ 
   const ast = comp.constructor.$ast
   const dom = comp.$cacheState.dom
   const oldTree = comp.$cacheState.vTree
-  const newTree = createVnode(null, ast, comp)
+  const newTree = createVnode(comp.$parentConf, ast, comp)
   const patchs = diff(oldTree, newTree)
 
   patch(dom, patchs)
 
+  updateChildComp(comp)
   comp.didUpdate(dom)
   comp.$cacheState.vTree = newTree
+  comp.$parentConf = null
+}
+
+function updateChildComp (comp) {
+  const cacheChild = comp.$cacheState.childComponent
+  const keys = Object.keys(cacheChild)
+
+  for (let i = 0, len = keys.length; i < len; i++) {
+    const childs = cacheChild[keys[i]]
+    for (let j = 0, length = childs.length; j < length; j++) {
+      const child = childs[j]
+      if (child && !child.noStateComp && child.$parentConf) {
+        const parentConf = child.$parentConf
+        const newProps = _.getProps(parentConf.attrs)
+        const needUpdate = child.WillReceiveProps(newProps)
+
+        if (needUpdate !== false) {
+          child.props = newProps
+          child.setState({})
+        }
+      }
+    }
+  }
 }

@@ -1,8 +1,23 @@
 import * as _ from '../utils/index'
 import createElement from './overrides'
 import createVnode from './create-vnode'
+import { removeCache } from './cache-component'
 
-export default function createCompVnode (parentConf, comp) {
+export default function createCompVnode (parentConf, parentComp, comp) {
+  if (comp.$cacheState.componentElement) {
+    return comp.$cacheState.componentElement
+  }
+
+  const vnode = createNewCompVnode(parentConf, parentComp, comp)
+
+  _.setOnlyReadAttr(vnode, 'customDirection',
+    parentConf.customDirection || null)
+
+  comp.$cacheState.componentElement = vnode
+  return vnode
+}
+
+function createNewCompVnode (parentConf, parentComp, comp) {
   function ComponentElement () {}
 
   ComponentElement.prototype.type = 'Widget'
@@ -18,17 +33,14 @@ export default function createCompVnode (parentConf, comp) {
   }
 
   ComponentElement.prototype.destroy = function(dom) {
+    // 组件销毁需要清除缓存
+    removeCache(parentComp, parentConf.tagName, comp)
     if (!comp.noStateComp) {
       comp.destroy(dom)
     }
   }
 
-  const vnode = new ComponentElement
-
-  _.setOnlyReadAttr(vnode, 'customDirection',
-    parentConf.customDirection || null)
-
-  return vnode
+  return new ComponentElement
 }
 
 export function createRealDom (parentConf, comp) {

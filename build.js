@@ -32,8 +32,8 @@ async function build (cfg) {
   const bundle = await rollup.rollup({
     input: cfg.input,
     plugins: [
-      // cleanup(),
-      resolve(),
+      cleanup(),
+      // resolve(),
       babel({
         include: 'node_modules/virtual-dom',
         presets: ['es2015-rollup'],

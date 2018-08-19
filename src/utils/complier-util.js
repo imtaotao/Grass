@@ -132,9 +132,9 @@ export function removeChild (parent, child, notOnly) {
   const children = parent.children
   for (let i = 0; i < children.length; i++) {
     if (children[i] === child) {
-      children.splice(i, 1)
-      if (notOnly) i--
-      else break
+      // 我们设置为 null 而不直接删掉是为了保证我们能正确拿到缓存的组件
+      children[i] = null
+      if (!notOnly) return
     }
   }
 }
@@ -179,7 +179,7 @@ export function modifyOrdinayAttrAsLibAttr (node) {
 
 export function migrateCompStatus (outputNode, acceptNode) {
   if (!outputNode || !acceptNode) return
-  // 我们需要迁移的数据 vTextResult、vShowResult
+  // 我们需要迁移的数据 vTextResult、vShowResult、className
   if (hasOwn(outputNode, 'vTextResult')) {
     const res = outputNode['vTextResult']
     acceptNode.children.unshift(
@@ -191,13 +191,23 @@ export function migrateCompStatus (outputNode, acceptNode) {
     const res = outputNode['vShowResult']
     bind(res, null, acceptNode)
   }
+
+  if (hasOwn(outputNode.attrs, 'className')) {
+    const outputClassName = outputNode.attrs['className']
+    const acceptClassName = acceptNode.attrs['className']
+    if (acceptClassName) {
+      acceptNode.attrs['className'] = outputClassName + ' ' + acceptClassName
+    } else {
+      acceptNode.attrs['className'] = outputClassName
+    }
+  }
 }
 
 const filterPropsList = {
   'key': 1,
 }
 
-export function setProps (attrs, requireList, compName) {
+export function getProps (attrs, requireList, compName) {
   // 如果定义了需要的 props 列表，我们就按照列表得到来
   // 而且我们需要过滤掉内部用到的属性，例如 "key"
   const props = Object.create(null)

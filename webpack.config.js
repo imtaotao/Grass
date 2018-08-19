@@ -14,7 +14,7 @@ module.exports = {
   resolve: {
     extensions: ['.js', '.json', '.css'],
     alias: {
-      '@': resolve('./utils')
+      '@': resolve('./demo')
     }
   },
   devtool: 'source-map',
@@ -39,7 +39,7 @@ module.exports = {
         use: [{
             loader: "css-loader",
             options: {
-              modules: true
+              // modules: true
             }
         }, {
             loader: "postcss-loader", // 添加浏览器兼容前缀
