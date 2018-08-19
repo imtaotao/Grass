@@ -760,23 +760,23 @@ function createCompInstance (comConstructor, parentConf, parentComp) {
     return
   }
   if (!comConstructor.$ast) {
-    const { template, name } = comp;
-    comConstructor.$ast = createAst(template, name);
+    comConstructor.$ast = createAst(comp);
   }
   return comp
 }
-function createAst (template, compName) {
+function createAst (comp) {
   let ast;
+  let { template, name } = comp;
   if (typeof template === 'function') {
-    template = template();
+    template = template.call(comp);
   }
   if (!isString(template)) {
     warn(`Component template must a "string" or "function", But now is "${typeof template}"
-      \n\n  --->  ${compName}\n`);
+      \n\n  --->  ${name}\n`);
     return
   }
-  if (!(ast = parseTemplate(template.trim(), compName))) {
-    warn(`No string template available  \n\n  --->  ${compName}`);
+  if (!(ast = parseTemplate(template.trim(), name))) {
+    warn(`No string template available  \n\n  --->  ${name}`);
     return
   }
   return ast
@@ -1055,16 +1055,27 @@ function executSingleDirect (weight, val, node, comp, vnodeConf$$1) {
 }
 
 function addCache (parentComp, compName, comp, i) {
-  const childCollection = parentComp.$cacheState.childComponent[compName];
-  if (!childCollection) {
+  const childs = parentComp.$cacheState.childComponent[compName];
+  if (!childs) {
     parentComp.$cacheState.childComponent[compName] = [];
   }
   parentComp.$cacheState.childComponent[compName][i] = comp;
 }
+function removeCache (parentComp, compName, comp) {
+  const childs = parentComp.$cacheState.childComponent[compName];
+  if (childs) {
+    for (let i = 0, len = childs.length; i < len; i++) {
+      const child = childs[i];
+      if (child === comp) {
+        childs[i] = null;
+      }
+    }
+  }
+}
 function getCache (parentComp, compName, i) {
-  const childCollection = parentComp.$cacheState.childComponent[compName];
-  if (childCollection && childCollection[i]){
-    return childCollection[i]
+  const childs = parentComp.$cacheState.childComponent[compName];
+  if (childs && childs[i]){
+    return childs[i]
   }
   return null
 }
@@ -1099,8 +1110,8 @@ function generatorChildren (children, comp) {
 function createCustomComp (parentConf, comp, i) {
   const cacheInstance = getCache(comp, parentConf.tagName, i);
   if (cacheInstance) {
-    cacheInstance.willUpdateProps = getProps(parentConf.attrs);
-    return createCompVnode(parentConf, cacheInstance)
+    cacheInstance.$parentConf = parentConf;
+    return createCompVnode(parentConf, comp, cacheInstance)
   }
   const childComp = getChildComp(comp, parentConf.tagName);
   if (typeof childComp !== 'function') {
@@ -1109,7 +1120,7 @@ function createCustomComp (parentConf, comp, i) {
   }
   const childCompInstance = createCompInstance(childComp, parentConf, comp);
   addCache(comp, parentConf.tagName, childCompInstance, i);
-  return createCompVnode(parentConf, childCompInstance)
+  return createCompVnode(parentConf, comp, childCompInstance)
 }
 function getChildComp (parentComp, tagName) {
   if (!parentComp.component) return null
@@ -1130,17 +1141,17 @@ function getChildComp (parentComp, tagName) {
   return null
 }
 
-function createCompVnode (parentConf, comp) {
+function createCompVnode (parentConf, parentComp, comp) {
   if (comp.$cacheState.componentElement) {
     return comp.$cacheState.componentElement
   }
-  const vnode = createNewCompVnode(parentConf, comp);
+  const vnode = createNewCompVnode(parentConf, parentComp, comp);
   setOnlyReadAttr(vnode, 'customDirection',
     parentConf.customDirection || null);
   comp.$cacheState.componentElement = vnode;
   return vnode
 }
-function createNewCompVnode (parentConf, comp) {
+function createNewCompVnode (parentConf, parentComp, comp) {
   function ComponentElement () {}
   ComponentElement.prototype.type = 'Widget';
   ComponentElement.prototype.count = 0;
@@ -1151,6 +1162,7 @@ function createNewCompVnode (parentConf, comp) {
     console.log('component update', previous, domNode);
   };
   ComponentElement.prototype.destroy = function(dom) {
+    removeCache(parentComp, parentConf.tagName, comp);
     if (!comp.noStateComp) {
       comp.destroy(dom);
     }
@@ -1220,18 +1232,39 @@ function updateDomTree (comp) {
   const ast = comp.constructor.$ast;
   const dom = comp.$cacheState.dom;
   const oldTree = comp.$cacheState.vTree;
-  const newTree = createVnode(null, ast, comp);
+  const newTree = createVnode(comp.$parentConf, ast, comp);
   const patchs = virtualDom.diff(oldTree, newTree);
   virtualDom.patch(dom, patchs);
+  updateChildComp(comp);
   comp.didUpdate(dom);
   comp.$cacheState.vTree = newTree;
+  comp.$parentConf = null;
+}
+function updateChildComp (comp) {
+  const cacheChild = comp.$cacheState.childComponent;
+  const keys = Object.keys(cacheChild);
+  for (let i = 0, len = keys.length; i < len; i++) {
+    const childs = cacheChild[keys[i]];
+    for (let j = 0, length = childs.length; j < length; j++) {
+      const child = childs[j];
+      if (child && !child.noStateComp && child.$parentConf) {
+        const parentConf = child.$parentConf;
+        const newProps = getProps(parentConf.attrs);
+        const needUpdate = child.WillReceiveProps(newProps);
+        if (needUpdate !== false) {
+          child.props = newProps;
+          child.setState({});
+        }
+      }
+    }
+  }
 }
 
 class Component {
   constructor (attrs, requireList) {
     this.state = Object.create(null);
     this.props = getProps(attrs, requireList, this.name);
-    this.willUpdateProps = null;
+    this.$parentConf = null;
     this.$cacheState  = {
       stateQueue: [],
       childComponent: {},
@@ -1262,7 +1295,6 @@ function mount (rootDOM, compClass) {
   return new Promise((resolve) => {
     const comp = createCompInstance(compClass, {}, {});
     const dom = createRealDom(null, comp);
-    window.s = comp;
     rootDOM.appendChild(dom);
     resolve(dom);
   })
