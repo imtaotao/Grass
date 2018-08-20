@@ -1,7 +1,7 @@
 // 我们对 setState 进行批量更新
 // 不然每一次 setState 都进行一次 diff patch，太伤了
 import * as _ from '../utils/index'
-import createVnode from './create-vnode'
+import render from './render'
 import { diff, patch } from 'virtual-dom'
 
 const capacity = 1024
@@ -60,7 +60,7 @@ function updateDomTree (comp) {
   const ast = comp.constructor.$ast
   const dom = comp.$cacheState.dom
   const oldTree = comp.$cacheState.vTree
-  const newTree = createVnode(comp.$parentConf, ast, comp)
+  const newTree = render(comp.$parentConf, ast, comp)
   const patchs = diff(oldTree, newTree)
 
   patch(dom, patchs)
@@ -77,8 +77,10 @@ function updateChildComp (comp) {
 
   for (let i = 0, len = keys.length; i < len; i++) {
     const childs = cacheChild[keys[i]]
+
     for (let j = 0, length = childs.length; j < length; j++) {
       const child = childs[j]
+
       if (child && !child.noStateComp && child.$parentConf) {
         const parentConf = child.$parentConf
         const newProps = _.getProps(parentConf.attrs)

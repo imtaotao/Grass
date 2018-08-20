@@ -1,5 +1,6 @@
 export function addCache (parentComp, compName, comp, i) {
   const childs = parentComp.$cacheState.childComponent[compName]
+
   if (!childs) {
     parentComp.$cacheState.childComponent[compName] = []
   }
@@ -10,6 +11,7 @@ export function addCache (parentComp, compName, comp, i) {
 
 export function removeCache (parentComp, compName, comp) {
   const childs = parentComp.$cacheState.childComponent[compName]
+
   if (childs) {
     for (let i = 0, len = childs.length; i < len; i++) {
       const child = childs[i]
@@ -22,6 +24,7 @@ export function removeCache (parentComp, compName, comp) {
 
 export function getCache (parentComp, compName, i) {
   const childs = parentComp.$cacheState.childComponent[compName]
+
   if (childs && childs[i]){
     return childs[i]
   }

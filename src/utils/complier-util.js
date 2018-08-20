@@ -179,6 +179,7 @@ export function modifyOrdinayAttrAsLibAttr (node) {
 
 export function migrateCompStatus (outputNode, acceptNode) {
   if (!outputNode || !acceptNode) return
+
   // 我们需要迁移的数据 vTextResult、vShowResult、className
   if (hasOwn(outputNode, 'vTextResult')) {
     const res = outputNode['vTextResult']
@@ -195,6 +196,7 @@ export function migrateCompStatus (outputNode, acceptNode) {
   if (hasOwn(outputNode.attrs, 'className')) {
     const outputClassName = outputNode.attrs['className']
     const acceptClassName = acceptNode.attrs['className']
+
     if (acceptClassName) {
       acceptNode.attrs['className'] = outputClassName + ' ' + acceptClassName
     } else {
@@ -252,6 +254,7 @@ export function isClass (fun) {
 
   if (isEmptyObj(proto)) {
     const constructor = proto.constructor
+
     if (constructor && constructor === fun) {
       const descriptors = Object.getOwnPropertyDescriptors(proto)
       return Object.keys(descriptors).length > 1

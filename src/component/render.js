@@ -1,12 +1,12 @@
-import * as _ from '../utils/index'
+import * as _ from '../utils'
 import { _h } from './overrides'
 import { TAG } from '../ast/parse-template'
 import { createCompInstance } from './component-instance'
-import complierAst from '../directives/index'
-import createCompVnode from './create-comp-vnode'
+import complierAst from '../directives'
+import createCompVnode from './create-componnet-vnode'
 import { addCache, getCache } from './cache-component'
 
-export default function createVnode (parentConf, ast, comp) {
+export default function render (parentConf, ast, comp) {
   const vnodeConf = complierAst(ast, comp)
 
   _.migrateCompStatus(parentConf, vnodeConf)
@@ -19,6 +19,7 @@ function generatorChildren (children, comp) {
   const vnodeTree = []
   for (let i = 0; i < children.length; i++) {
     if (!children[i]) continue
+
     const conf = children[i]
     if (conf.type === TAG) {
       if (!_.isReservedTag(conf.tagName)) {
@@ -73,6 +74,7 @@ function getChildComp (parentComp, tagName) {
   if (typeof childComps === 'function') {
     childComps = childComps()
   }
+
   if (_.isPlainObject(childComps)) {
     return childComps[tagName]
   }

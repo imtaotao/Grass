@@ -5,6 +5,7 @@ import runExecuteContext from './execution-env'
 
 export default function vfor (node, comp, vnodeConf) {
   if (!node.for || !node.forArgs) return
+
   if (!node.parent) {
     _.sendDirectWarn('v-for', comp.name)
     return

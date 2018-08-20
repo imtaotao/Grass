@@ -38,14 +38,17 @@ export function createCompInstance (comConstructor, parentConf, parentComp) {
 export function createAst (comp) {
   let ast
   let { template, name } = comp
+
   if (typeof template === 'function') {
     template = template.call(comp)
   }
+
   if (!_.isString(template)) {
     _.warn(`Component template must a "string" or "function", But now is "${typeof template}"
       \n\n  --->  ${name}\n`)
     return
   }
+
   if (!(ast = parseTemplate(template.trim(), name))) {
     _.warn(`No string template available  \n\n  --->  ${name}`)
     return

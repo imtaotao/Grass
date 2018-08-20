@@ -22,6 +22,7 @@ import { haveRegisteredCustomDirect } from '../global-api/constom-directive'
 export default function complierAst (ast, comp) {
   if (!comp.noStateComp) {
     const state = comp.state
+
     if (_.isFunction(state)) {
       const res = state()
       _.isPlainObject(res)
