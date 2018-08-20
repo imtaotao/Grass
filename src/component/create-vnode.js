@@ -1,7 +1,7 @@
 import * as _ from '../utils/index'
 import { _h } from './overrides'
 import { TAG } from '../ast/parse-template'
-import { createCompInstance } from './create-instance'
+import { createCompInstance } from './component-instance'
 import complierAst from '../directives/index'
 import createCompVnode from './create-comp-vnode'
 import { addCache, getCache } from './cache-component'

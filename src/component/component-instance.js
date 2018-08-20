@@ -1,4 +1,4 @@
-import * as _ from '../utils/index'
+import * as _ from '../utils'
 import { parseTemplate } from '../ast/parse-template'
 
 // 创建一个组件实例，分为状态组件和无状态组件
@@ -29,7 +29,6 @@ export function createCompInstance (comConstructor, parentConf, parentComp) {
 
   // 我们把 ast 缓存到类的构造函数上
   if (!comConstructor.$ast) {
-    
     comConstructor.$ast = createAst(comp)
   }
 
@@ -42,7 +41,6 @@ export function createAst (comp) {
   if (typeof template === 'function') {
     template = template.call(comp)
   }
-
   if (!_.isString(template)) {
     _.warn(`Component template must a "string" or "function", But now is "${typeof template}"
       \n\n  --->  ${name}\n`)

@@ -19,9 +19,7 @@ export default function createCompVnode (parentConf, parentComp, comp) {
 
 function createNewCompVnode (parentConf, parentComp, comp) {
   function ComponentElement () {}
-
   ComponentElement.prototype.type = 'Widget'
-
   // 我们构建的这个组件节点现在并没有一个子元素，否则会在 patch 的时候计算错误
   ComponentElement.prototype.count = 0
   ComponentElement.prototype.init = function() {
