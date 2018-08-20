@@ -56,7 +56,7 @@ function mergeState (state, partialState) {
 
 function updateDomTree (comp) {
   comp.willUpdate()
- 
+
   const ast = comp.constructor.$ast
   const dom = comp.$cacheState.dom
   const oldTree = comp.$cacheState.vTree
@@ -82,7 +82,7 @@ function updateChildComp (comp) {
       if (child && !child.noStateComp && child.$parentConf) {
         const parentConf = child.$parentConf
         const newProps = _.getProps(parentConf.attrs)
-        const needUpdate = child.WillReceiveProps(newProps)
+        const needUpdate = child.willReceiveProps(newProps)
 
         if (needUpdate !== false) {
           child.props = newProps

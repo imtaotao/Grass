@@ -25,15 +25,22 @@
       // ...
     }
 
-    // 更新，return false 会阻止更新，现在还没有对 props 做处理，后续要改
-    willUpdate (state, props) {
+    // 将要更新组件
+    willUpdate () {
       // ...
     }
 
+    // 父组件更新，当前子组件也要，接受父组件传递的 props，return false 可以阻止当前子组件更新
+    willReceiveProps (props) {
+
+    }
+
+    // 更新完成
     didUpdate (dom) {
       // ...
     }
 
+    // 当前组件销毁前
     destroy (dom) {
       // ...
     }
@@ -223,7 +230,7 @@ Grass.event(comp) // error
 用于注册自定义指令
 ```js
   Grass.directive('tao', (compnent, dom, val) => {
-
+    // ...
   })
 ```
 
@@ -254,7 +261,7 @@ Grass.event(comp) // error
 ```
 
 #### createState
-用于创建一个感觉的 state，所以要么用对象字面量创建一个 state 或者是用此方法，它能让 state 的原型是干净的，同时会丢弃原有的原型链
+用于创建一个干净的 state，所以要么用对象字面量创建一个 state 或者是用此方法，它能让 state 的原型是干净的，同时会丢弃原有的原型链
 ```js
   this.state = this.createState({xxx: xxx})
 ```
@@ -281,11 +288,23 @@ class C extends Grass.Component {
 ```
 
 #### willUpdate
-将要更新 dom 树时，运行对 state 组件一次进行调整，如果此钩子函数返回 `false`，将会阻止跟新，它接受 state 和 props 作为参数
+将要更新 dom 树时，允许对组件的 state 一次进行调整
 ```js
 class C extends Grass.Component {
-  willUpdate (state, props) {
-    if (state.xx = xxx) {
+  willUpdate () {
+    if (this.state.xx = xxx) {
+      this.state.xx = xxxx
+    }
+  }
+}
+```
+
+#### willReceiveProps
+接受父组件传递的 props，return false 可以阻止当前子组件更新，用于优化
+```js
+class C extends Grass.Component {
+  willReceiveProps (props) {
+    if (props.xx = xxx) {
       return false
     }
   }
@@ -314,10 +333,9 @@ class C extends Grass.Component {
 
 ### 逻辑图
 ```html
-  
+
 
 ```
 
 ### 注意事项
-报错信息显示的组件名称，是根据组件的声明名字进行关联的，所以注重的地方是组件创建时的 name。欢迎大家提 bug 啊，一起学习<br/>
-前端小分队 qq 群：624921236
+报错信息显示的组件名称，是根据组件的声明名字进行关联的，所以注重的地方是组件创建时的 name。欢迎大家提 bug 啊，一起学习。前端小分队 qq 群：624921236

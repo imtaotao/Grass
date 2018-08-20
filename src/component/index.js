@@ -20,8 +20,8 @@ export class Component {
   createBefore () {}
   create () {}
   willUpdate () {}
+  willReceiveProps () {}
   didUpdate () {}
-  WillReceiveProps () {}
   destroy () {}
 
   setState (partialState) {
@@ -43,7 +43,7 @@ export function mount (rootDOM, compClass) {
   return new Promise((resolve) => {
     const comp = createCompInstance(compClass, {}, {})
     const dom = createRealDom(null, comp)
-  
+
     rootDOM.appendChild(dom)
     resolve(dom)
   })
