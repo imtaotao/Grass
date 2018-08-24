@@ -5,6 +5,7 @@ import style from './style.css'
 class Dir extends Grass.Component {
   constructor (props) {
     super(props)
+    console.log(this.props);
     this.state = {
       apiList: [
         ['Component', 'mount', 'directive', 'event'],

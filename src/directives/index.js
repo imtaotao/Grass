@@ -64,6 +64,10 @@ export function parseSingleNode (node, comp, vnodeConf) {
   }
 
   if (!node.for) {
+    if (vnodeConf.type === TAG && _.isReservedTag(vnodeConf.tagName)) {
+      _.modifyOrdinayAttrAsLibAttr(vnodeConf)
+    }
+
     complierChildrenNode(node, comp, vnodeConf)
   }
 }

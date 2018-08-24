@@ -217,6 +217,8 @@ export function migrateCompStatus (outputNode, acceptNode) {
 
 const filterPropsList = {
   'key': 1,
+  'styleName': 1,
+  'className': 1,
 }
 
 export function getProps (attrs, requireList, compName) {

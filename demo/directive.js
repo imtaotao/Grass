@@ -1,8 +1,8 @@
 import Grass from '../src'
 
 export default class Directive extends Grass.Component {
-  constructor () {
-    super()
+  constructor (props) {
+    super(props)
     this.state = {
       a: 121
     }

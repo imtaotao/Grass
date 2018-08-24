@@ -46,7 +46,7 @@ class Root extends Grass.Component {
           <Comp v-if="api === 'Component'"/>
           <Mount v-if="api === 'mount'"/>
           <CreateState v-if="api === 'createState'" />
-          <Directive v-if="api === 'directive'" />
+          <Directive v-if="api === 'directive'"/>
           <EventDone v-if="api === 'done'" />
           <EventError v-if="api === 'error'" />
           <EventNext v-if="api === 'next'" />
