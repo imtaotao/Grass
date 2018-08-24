@@ -26,6 +26,7 @@ class Child extends Grass.Component {
     return `
       <div>
         <div @click="this.c.bind(this)">
+          121
         </div>
         <div @click="this.cr.bind(this)">
           {{ current }}
@@ -52,8 +53,8 @@ class Root extends Grass.Component {
   template () {
     return `
       <div>
-        <div @click="() => this.setState({arr: [1, 2, 3]})">tttt</div>
-        <Child v-for="val of arr"/>
+        <div v-tt="api" @click="() => this.setState({arr: [1, 2, 3, 4]})">tttt</div>
+        <Child v-tt="api" v-for="val of arr" :callback="this.callback.bind(this)"/>
       </div>
     `
   }
@@ -62,5 +63,9 @@ class Root extends Grass.Component {
     return { Child }
   }
 }
+
+Grass.directive('ttt', (dom, val) => {
+  console.log(dom, val);
+})
 
 Grass.mount(document.getElementById('root'), Root)

@@ -47,5 +47,5 @@ async function build (cfg) {
 }
 
 build(esm)
-build(cjs)
-build(umd)
+// build(cjs)
+// build(umd)

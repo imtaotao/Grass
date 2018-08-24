@@ -1,10 +1,10 @@
-import * as _ from '../utils'
+import * as _ from '../utils/index'
+import complierAst from '../directives/index'
+import createCompVnode from './create-componnet-vnode'
 import { _h } from './overrides'
 import { TAG } from '../ast/parse-template'
-import { createCompInstance } from './component-instance'
-import complierAst from '../directives'
-import createCompVnode from './create-componnet-vnode'
 import { addCache, getCache } from './cache-component'
+import { createCompInstance } from './component-instance'
 
 export default function render (parentConf, ast, comp) {
   const vnodeConf = complierAst(ast, comp)

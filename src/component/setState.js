@@ -2,7 +2,7 @@
 // 不然每一次 setState 都进行一次 diff patch，太伤了
 import * as _ from '../utils/index'
 import render from './render'
-import { diff, patch } from 'virtual-dom'
+import { diff, patch } from '../virtual-dom/index'
 
 const capacity = 1024
 
@@ -51,6 +51,7 @@ function mergeState (state, partialState) {
       ? newState
       : state
   }
+
   return Object.assign({}, state, partialState)
 }
 

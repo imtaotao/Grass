@@ -91,17 +91,10 @@
 
 ```js
   // 自定义指令
-  Grass.directive('taotao', (compnent, dom, val) => {
-    // component 为当前元素所在的组件，所有你可以在此处进行 state 的操作
+  Grass.directive('taotao', (dom, val) => {
     // dom 真实的 dom 节点
     // val 指令传入过来的值
-    console.log(component, dom, val) // CM, div, 'true'
-
-    dom.onclick = e => {
-      component.setState({
-        a: !component.state.a,
-      })
-    }
+    console.log(dom, val) // div, 'true'
   })
 
   class CM extends Grass.Component {
@@ -229,7 +222,7 @@ Grass.event(comp) // error
 #### Grass.directive
 用于注册自定义指令
 ```js
-  Grass.directive('tao', (compnent, dom, val) => {
+  Grass.directive('tao', (dom, val) => {
     // ...
   })
 ```

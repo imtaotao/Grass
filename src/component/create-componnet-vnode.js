@@ -1,39 +1,39 @@
-import * as _ from '../utils'
-import createElement from './overrides'
+import * as _ from '../utils/index'
 import render from './render'
+import { create } from '../virtual-dom/index'
 import { removeCache } from './cache-component'
+import { elementCreated } from '../global-api/constom-directive'
 
 export default function createCompVnode (parentConf, parentComp, comp) {
   if (comp.$cacheState.componentElement) {
     return comp.$cacheState.componentElement
   }
 
-  const vnode = createNewCompVnode(parentConf, parentComp, comp)
-
-  _.setOnlyReadAttr(vnode, 'customDirection',
-    parentConf.customDirection || null)
+  const vnode = createWidgetVnode(parentConf, parentComp, comp)
 
   comp.$cacheState.componentElement = vnode
   return vnode
 }
 
-function createNewCompVnode (parentConf, parentComp, comp) {
-  function ComponentElement () {}
+function createWidgetVnode (parentConf, parentComp, comp) {
+  function WidgetElement () {}
 
-  ComponentElement.prototype.type = 'Widget'
+  WidgetElement.prototype.type = 'Widget'
 
   // 我们构建的这个组件节点现在并没有一个子元素，否则会在 patch 的时候计算错误
-  ComponentElement.prototype.count = 0
+  WidgetElement.prototype.count = 0
 
-  ComponentElement.prototype.init = function() {
+  WidgetElement.prototype.customDirection = parentConf.customDirection || null
+
+  WidgetElement.prototype.init = function() {
     return createRealDom(parentConf, comp)
   }
 
-  ComponentElement.prototype.update = function(previous, domNode) {
+  WidgetElement.prototype.update = function(previous, domNode) {
     console.log('component update', previous, domNode);
   }
 
-  ComponentElement.prototype.destroy = function(dom) {
+  WidgetElement.prototype.destroy = function(dom) {
     // 组件销毁需要清除缓存
     removeCache(parentComp, parentConf.tagName, comp)
     if (!comp.noStateComp) {
@@ -41,7 +41,11 @@ function createNewCompVnode (parentConf, parentComp, comp) {
     }
   }
 
-  return new ComponentElement
+  WidgetElement.prototype.elementCreated = function (dom, node) {
+    elementCreated(dom, parentConf.customDirection)
+  }
+
+  return new WidgetElement()
 }
 
 export function createRealDom (parentConf, comp) {
@@ -49,13 +53,13 @@ export function createRealDom (parentConf, comp) {
 
   if (comp.noStateComp) {
     const vTree = render(parentConf, ast, comp)
-    const dom = createElement(comp, vTree)
+    const dom = create(vTree)
     return dom
   }
 
   comp.createBefore()
   const vTree = render(parentConf, ast, comp)
-  const dom = createElement(comp, vTree)
+  const dom = create(vTree)
 
   comp.$cacheState.dom = dom
   comp.$cacheState.vTree = vTree

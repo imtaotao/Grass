@@ -1,1 +1,1 @@
-import './demo'
+import './test'

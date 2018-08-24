@@ -1,4 +1,4 @@
-import * as _ from '../utils'
+import * as _ from '../utils/index'
 import { parseTemplate } from '../ast/parse-template'
 
 // 创建一个组件实例，分为状态组件和无状态组件
