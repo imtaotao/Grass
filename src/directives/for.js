@@ -12,25 +12,34 @@ export default function vfor (node, comp, vnodeConf) {
   }
 
   const cloneNodes = []
-  const { data, key, isMultiple } = node.forArgs
+  const { key: keys, data, isMultiple } = node.forArgs
 
   const code = `
-    with($obj_) {
-      for (var $index_ = 0; $index_ < ${data}.length; $index_++) {
-        if (${isMultiple}) {
-          $scope_.add('${key[0]}', ${data}[$index_]);
-          $scope_.add('${key[1]}', $index_);
-        } else {
-          $scope_.add('${key}', ${data}[$index_]);
-        }
+    var $data;
 
-        $callback_($index_);
-      }
+    with($obj_) { $data = ${data}; }
+
+    if ($data) {
+      $callback_($data);
     }
   `
+
+  function loopData (data) {
+    _.each(data, (val, key, i) => {
+      if (isMultiple) {
+        scope.add(keys[0], val);
+        scope.add(keys[1], key);
+      } else {
+        scope.add(keys, val);
+      }
+
+      vforCallback(i)
+    })
+  }
+
   function vforCallback (i) {
     const cloneNode = _.vnodeConf(node, vnodeConf.parent)
-    cloneNode.attrs['key'] = i
+    cloneNode.attrs['key'] = i + '_'
 
     // 我们要避免无限递归的进入 for 指令
     node.for = false
@@ -41,7 +50,7 @@ export default function vfor (node, comp, vnodeConf) {
   }
 
   scope.create()
-  runExecuteContext(code, 'for', vnodeConf.tagName, comp, vforCallback)
+  runExecuteContext(code, 'for', vnodeConf.tagName, comp, loopData)
   scope.destroy()
 
   const index = serachIndex(vnodeConf)

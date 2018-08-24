@@ -42,7 +42,11 @@ class Root extends Grass.Component {
     super()
     this.state = {
       api: 'index',
-      arr: [1, 2]
+      arr: [1, 2],
+      obj: {
+        tt: 'chentao',
+        ff: 'fangfang'
+      }
     }
   }
 
@@ -53,8 +57,8 @@ class Root extends Grass.Component {
   template () {
     return `
       <div>
-        <div v-tt="api" @click="() => this.setState({arr: [1, 2, 3, 4]})">tttt</div>
-        <Child v-tt="api" v-for="val of arr" :callback="this.callback.bind(this)"/>
+        <div @click="() => this.setState({arr: [1, 2, 3, 4]})">tttt</div>
+        <Child v-for="val of obj" :callback="this.callback.bind(this)"/>
       </div>
     `
   }
@@ -64,7 +68,7 @@ class Root extends Grass.Component {
   }
 }
 
-Grass.directive('ttt', (dom, val) => {
+Grass.directive('tt', (dom, val) => {
   console.log(dom, val);
 })
 

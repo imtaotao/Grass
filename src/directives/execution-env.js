@@ -15,8 +15,8 @@ export default function runExecuteContext (runCode, directName, tagName, comp, c
 
 function run (runCode, directName, tagName, comp, callback, state) {
   try {
-    const fun = new Function('$obj_', '$callback_', '$scope_', runCode)
-    return fun.call(comp, state, callback, scope)
+    const fun = new Function('$obj_', '$callback_', runCode)
+    return fun.call(comp, state, callback)
   } catch (error) {
     _.warn(`Component directive compilation error  \n\n  "${directName}":  ${error}\n\n
     --->  ${comp.name}: <${tagName || ''}/>\n`)

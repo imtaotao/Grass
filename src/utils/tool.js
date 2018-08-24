@@ -37,7 +37,7 @@ export function each (arr, cb) {
   if (Array.isArray(arr) || arr.length) {
     const length = arr.length
     for (; i < length; i++) {
-      if (cb(arr[i], i) === false) return
+      if (cb(arr[i], i, i) === false) return
     }
     return
   }
@@ -47,7 +47,7 @@ export function each (arr, cb) {
     const keyName = Object.keys(arr)
     const length  = keyName.length
     for (; i < length; i++) {
-      if (cb(arr[keyName[i]], keyName[i]) === false) {
+      if (cb(arr[keyName[i]], keyName[i], i) === false) {
         return
       }
     }
