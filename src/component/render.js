@@ -11,6 +11,10 @@ export default function render (parentConf, ast, comp) {
 
   _.migrateCompStatus(parentConf, vnodeConf)
 
+  if (typeof comp.constructor.CSSModules === 'function') {
+    comp.constructor.CSSModules(vnodeConf, comp.name)
+  }
+
   return _h(vnodeConf.tagName, vnodeConf.attrs,
     vnodeConf.customDirection, generatorChildren(vnodeConf.children, comp))
 }

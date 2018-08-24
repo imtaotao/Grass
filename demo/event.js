@@ -8,7 +8,7 @@ export default class Event extends Grass.Component {
 
   template () {
     return `
-      <div className="event">
+      <div styleName="event">
         event
       </div>
     `

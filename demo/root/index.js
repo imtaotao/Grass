@@ -1,16 +1,17 @@
-import Grass from '../src'
-import Dir from './directory'
-import CreateState from './createState'
-import Directive from './directive'
-import EventDone from './event-done'
-import EventError from './event-error'
-import EventNext from './event-next'
-import SetState from './setState'
-import Event from './event'
-import Comp from './component';
-import Mount from './mount'
-import './style.css'
+import Grass, { CSSModules } from '../../src'
+import Dir from '../directory'
+import CreateState from '../createState'
+import Directive from '../directive'
+import EventDone from '../event-done'
+import EventError from '../event-error'
+import EventNext from '../event-next'
+import SetState from '../setState'
+import Event from '../event'
+import Comp from '../component';
+import Mount from '../mount'
+import style from './style.css'
 
+@CSSModules(style)
 class Root extends Grass.Component {
   constructor () {
     super()
@@ -20,7 +21,6 @@ class Root extends Grass.Component {
   }
 
   createBefore () {
-    window.s = this
     Dir.on(api => {
       this.setState({ api })
     })
@@ -28,11 +28,11 @@ class Root extends Grass.Component {
 
   template () {
     return `
-      <div className="container">
-        <p className="header-bar"></p>
-        <Dir className="left" :currentApi="api"/>
+      <div styleName="container">
+        <p styleName="header-bar"></p>
+        <Dir styleName="left" :currentApi="api"/>
 
-        <div className="right">
+        <div styleName="right">
           <Comp v-if="api === 'Component'"/>
           <Mount v-if="api === 'mount'"/>
           <CreateState v-if="api === 'createState'" />

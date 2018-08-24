@@ -203,6 +203,17 @@ export function migrateCompStatus (outputNode, acceptNode) {
       acceptNode.attrs['className'] = outputClassName
     }
   }
+
+  if (hasOwn(outputNode.attrs, 'styleName')) {
+    const outputStyleName = outputNode.attrs['styleName']
+    const acceptStyleName = acceptNode.attrs['styleName']
+
+    if (acceptStyleName) {
+      acceptNode.attrs['styleName'] = outputStyleName + ' ' + acceptStyleName
+    } else {
+      acceptNode.attrs['styleName'] = outputStyleName
+    }
+  }
 }
 
 const filterPropsList = {
@@ -257,6 +268,7 @@ export function isClass (fun) {
 
     if (constructor && constructor === fun) {
       const descriptors = Object.getOwnPropertyDescriptors(proto)
+
       return Object.keys(descriptors).length > 1
         ? true
         : false

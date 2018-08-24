@@ -8,7 +8,7 @@ export default class Comp extends Grass.Component {
 
   template () {
     return `
-      <div className="directive">
+      <div styleName="directive">
         component
       </div>
     `

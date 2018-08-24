@@ -14,7 +14,7 @@ export default class Directive extends Grass.Component {
 
   template () {
     return `
-      <div className="directive" @click="this.c.bind(this)">
+      <div styleName="directive" @click="this.c.bind(this)">
         {{ a }}
       </div>
     `

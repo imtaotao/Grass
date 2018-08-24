@@ -193,20 +193,20 @@
 ### 无状态组件
 我们可以定义无状态组件，但是有个限制是，最好不要对无状态组件的 prototype 进行修改，我们要保证是一个纯净的组件
 ```js
-export function comp (props) {
-  // props => { a: 1 }
-  // 我们不需要手写 props.a，此时的语法与状态组件的 state 一样
-  return '<div>{{ a }}</div>'
-}
+  export function comp (props) {
+    // props => { a: 1 }
+    // 我们不需要手写 props.a，此时的语法与状态组件的 state 一样
+    return '<div>{{ a }}</div>'
+  }
 ```
 但是没有办法把无状态组件变成一个可观测的组件
 
 ```js
-export function comp (props) {
-  return '<div></div>'
-}
+  export function comp (props) {
+    return '<div></div>'
+  }
 
-Grass.event(comp) // error
+  Grass.event(comp) // error
 ```
 
 ### 全局 API
@@ -263,65 +263,83 @@ Grass.event(comp) // error
 #### createBefore
 在组件模板编译之前调用，此时你可以对 state 进行一些调整
 ```js
-class C extends Grass.Component {
-  createBefore () {
-    // this.state = xxx
+  class C extends Grass.Component {
+    createBefore () {
+      // this.state = xxx
+    }
   }
-}
 ```
 
 #### create
 dom 元素创建后调用，它接受一个渲染完毕的 dom 元素作为参数
 ```js
-class C extends Grass.Component {
-  create (dom) {
-    // ...
+  class C extends Grass.Component {
+    create (dom) {
+      // ...
+    }
   }
-}
 ```
 
 #### willUpdate
 将要更新 dom 树时，允许对组件的 state 一次进行调整
 ```js
-class C extends Grass.Component {
-  willUpdate () {
-    if (this.state.xx = xxx) {
-      this.state.xx = xxxx
+  class C extends Grass.Component {
+    willUpdate () {
+      if (this.state.xx = xxx) {
+        this.state.xx = xxxx
+      }
     }
   }
-}
 ```
 
 #### willReceiveProps
 接受父组件传递的 props，return false 可以阻止当前子组件更新，用于优化
 ```js
-class C extends Grass.Component {
-  willReceiveProps (props) {
-    if (props.xx = xxx) {
-      return false
+  class C extends Grass.Component {
+    willReceiveProps (props) {
+      if (props.xx = xxx) {
+        return false
+      }
     }
   }
-}
 ```
 
 #### didUpdate
 dom 跟新完毕后调用
 ```js
-class C extends Grass.Component {
-  didUpdate (dom) {
-    // ...
+  class C extends Grass.Component {
+    didUpdate (dom) {
+      // ...
+    }
   }
-}
 ```
 
 #### destroy
 当前组件被销毁时调用，可以对组件的一些绑定进行解绑，例如在此组件中对另一个组件进行着观测，此时就可以解除观测，避免内存泄露
 ```js
-class C extends Grass.Component {
-  destroy (dom) {
-    // ...
+  class C extends Grass.Component {
+    destroy (dom) {
+      // ...
+    }
   }
-}
+```
+
+### CSSModules
+Grass 提供了 一个 CSSModules api，用于配合 css-loader 做 css 的模块化
+```js
+  import { CSSModules } from 'grass'
+  import style from './style.css'
+
+  @CSSModules(style)
+  class C extends Grass.Component {
+    constructor () {
+      super()
+    }
+
+    template () {
+      return '<div styleName="xx"></div>'
+    }
+  }
 ```
 
 ### 逻辑图

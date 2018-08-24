@@ -8,7 +8,7 @@ export default class EventDone extends Grass.Component {
 
   template () {
     return `
-      <div className="event-done">
+      <div styleName="event-done">
         eventdone
       </div>
     `

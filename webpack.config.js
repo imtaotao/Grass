@@ -27,11 +27,11 @@ module.exports = {
   },
   module: {
     rules: [{
-      test: /(\.jsx|\.js)$/,
+      test: /\.js$/,
       use: {
-          loader: "babel-loader"
+          loader: "babel-loader",
       },
-      exclude: /node_modules/ 
+      exclude: /node_modules/
   	}, {
       test: /\.css$/, // css 可以通过 @import 'xxx.scss';
       use: ExtractTextPlugin.extract({
@@ -39,7 +39,7 @@ module.exports = {
         use: [{
             loader: "css-loader",
             options: {
-              // modules: true
+              modules: true,
             }
         }, {
             loader: "postcss-loader", // 添加浏览器兼容前缀
@@ -60,7 +60,7 @@ module.exports = {
     new webpack.BannerPlugin('xx'),
     new webpack.DefinePlugin(set_npm_args()),
     new HtmlWebpackPlugin({
-        template: __dirname + "/index.html" 
+        template: __dirname + "/index.html"
     }),
     new CleanWebpackPlugin(['dist']),
     new webpack.optimize.OccurrenceOrderPlugin(),

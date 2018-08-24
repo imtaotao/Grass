@@ -8,7 +8,7 @@ export default class EventError extends Grass.Component {
 
   template () {
     return `
-      <div className="event-error">
+      <div styleName="event-error">
         eventerror
       </div>
     `

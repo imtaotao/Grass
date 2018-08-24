@@ -1,5 +1,7 @@
-import Grass from '../src'
+import Grass, { CSSModules } from '../../src'
+import style from './style.css'
 
+@CSSModules(style)
 class Dir extends Grass.Component {
   constructor (props) {
     super(props)
@@ -23,12 +25,12 @@ class Dir extends Grass.Component {
     return `
       <div>
           <div v-for="(list, i) of apiList">
-            <p className="title">{{ titleList[i] }} api</p>
-            <ul className="list-box">
+            <p styleName="title">{{ titleList[i] }} api</p>
+            <ul styleName="list-box">
               <li
                 @click="this.togglePage.bind(this, api)"
                 v-for="api of list"
-                :className="'api-name ' + (api === currentApi ? 'active' : '')">{{ api }}</li>
+                :styleName="'api-name ' + (api === currentApi ? 'active' : '')">{{ api }}</li>
             </ul>
           </div>
       </div>

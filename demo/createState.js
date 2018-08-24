@@ -8,7 +8,7 @@ export default class CreateState extends Grass.Component {
 
   template () {
     return `
-      <div className="create-state">
+      <div styleName="create-state">
         createState
       </div>
     `

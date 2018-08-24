@@ -8,7 +8,7 @@ export default class EventNext extends Grass.Component {
 
   template () {
     return `
-      <div className="event-next">
+      <div styleName="event-next">
         eventnext
       </div>
     `
