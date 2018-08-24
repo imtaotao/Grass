@@ -128,13 +128,12 @@ export function vText (content, parent) {
   return node
 }
 
-export function removeChild (parent, child, notOnly) {
+export function removeChild (parent, child) {
   const children = parent.children
   for (let i = 0; i < children.length; i++) {
     if (children[i] === child) {
       // 我们设置为 null 而不直接删掉是为了保证我们能正确拿到缓存的组件
       children[i] = null
-      if (!notOnly) return
     }
   }
 }

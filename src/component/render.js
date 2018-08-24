@@ -34,6 +34,7 @@ function generatorChildren (children, comp) {
 
       // 递归创建 vnode
       const _children = generatorChildren(conf.children, comp)
+
       vnodeTree.push(_h(conf.tagName, conf.attrs, conf.customDirection, _children))
       continue
     }
@@ -44,6 +45,7 @@ function generatorChildren (children, comp) {
       vnodeTree.push(content)
     }
   }
+
   return vnodeTree
 }
 
@@ -58,6 +60,7 @@ function createCustomComp (parentConf, comp, i) {
   }
 
   const childComp = getChildComp(comp, parentConf.tagName)
+
   if (typeof childComp !== 'function') {
     _.warn(`Component [${parentConf.tagName}] is not registered  \n\n  --->  ${comp.name}\n`)
     return

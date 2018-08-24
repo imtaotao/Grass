@@ -1,1 +1,1 @@
-export default 'taotao'
+export default '2'

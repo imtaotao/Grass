@@ -2,7 +2,7 @@
 // 不然每一次 setState 都进行一次 diff patch，太伤了
 import * as _ from '../utils/index'
 import render from './render'
-import { diff, patch } from '../virtual-dom/index'
+import { diff, patch} from '../virtual-dom/index'
 
 const capacity = 1024
 
@@ -10,9 +10,11 @@ export function enqueueSetState (comp, partialState) {
   if (!_.isPlainObject(partialState) && typeof partialState !== 'function') {
     return
   }
+
   if (!comp.$cacheState.stateQueue.length) {
     updateQueue(comp)
   }
+
   comp.$cacheState.stateQueue.push(partialState)
 }
 
@@ -52,22 +54,33 @@ function mergeState (state, partialState) {
       : state
   }
 
-  return Object.assign({}, state, partialState)
+  return _.isEmptyObj(partialState)
+    ? state
+    : Object.assign({}, state, partialState)
 }
 
 function updateDomTree (comp) {
-  comp.willUpdate()
+  const isNoStateComp = comp.noStateComp
+
+  if (!isNoStateComp) {
+    comp.willUpdate()
+  }
 
   const ast = comp.constructor.$ast
   const dom = comp.$cacheState.dom
   const oldTree = comp.$cacheState.vTree
   const newTree = render(comp.$parentConf, ast, comp)
+
   const patchs = diff(oldTree, newTree)
 
   patch(dom, patchs)
 
   updateChildComp(comp)
-  comp.didUpdate(dom)
+
+  if (!isNoStateComp) {
+    comp.didUpdate(dom)
+  }
+
   comp.$cacheState.vTree = newTree
   comp.$parentConf = null
 }
@@ -82,14 +95,20 @@ function updateChildComp (comp) {
     for (let j = 0, length = childs.length; j < length; j++) {
       const child = childs[j]
 
-      if (child && !child.noStateComp && child.$parentConf) {
+      if (child && child.$parentConf) {
         const parentConf = child.$parentConf
         const newProps = _.getProps(parentConf.attrs)
-        const needUpdate = child.willReceiveProps(newProps)
 
-        if (needUpdate !== false) {
+        if (child.noStateComp) {
           child.props = newProps
           child.setState({})
+        } else {
+          const needUpdate = child.willReceiveProps(newProps)
+
+          if (needUpdate !== false) {
+            child.props = newProps
+            child.setState({})
+          }
         }
       }
     }

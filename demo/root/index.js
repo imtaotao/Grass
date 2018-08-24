@@ -11,6 +11,10 @@ import Comp from '../component';
 import Mount from '../mount'
 import style from './style.css'
 
+function aa () {
+  return '<div>{{ api }}</div>'
+}
+
 @CSSModules(style)
 class Root extends Grass.Component {
   constructor () {
@@ -22,8 +26,13 @@ class Root extends Grass.Component {
 
   createBefore () {
     Dir.on(api => {
+      console.log(api);
       this.setState({ api })
     })
+  }
+
+  click () {
+    this.setState({ api : 'xxxx'})
   }
 
   template () {
@@ -31,6 +40,7 @@ class Root extends Grass.Component {
       <div styleName="container">
         <p styleName="header-bar"></p>
         <Dir styleName="left" :currentApi="api"/>
+        <aa :api="api"/>
 
         <div styleName="right">
           <Comp v-if="api === 'Component'"/>
@@ -59,6 +69,7 @@ class Root extends Grass.Component {
       EventNext,
       SetState,
       Event,
+      aa,
     }
   }
 }

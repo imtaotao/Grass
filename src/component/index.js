@@ -44,6 +44,7 @@ export function mount (rootDOM, compClass) {
     const comp = createCompInstance(compClass, {}, {})
     const dom = createRealDom(null, comp)
 
+    window.s = comp.$cacheState
     rootDOM.appendChild(dom)
     resolve(dom)
   })

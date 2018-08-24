@@ -5,18 +5,23 @@ import { removeCache } from './cache-component'
 import { elementCreated } from '../global-api/constom-directive'
 
 export default function createCompVnode (parentConf, parentComp, comp) {
-  if (comp.$cacheState.componentElement) {
-    return comp.$cacheState.componentElement
+  const $cacheState = comp.$cacheState
+
+  if ($cacheState.componentElement) {
+    return $cacheState.componentElement
   }
 
   const vnode = createWidgetVnode(parentConf, parentComp, comp)
 
-  comp.$cacheState.componentElement = vnode
+  $cacheState.componentElement = vnode
+
   return vnode
 }
 
 function createWidgetVnode (parentConf, parentComp, comp) {
-  function WidgetElement () {}
+  function WidgetElement () {
+    this._name = comp.name
+  }
 
   WidgetElement.prototype.type = 'Widget'
 
@@ -30,7 +35,7 @@ function createWidgetVnode (parentConf, parentComp, comp) {
   }
 
   WidgetElement.prototype.update = function(previous, domNode) {
-    console.log('component update', previous, domNode);
+    console.info('component update', comp.name);
   }
 
   WidgetElement.prototype.destroy = function(dom) {
@@ -54,10 +59,15 @@ export function createRealDom (parentConf, comp) {
   if (comp.noStateComp) {
     const vTree = render(parentConf, ast, comp)
     const dom = create(vTree)
+
+    comp.$cacheState.dom = dom
+    comp.$cacheState.vTree = vTree
+
     return dom
   }
 
   comp.createBefore()
+
   const vTree = render(parentConf, ast, comp)
   const dom = create(vTree)
 

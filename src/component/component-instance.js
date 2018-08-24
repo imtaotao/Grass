@@ -1,4 +1,5 @@
 import * as _ from '../utils/index'
+import { enqueueSetState } from './setState'
 import { parseTemplate } from '../ast/parse-template'
 
 // 创建一个组件实例，分为状态组件和无状态组件
@@ -12,12 +13,23 @@ export function createCompInstance (comConstructor, parentConf, parentComp) {
     // 创建无状态组件
     const props = _.getProps(parentConf.attrs)
     const template = comConstructor(props)
+
     comp = {
       constructor: comConstructor,
       name: comConstructor.name,
       noStateComp: !isClass,
       template,
       props,
+      $cacheState: {
+        stateQueue: [],
+        childComponent: {},
+        componentElement: null,
+        dom: null,
+        vTree: null,
+      },
+      setState (partialState) {
+        enqueueSetState(this, partialState)
+      }
     }
   }
 
