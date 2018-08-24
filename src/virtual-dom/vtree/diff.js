@@ -72,13 +72,11 @@ function destroyWidgets (vNode, patch, index) {
     // 我们对 widget 节点进行 patch 主要是为了调用 destroy
     // 不然我们在直接替换节点的时候就把这个 widget 直接删掉了都不用管
     if (typeof vNode.destroy === 'function') {
-      patch[index] = appendPatch(
-          patch[index],
-          new VPatch(VPatch.REMOVE, vNode, null)
-      )
+      patch[index] = appendPatch(patch[index], new VPatch(VPatch.REMOVE, vNode, null))
     }
   } else if (isVNode(vNode) && vNode.hasWidgets) {
     const children = vNode.children
+
     for (let i = 0, len = children.length; i < len; i++) {
       const child = children[i]
       index++
@@ -150,65 +148,3 @@ function isSameVnode (a, b) {
 function isUndef (v) {
   return v === undefined || v === null
 }
-
-
-// function walk(a, b, patch, index) {
-//   if (a === b) {
-//       return
-//   }
-
-//   var apply = patch[index]
-//   var applyClear = false
-
-//   if (b == null) {
-//       // If a is a widget we will add a remove patch for it
-//       // Otherwise any child widgets/hooks must be destroyed.
-//       // This prevents adding two remove patches for a widget.
-//       if (!isWidget(a)) {
-//           destroyWidgets(a, patch, index)
-//           apply = patch[index]
-//       }
-
-//       apply = appendPatch(apply, new VPatch(VPatch.REMOVE, a, b))
-//   } else if (isVNode(b)) {
-//       if (isVNode(a)) {
-//           if (a.tagName === b.tagName &&
-//               a.namespace === b.namespace &&
-//               a.key === b.key) {
-//               var propsPatch = diffProps(a.properties, b.properties)
-//               if (propsPatch) {
-//                   apply = appendPatch(apply,
-//                       new VPatch(VPatch.PROPS, a, propsPatch))
-//               }
-//               apply = diffChildren(a, b, patch, apply, index)
-//           } else {
-//               apply = appendPatch(apply, new VPatch(VPatch.VNODE, a, b))
-//               applyClear = true
-//           }
-//       } else {
-//           apply = appendPatch(apply, new VPatch(VPatch.VNODE, a, b))
-//           applyClear = true
-//       }
-//   } else if (isVText(b)) {
-//       if (!isVText(a)) {
-//           apply = appendPatch(apply, new VPatch(VPatch.VTEXT, a, b))
-//           applyClear = true
-//       } else if (a.text !== b.text) {
-//           apply = appendPatch(apply, new VPatch(VPatch.VTEXT, a, b))
-//       }
-//   } else if (isWidget(b)) {
-//       if (!isWidget(a)) {
-//           applyClear = true
-//       }
-
-//       apply = appendPatch(apply, new VPatch(VPatch.WIDGET, a, b))
-//   }
-
-//   if (apply) {
-//       patch[index] = apply
-//   }
-
-//   if (applyClear) {
-//     destroyWidgets(a, patch, index)
-//   }
-// }
