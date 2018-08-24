@@ -2,7 +2,8 @@
   "name": "grass",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "dist/common.js",
+  "module": "dist/grass.esm.js",
   "scripts": {
     "dev": "cross-env NODE_ENV=development webpack-dev-server",
     "build": "node build.js"
