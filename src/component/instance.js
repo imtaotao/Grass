@@ -1,4 +1,4 @@
-import * as _ from '../utils/index'
+import * as _ from '../utils'
 import { enqueueSetState } from './setState'
 import { parseTemplate } from '../ast/parse-template'
 

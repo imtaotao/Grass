@@ -1,6 +1,6 @@
 import * as _ from '../utils/index'
-import { createRealDom } from './create-componnet-vnode'
-import { createCompInstance } from './component-instance'
+import { createRealDom } from './widget-vnode'
+import { createCompInstance } from './instance'
 import { enqueueSetState } from './setState'
 
 export class Component {

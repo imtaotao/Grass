@@ -1,7 +1,7 @@
-import * as _ from '../utils/index'
+import * as _ from '../utils'
 import render from './render'
-import { create } from '../virtual-dom/index'
-import { removeCache } from './cache-component'
+import { create } from '../virtual-dom'
+import { removeCache } from './cache'
 import { elementCreated } from '../global-api/constom-directive'
 
 export default function createCompVnode (parentConf, parentComp, comp) {
