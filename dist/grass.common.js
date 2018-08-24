@@ -123,7 +123,7 @@ function each(arr, cb) {
   if (Array.isArray(arr) || arr.length) {
     var length = arr.length;
     for (; i < length; i++) {
-      if (cb(arr[i], i) === false) return;
+      if (cb(arr[i], i, i) === false) return;
     }
     return;
   }
@@ -131,7 +131,7 @@ function each(arr, cb) {
     var keyName = Object.keys(arr);
     var _length = keyName.length;
     for (; i < _length; i++) {
-      if (cb(arr[keyName[i]], keyName[i]) === false) {
+      if (cb(arr[keyName[i]], keyName[i], i) === false) {
         return;
       }
     }
@@ -246,8 +246,8 @@ function runExecuteContext(runCode, directName, tagName, comp, callback) {
 }
 function run(runCode, directName, tagName, comp, callback, state) {
   try {
-    var fun = new Function('$obj_', '$callback_', '$scope_', runCode);
-    return fun.call(comp, state, callback, scope$1);
+    var fun = new Function('$obj_', '$callback_', runCode);
+    return fun.call(comp, state, callback);
   } catch (error) {
     warn('Component directive compilation error  \n\n  "' + directName + '":  ' + error + '\n\n\n    --->  ' + comp.name + ': <' + (tagName || '') + '/>\n');
   }
@@ -749,6 +749,147 @@ function isReservedTag(tag) {
   return isHTMLTag(tag) || isSVG(tag);
 }
 
+var TEXT$1 = 0;
+var SHOW = 1;
+var ON = 2;
+var BIND = 3;
+var IF = 4;
+var FOR = 5;
+var directWeight = {
+  'v-show': SHOW,
+  'v-for': FOR,
+  'v-on': ON,
+  'v-text': TEXT$1,
+  'v-bind': BIND,
+  'v-if': IF
+};
+var DIRECTLENGTH = Object.keys(directWeight).length;
+function getWeight(direct) {
+  var wight = directWeight[direct];
+  if (direct.includes('v-bind')) wight = BIND;
+  if (direct.includes('v-on')) wight = ON;
+  return wight;
+}
+function isReservedDirect(direct) {
+  return direct.includes('v-') && getWeight(direct) !== undefined;
+}
+
+function vevent(events, comp, vnodeConf$$1) {
+  if (isReservedTag(vnodeConf$$1.tagName)) {
+    var _iteratorNormalCompletion = true;
+    var _didIteratorError = false;
+    var _iteratorError = undefined;
+
+    try {
+      for (var _iterator = events[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+        var event = _step.value;
+
+        var name = event.attrName;
+        var code = '\n        with ($obj_) {\n          return ' + event.value + ';\n        }\n      ';
+        vnodeConf$$1.attrs['on' + name] = runExecuteContext(code, 'on', vnodeConf$$1.tagName, comp);
+      }
+    } catch (err) {
+      _didIteratorError = true;
+      _iteratorError = err;
+    } finally {
+      try {
+        if (!_iteratorNormalCompletion && _iterator.return) {
+          _iterator.return();
+        }
+      } finally {
+        if (_didIteratorError) {
+          throw _iteratorError;
+        }
+      }
+    }
+  }
+}
+
+function vfor(node, comp, vnodeConf$$1) {
+  if (!node.for || !node.forArgs) return;
+  if (!node.parent) {
+    sendDirectWarn('v-for', comp.name);
+    return;
+  }
+  var cloneNodes = [];
+  var _node$forArgs = node.forArgs,
+      keys = _node$forArgs.key,
+      data = _node$forArgs.data,
+      isMultiple = _node$forArgs.isMultiple;
+
+  var code = '\n    var $data;\n\n    with($obj_) { $data = ' + data + '; }\n\n    if ($data) {\n      $callback_($data);\n    }\n  ';
+  function loopData(data) {
+    each(data, function (val, key, i) {
+      if (isMultiple) {
+        scope$1.add(keys[0], val);
+        scope$1.add(keys[1], key);
+      } else {
+        scope$1.add(keys, val);
+      }
+      vforCallback(i);
+    });
+  }
+  function vforCallback(i) {
+    var cloneNode = vnodeConf(node, vnodeConf$$1.parent);
+    cloneNode.attrs['key'] = i + '_';
+    node.for = false;
+    cloneNodes[i] = parseSingleNode(node, comp, cloneNode) === false ? null : cloneNode;
+  }
+  scope$1.create();
+  runExecuteContext(code, 'for', vnodeConf$$1.tagName, comp, loopData);
+  scope$1.destroy();
+  var index = serachIndex(vnodeConf$$1);
+  replaceWithLoopRes(vnodeConf$$1, cloneNodes, index);
+  node.for = true;
+}
+function serachIndex(node) {
+  var children = node.parent.children;
+  var length = children.length;
+  for (var i = 0; i < length; i++) {
+    if (children[i] === node) return i;
+  }
+}
+function replaceWithLoopRes(node, res, i) {
+  var children = node.parent.children;
+  children.splice.apply(children, [i, 1].concat(toConsumableArray(res)));
+}
+
+function vif(node, val, comp, vnodeConf$$1) {
+  if (!node.parent) {
+    return sendDirectWarn('v-if', comp.name);
+  }
+  var res = runExecuteContext('\n    with($obj_) {\n      return !!(' + val + ');\n    }\n  ', 'if', vnodeConf$$1.tagName, comp);
+  if (!res) {
+    removeChild(vnodeConf$$1.parent, vnodeConf$$1);
+  }
+  return res;
+}
+
+function show(val, comp, vnodeConf$$1) {
+  var code = 'with($obj_) { return !!(' + val + '); }';
+  var value = runExecuteContext(code, 'show', vnodeConf$$1.tagName, comp) ? '' : 'display: none';
+  var bindValue = { attrName: 'style', value: value };
+  if (isReservedTag(vnodeConf$$1.tagName)) {
+    bind(bindValue, comp, vnodeConf$$1);
+    return;
+  }
+  vnodeConf$$1.vShowResult = bindValue;
+}
+
+function text(val, comp, vnodeConf$$1) {
+  var code = 'with($obj_) { return ' + val + '; }';
+  var content = runExecuteContext(code, 'text', vnodeConf$$1.tagName, comp);
+  if (isReservedTag(vnodeConf$$1.tagName)) {
+    vnodeConf$$1.children = [vText(content, vnodeConf$$1)];
+  } else {
+    vnodeConf$$1.vTextResult = content;
+  }
+}
+
+function runCustomDirect(key, tagName, val, comp) {
+  return runExecuteContext('\n    with ($obj_) {\n      return ' + val + ';\n    }', key.slice(2, key.length), tagName, comp);
+}
+
 var Container = function () {
   function Container(val) {
     classCallCheck(this, Container);
@@ -802,6 +943,135 @@ function elementCreated(dom, direaction) {
 
   for (var i = 0, len = keys.length; i < len; i++) {
     _loop(i, len);
+  }
+}
+
+function complierAst(ast, comp) {
+  if (!comp.noStateComp) {
+    var state = comp.state;
+    if (isFunction(state)) {
+      var res = state();
+      isPlainObject(res) ? comp.state = res : warn('Component "state" must be a "Object"  \n\n  ---> ' + comp.name + '\n');
+    }
+  }
+  var vnodeConf$$1 = vnodeConf(ast);
+  vnodeConf$$1.props = Object.create(null);
+  parseSingleNode(ast, comp, vnodeConf$$1);
+  scope$1.resetScope();
+  return vnodeConf$$1;
+}
+function complierChildrenNode(node, comp, vnodeConf$$1) {
+  var children = node.children;
+  if (!children || !children.length) return;
+  for (var i = 0; i < children.length; i++) {
+    var childVnodeConf = vnodeConf(children[i], vnodeConf$$1);
+    vnodeConf$$1.children.push(childVnodeConf);
+    parseSingleNode(children[i], comp, childVnodeConf);
+  }
+}
+function parseSingleNode(node, comp, vnodeConf$$1) {
+  switch (node.type) {
+    case TAG:
+      if (parseTagNode(node, comp, vnodeConf$$1) === false) return false;
+      break;
+    case STATICTAG:
+      parseStaticNode(node, comp, vnodeConf$$1);
+      break;
+  }
+  if (!node.for) {
+    complierChildrenNode(node, comp, vnodeConf$$1);
+  }
+}
+function parseTagNode(node, comp, vnodeConf$$1) {
+  if (node.hasBindings()) {
+    return complierDirect(node, comp, vnodeConf$$1);
+  }
+}
+function complierDirect(node, comp, vnodeConf$$1) {
+  var directs = node.direction;
+  var nomalDirects = [];
+  var customDirects = {};
+  var currentWeight = null;
+  var currentCustomDirect = null;
+
+  var _loop = function _loop(i) {
+    var direct = directs[i];
+    var key = Object.keys(direct)[0];
+    if (!isReservedDirect(key)) {
+      if (!haveRegisteredCustomDirect(key) || key === currentCustomDirect) {
+        return 'continue';
+      }
+      currentCustomDirect = key;
+      customDirects[key] = function delay() {
+        customDirects[key] = runCustomDirect(key, vnodeConf$$1.tagName, direct[key], comp, vnodeConf$$1);
+      };
+      return 'continue';
+    }
+    var weight = getWeight(key);
+    if (isSameDirect(weight)) return 'continue';
+    currentWeight = weight;
+    if (isMultipleDirect(weight)) {
+      addMultipleDirect(direct, weight, key);
+      return 'continue';
+    }
+    nomalDirects[weight] = direct[key];
+  };
+
+  for (var i = 0; i < directs.length; i++) {
+    var _ret = _loop(i);
+
+    if (_ret === 'continue') continue;
+  }
+  vnodeConf$$1.customDirection = customDirects;
+  for (var w = DIRECTLENGTH - 1; w > -1; w--) {
+    if (!nomalDirects[w]) continue;
+    var directValue = nomalDirects[w];
+    var execResult = executSingleDirect(w, directValue, node, comp, vnodeConf$$1);
+    if (node.for) return;
+    if (execResult === false) return false;
+  }
+  each(customDirects, function (val) {
+    return val();
+  });
+  function addMultipleDirect(direct, weight, key) {
+    var detail = {
+      attrName: key.split(':')[1].trim(),
+      value: direct[key]
+    };
+    !nomalDirects[weight] ? nomalDirects[weight] = [detail] : nomalDirects[weight].push(detail);
+  }
+  function isSameDirect(weight) {
+    return weight !== BIND && weight !== ON && weight === currentWeight;
+  }
+  function isMultipleDirect(weight) {
+    return weight === BIND || weight === ON;
+  }
+}
+function parseStaticNode(node, comp, vnodeConf$$1) {
+  var code = '\n    with ($obj_) {\n      function _s (_val_) { return _val_ };\n      return ' + node.expression + ';\n    }\n  ';
+  vnodeConf$$1.content = runExecuteContext(code, '{{ }}', vnodeConf$$1.parent.tagName, comp);
+}
+function executSingleDirect(weight, val, node, comp, vnodeConf$$1) {
+  switch (weight) {
+    case SHOW:
+      show(val, comp, vnodeConf$$1);
+      break;
+    case FOR:
+      vfor(node, comp, vnodeConf$$1);
+      break;
+    case ON:
+      vevent(val, comp, vnodeConf$$1);
+      break;
+    case TEXT$1:
+      text(val, comp, vnodeConf$$1);
+      break;
+    case BIND:
+      bind(val, comp, vnodeConf$$1);
+      break;
+    case IF:
+      return vif(node, val, comp, vnodeConf$$1);
+    default:
+      customDirect(val, comp, vnodeConf$$1);
   }
 }
 
@@ -1535,6 +1805,32 @@ function _h(tagName, attrs, customDirection, children) {
   return vnode;
 }
 
+function addCache(parentComp, compName, comp, i) {
+  var childs = parentComp.$cacheState.childComponent[compName];
+  if (!childs) {
+    parentComp.$cacheState.childComponent[compName] = [];
+  }
+  parentComp.$cacheState.childComponent[compName][i] = comp;
+}
+function removeCache(parentComp, compName, comp) {
+  var childs = parentComp.$cacheState.childComponent[compName];
+  if (childs) {
+    for (var i = 0, len = childs.length; i < len; i++) {
+      var child = childs[i];
+      if (child === comp) {
+        childs[i] = null;
+      }
+    }
+  }
+}
+function getCache(parentComp, compName, i) {
+  var childs = parentComp.$cacheState.childComponent[compName];
+  if (childs && childs[i]) {
+    return childs[i];
+  }
+  return null;
+}
+
 function createCompInstance(comConstructor, parentConf, parentComp) {
   var isClass$$1 = isClass(comConstructor);
   var comp = void 0;
@@ -1577,291 +1873,6 @@ function createAst(comp) {
     return;
   }
   return ast;
-}
-
-var TEXT$1 = 0;
-var SHOW = 1;
-var ON = 2;
-var BIND = 3;
-var IF = 4;
-var FOR = 5;
-var directWeight = {
-  'v-show': SHOW,
-  'v-for': FOR,
-  'v-on': ON,
-  'v-text': TEXT$1,
-  'v-bind': BIND,
-  'v-if': IF
-};
-var DIRECTLENGTH = Object.keys(directWeight).length;
-function getWeight(direct) {
-  var wight = directWeight[direct];
-  if (direct.includes('v-bind')) wight = BIND;
-  if (direct.includes('v-on')) wight = ON;
-  return wight;
-}
-function isReservedDirect(direct) {
-  return direct.includes('v-') && getWeight(direct) !== undefined;
-}
-
-function vevent(events, comp, vnodeConf$$1) {
-  if (isReservedTag(vnodeConf$$1.tagName)) {
-    var _iteratorNormalCompletion = true;
-    var _didIteratorError = false;
-    var _iteratorError = undefined;
-
-    try {
-      for (var _iterator = events[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-        var event = _step.value;
-
-        var name = event.attrName;
-        var code = '\n        with ($obj_) {\n          return ' + event.value + ';\n        }\n      ';
-        vnodeConf$$1.attrs['on' + name] = runExecuteContext(code, 'on', vnodeConf$$1.tagName, comp);
-      }
-    } catch (err) {
-      _didIteratorError = true;
-      _iteratorError = err;
-    } finally {
-      try {
-        if (!_iteratorNormalCompletion && _iterator.return) {
-          _iterator.return();
-        }
-      } finally {
-        if (_didIteratorError) {
-          throw _iteratorError;
-        }
-      }
-    }
-  }
-}
-
-function vfor(node, comp, vnodeConf$$1) {
-  if (!node.for || !node.forArgs) return;
-  if (!node.parent) {
-    sendDirectWarn('v-for', comp.name);
-    return;
-  }
-  var cloneNodes = [];
-  var _node$forArgs = node.forArgs,
-      data = _node$forArgs.data,
-      key = _node$forArgs.key,
-      isMultiple = _node$forArgs.isMultiple;
-
-  var code = '\n    with($obj_) {\n      for (var $index_ = 0; $index_ < ' + data + '.length; $index_++) {\n        if (' + isMultiple + ') {\n          $scope_.add(\'' + key[0] + '\', ' + data + '[$index_]);\n          $scope_.add(\'' + key[1] + '\', $index_);\n        } else {\n          $scope_.add(\'' + key + '\', ' + data + '[$index_]);\n        }\n\n        $callback_($index_);\n      }\n    }\n  ';
-  function vforCallback(i) {
-    var cloneNode = vnodeConf(node, vnodeConf$$1.parent);
-    cloneNode.attrs['key'] = i;
-    node.for = false;
-    cloneNodes[i] = parseSingleNode(node, comp, cloneNode) === false ? null : cloneNode;
-  }
-  scope$1.create();
-  runExecuteContext(code, 'for', vnodeConf$$1.tagName, comp, vforCallback);
-  scope$1.destroy();
-  var index = serachIndex(vnodeConf$$1);
-  replaceWithLoopRes(vnodeConf$$1, cloneNodes, index);
-  node.for = true;
-}
-function serachIndex(node) {
-  var children = node.parent.children;
-  var length = children.length;
-  for (var i = 0; i < length; i++) {
-    if (children[i] === node) return i;
-  }
-}
-function replaceWithLoopRes(node, res, i) {
-  var children = node.parent.children;
-  children.splice.apply(children, [i, 1].concat(toConsumableArray(res)));
-}
-
-function vif(node, val, comp, vnodeConf$$1) {
-  if (!node.parent) {
-    return sendDirectWarn('v-if', comp.name);
-  }
-  var res = runExecuteContext('\n    with($obj_) {\n      return !!(' + val + ');\n    }\n  ', 'if', vnodeConf$$1.tagName, comp);
-  if (!res) {
-    removeChild(vnodeConf$$1.parent, vnodeConf$$1);
-  }
-  return res;
-}
-
-function show(val, comp, vnodeConf$$1) {
-  var code = 'with($obj_) { return !!(' + val + '); }';
-  var value = runExecuteContext(code, 'show', vnodeConf$$1.tagName, comp) ? '' : 'display: none';
-  var bindValue = { attrName: 'style', value: value };
-  if (isReservedTag(vnodeConf$$1.tagName)) {
-    bind(bindValue, comp, vnodeConf$$1);
-    return;
-  }
-  vnodeConf$$1.vShowResult = bindValue;
-}
-
-function text(val, comp, vnodeConf$$1) {
-  var code = 'with($obj_) { return ' + val + '; }';
-  var content = runExecuteContext(code, 'text', vnodeConf$$1.tagName, comp);
-  if (isReservedTag(vnodeConf$$1.tagName)) {
-    vnodeConf$$1.children = [vText(content, vnodeConf$$1)];
-  } else {
-    vnodeConf$$1.vTextResult = content;
-  }
-}
-
-function runCustomDirect(key, tagName, val, comp) {
-  return runExecuteContext('\n    with ($obj_) {\n      return ' + val + ';\n    }', key.slice(2, key.length), tagName, comp);
-}
-
-function complierAst(ast, comp) {
-  if (!comp.noStateComp) {
-    var state = comp.state;
-    if (isFunction(state)) {
-      var res = state();
-      isPlainObject(res) ? comp.state = res : warn('Component "state" must be a "Object"  \n\n  ---> ' + comp.name + '\n');
-    }
-  }
-  var vnodeConf$$1 = vnodeConf(ast);
-  vnodeConf$$1.props = Object.create(null);
-  parseSingleNode(ast, comp, vnodeConf$$1);
-  scope$1.resetScope();
-  return vnodeConf$$1;
-}
-function complierChildrenNode(node, comp, vnodeConf$$1) {
-  var children = node.children;
-  if (!children || !children.length) return;
-  for (var i = 0; i < children.length; i++) {
-    var childVnodeConf = vnodeConf(children[i], vnodeConf$$1);
-    vnodeConf$$1.children.push(childVnodeConf);
-    parseSingleNode(children[i], comp, childVnodeConf);
-  }
-}
-function parseSingleNode(node, comp, vnodeConf$$1) {
-  switch (node.type) {
-    case TAG:
-      if (parseTagNode(node, comp, vnodeConf$$1) === false) return false;
-      break;
-    case STATICTAG:
-      parseStaticNode(node, comp, vnodeConf$$1);
-      break;
-  }
-  if (!node.for) {
-    complierChildrenNode(node, comp, vnodeConf$$1);
-  }
-}
-function parseTagNode(node, comp, vnodeConf$$1) {
-  if (node.hasBindings()) {
-    return complierDirect(node, comp, vnodeConf$$1);
-  }
-}
-function complierDirect(node, comp, vnodeConf$$1) {
-  var directs = node.direction;
-  var nomalDirects = [];
-  var customDirects = {};
-  var currentWeight = null;
-  var currentCustomDirect = null;
-
-  var _loop = function _loop(i) {
-    var direct = directs[i];
-    var key = Object.keys(direct)[0];
-    if (!isReservedDirect(key)) {
-      if (!haveRegisteredCustomDirect(key) || key === currentCustomDirect) {
-        return 'continue';
-      }
-      currentCustomDirect = key;
-      customDirects[key] = function delay() {
-        customDirects[key] = runCustomDirect(key, vnodeConf$$1.tagName, direct[key], comp, vnodeConf$$1);
-      };
-      return 'continue';
-    }
-    var weight = getWeight(key);
-    if (isSameDirect(weight)) return 'continue';
-    currentWeight = weight;
-    if (isMultipleDirect(weight)) {
-      addMultipleDirect(direct, weight, key);
-      return 'continue';
-    }
-    nomalDirects[weight] = direct[key];
-  };
-
-  for (var i = 0; i < directs.length; i++) {
-    var _ret = _loop(i);
-
-    if (_ret === 'continue') continue;
-  }
-  vnodeConf$$1.customDirection = customDirects;
-  for (var w = DIRECTLENGTH - 1; w > -1; w--) {
-    if (!nomalDirects[w]) continue;
-    var directValue = nomalDirects[w];
-    var execResult = executSingleDirect(w, directValue, node, comp, vnodeConf$$1);
-    if (node.for) return;
-    if (execResult === false) return false;
-  }
-  each(customDirects, function (val) {
-    return val();
-  });
-  function addMultipleDirect(direct, weight, key) {
-    var detail = {
-      attrName: key.split(':')[1].trim(),
-      value: direct[key]
-    };
-    !nomalDirects[weight] ? nomalDirects[weight] = [detail] : nomalDirects[weight].push(detail);
-  }
-  function isSameDirect(weight) {
-    return weight !== BIND && weight !== ON && weight === currentWeight;
-  }
-  function isMultipleDirect(weight) {
-    return weight === BIND || weight === ON;
-  }
-}
-function parseStaticNode(node, comp, vnodeConf$$1) {
-  var code = '\n    with ($obj_) {\n      function _s (_val_) { return _val_ };\n      return ' + node.expression + ';\n    }\n  ';
-  vnodeConf$$1.content = runExecuteContext(code, '{{ }}', vnodeConf$$1.parent.tagName, comp);
-}
-function executSingleDirect(weight, val, node, comp, vnodeConf$$1) {
-  switch (weight) {
-    case SHOW:
-      show(val, comp, vnodeConf$$1);
-      break;
-    case FOR:
-      vfor(node, comp, vnodeConf$$1);
-      break;
-    case ON:
-      vevent(val, comp, vnodeConf$$1);
-      break;
-    case TEXT$1:
-      text(val, comp, vnodeConf$$1);
-      break;
-    case BIND:
-      bind(val, comp, vnodeConf$$1);
-      break;
-    case IF:
-      return vif(node, val, comp, vnodeConf$$1);
-    default:
-      customDirect(val, comp, vnodeConf$$1);
-  }
-}
-
-function addCache(parentComp, compName, comp, i) {
-  var childs = parentComp.$cacheState.childComponent[compName];
-  if (!childs) {
-    parentComp.$cacheState.childComponent[compName] = [];
-  }
-  parentComp.$cacheState.childComponent[compName][i] = comp;
-}
-function removeCache(parentComp, compName, comp) {
-  var childs = parentComp.$cacheState.childComponent[compName];
-  if (childs) {
-    for (var i = 0, len = childs.length; i < len; i++) {
-      var child = childs[i];
-      if (child === comp) {
-        childs[i] = null;
-      }
-    }
-  }
-}
-function getCache(parentComp, compName, i) {
-  var childs = parentComp.$cacheState.childComponent[compName];
-  if (childs && childs[i]) {
-    return childs[i];
-  }
-  return null;
 }
 
 function render(parentConf, ast, comp) {

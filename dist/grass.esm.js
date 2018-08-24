@@ -121,7 +121,7 @@ function each(arr, cb) {
   if (Array.isArray(arr) || arr.length) {
     var length = arr.length;
     for (; i < length; i++) {
-      if (cb(arr[i], i) === false) return;
+      if (cb(arr[i], i, i) === false) return;
     }
     return;
   }
@@ -129,7 +129,7 @@ function each(arr, cb) {
     var keyName = Object.keys(arr);
     var _length = keyName.length;
     for (; i < _length; i++) {
-      if (cb(arr[keyName[i]], keyName[i]) === false) {
+      if (cb(arr[keyName[i]], keyName[i], i) === false) {
         return;
       }
     }
@@ -244,8 +244,8 @@ function runExecuteContext(runCode, directName, tagName, comp, callback) {
 }
 function run(runCode, directName, tagName, comp, callback, state) {
   try {
-    var fun = new Function('$obj_', '$callback_', '$scope_', runCode);
-    return fun.call(comp, state, callback, scope$1);
+    var fun = new Function('$obj_', '$callback_', runCode);
+    return fun.call(comp, state, callback);
   } catch (error) {
     warn('Component directive compilation error  \n\n  "' + directName + '":  ' + error + '\n\n\n    --->  ' + comp.name + ': <' + (tagName || '') + '/>\n');
   }
@@ -811,19 +811,30 @@ function vfor(node, comp, vnodeConf$$1) {
   }
   var cloneNodes = [];
   var _node$forArgs = node.forArgs,
+      keys = _node$forArgs.key,
       data = _node$forArgs.data,
-      key = _node$forArgs.key,
       isMultiple = _node$forArgs.isMultiple;
 
-  var code = '\n    with($obj_) {\n      for (var $index_ = 0; $index_ < ' + data + '.length; $index_++) {\n        if (' + isMultiple + ') {\n          $scope_.add(\'' + key[0] + '\', ' + data + '[$index_]);\n          $scope_.add(\'' + key[1] + '\', $index_);\n        } else {\n          $scope_.add(\'' + key + '\', ' + data + '[$index_]);\n        }\n\n        $callback_($index_);\n      }\n    }\n  ';
+  var code = '\n    var $data;\n\n    with($obj_) { $data = ' + data + '; }\n\n    if ($data) {\n      $callback_($data);\n    }\n  ';
+  function loopData(data) {
+    each(data, function (val, key, i) {
+      if (isMultiple) {
+        scope$1.add(keys[0], val);
+        scope$1.add(keys[1], key);
+      } else {
+        scope$1.add(keys, val);
+      }
+      vforCallback(i);
+    });
+  }
   function vforCallback(i) {
     var cloneNode = vnodeConf(node, vnodeConf$$1.parent);
-    cloneNode.attrs['key'] = i;
+    cloneNode.attrs['key'] = i + '_';
     node.for = false;
     cloneNodes[i] = parseSingleNode(node, comp, cloneNode) === false ? null : cloneNode;
   }
   scope$1.create();
-  runExecuteContext(code, 'for', vnodeConf$$1.tagName, comp, vforCallback);
+  runExecuteContext(code, 'for', vnodeConf$$1.tagName, comp, loopData);
   scope$1.destroy();
   var index = serachIndex(vnodeConf$$1);
   replaceWithLoopRes(vnodeConf$$1, cloneNodes, index);

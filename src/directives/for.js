@@ -25,7 +25,6 @@ export default function vfor (node, comp, vnodeConf) {
   `
 
   function loopData (data) {
-    console.log(data);
     _.each(data, (val, key, i) => {
       if (isMultiple) {
         scope.add(keys[0], val);
