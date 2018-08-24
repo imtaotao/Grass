@@ -35,7 +35,7 @@ export function createCompInstance (comConstructor, parentConf, parentComp) {
 
   // 避免组件自己引用自己
   if (isClass && comp.prototype === Object.getPrototypeOf(parentComp)) {
-    _.warn(`Component can not refer to themselves  \n\n  --->  ${parentComp.name}\n`)
+    _.grassWarn('Component can not refer to themselves', parentComp.name)
     return
   }
 
@@ -56,13 +56,12 @@ export function createAst (comp) {
   }
 
   if (!_.isString(template)) {
-    _.warn(`Component template must a "string" or "function", But now is "${typeof template}"
-      \n\n  --->  ${name}\n`)
+    _.grassWarn(`Component template must a "string" or "function", But now is "${typeof template}"`, name)
     return
   }
 
   if (!(ast = parseTemplate(template.trim(), name))) {
-    _.warn(`No string template available  \n\n  --->  ${name}`)
+    _.grassWarn('No string template available', name)
     return
   }
 

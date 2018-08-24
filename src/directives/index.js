@@ -27,7 +27,7 @@ export default function complierAst (ast, comp) {
       const res = state()
       _.isPlainObject(res)
         ? comp.state = res
-        : _.warn(`Component "state" must be a "Object"  \n\n  ---> ${comp.name}\n`)
+        : _.grassWarn('Component "state" must be a "Object"', comp.name)
     }
   }
 

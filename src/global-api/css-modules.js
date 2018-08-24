@@ -11,7 +11,7 @@ export function CSSModules (style) {
     component.CSSModules = function (vnodeConf, _compName) {
       compName = _compName
       if (havStyleName(vnodeConf)) {
-        replaceStyleName(vnodeConf.attrs, style)
+        replaceStyleName(vnodeConf.attrs, style, vnodeConf.tagName)
       }
 
       applyChildren(vnodeConf, style)
@@ -31,7 +31,7 @@ function applyChildren (config, style) {
       const child = children[i]
 
       if (havStyleName(child)) {
-        replaceStyleName(child.attrs, style)
+        replaceStyleName(child.attrs, style, child.tagName)
       }
 
       applyChildren(child, style)
@@ -39,7 +39,7 @@ function applyChildren (config, style) {
   }
 }
 
-function replaceStyleName (attrs, style) {
+function replaceStyleName (attrs, style, tagName) {
   const styleString = attrs.styleName
 
   if (typeof styleString === 'string') {
@@ -54,7 +54,7 @@ function replaceStyleName (attrs, style) {
 
         result += !result ? value : ' ' + value
       } else if (styleName) {
-        _.warn(`"${styleName}" CSS module is undefined  \n\n    --->  ${compName || 'unknow'}\n`)
+        _.grassWarn(`"${styleName}" CSS module is undefined`, compName + `: <${tagName}/>`)
       }
     }
 

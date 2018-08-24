@@ -62,7 +62,7 @@ function createCustomComp (parentConf, comp, i) {
   const childComp = getChildComp(comp, parentConf.tagName)
 
   if (typeof childComp !== 'function') {
-    _.warn(`Component [${parentConf.tagName}] is not registered  \n\n  --->  ${comp.name}\n`)
+    _.grassWarn(`Component [${parentConf.tagName}] is not registered`, comp.name)
     return
   }
 

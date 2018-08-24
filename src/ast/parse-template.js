@@ -49,7 +49,7 @@ export function parseTemplate (html, compName) {
 
     // 一个结束标签最少有四个字符 </a>
     if (searchEndCount > html.length / 4) {
-      _.warn(`Parsing template error\n\n   Missing end tag  \n\n  ---> ${compName}\n`)
+      _.grassWarn(`Parsing template error\n\n   Missing end tag`, compName)
     }
   }
 
@@ -120,7 +120,7 @@ export function parseTemplate (html, compName) {
         textNode.end = index
 
         if (scope === null) {
-          _.warn(`Component can only have one root node \n\n  --->  ${compName}\n`)
+          _.grassWarn('Component can only have one root node', compName)
         }
         scope.children.push(textNode)
       } else {
