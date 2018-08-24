@@ -58,7 +58,7 @@ class Root extends Grass.Component {
     return `
       <div>
         <div @click="() => this.setState({arr: [1, 2, 3, 4]})">tttt</div>
-        <Child v-for="val of obj" :callback="this.callback.bind(this)"/>
+        <Child v-for="val of arr" :callback="this.callback.bind(this)"/>
       </div>
     `
   }
