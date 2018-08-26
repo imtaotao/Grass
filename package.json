@@ -31,7 +31,8 @@
     "style-loader": "^0.19.0",
     "uglifyjs-webpack-plugin": "^1.1.2",
     "webpack": "^3.10.0",
-    "webpack-dev-server": "^2.9.7"
+    "webpack-dev-server": "^2.9.7",
+    "grass-loader": "^0.0.1"
   },
   "dependencies": {
     "autoprefixer": "^7.2.5",

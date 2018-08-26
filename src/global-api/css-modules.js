@@ -10,12 +10,14 @@ export function CSSModules (style) {
 
     component.CSSModules = function (vnodeConf, _compName) {
       compName = _compName
-      if (havStyleName(vnodeConf)) {
+      if (haveStyleName(vnodeConf)) {
         replaceStyleName(vnodeConf.attrs, style, vnodeConf.tagName)
       }
 
       applyChildren(vnodeConf, style)
     }
+
+    return component
   }
 }
 
@@ -30,7 +32,7 @@ function applyChildren (config, style) {
     for (let i = 0, len = children.length; i < len; i++) {
       const child = children[i]
 
-      if (havStyleName(child)) {
+      if (haveStyleName(child)) {
         replaceStyleName(child.attrs, style, child.tagName)
       }
 
@@ -73,7 +75,7 @@ function mergeClassName (attrs, classResult) {
   }
 }
 
-function havStyleName (node) {
+function haveStyleName (node) {
   return (
     node &&
     node.attrs &&

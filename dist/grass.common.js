@@ -2316,11 +2316,12 @@ function CSSModules(style) {
     }
     component.CSSModules = function (vnodeConf$$1, _compName) {
       compName = _compName;
-      if (havStyleName(vnodeConf$$1)) {
+      if (haveStyleName(vnodeConf$$1)) {
         replaceStyleName(vnodeConf$$1.attrs, style, vnodeConf$$1.tagName);
       }
       applyChildren(vnodeConf$$1, style);
     };
+    return component;
   };
 }
 function applyChildren(config, style) {
@@ -2331,7 +2332,7 @@ function applyChildren(config, style) {
   if (children) {
     for (var i = 0, len = children.length; i < len; i++) {
       var child = children[i];
-      if (havStyleName(child)) {
+      if (haveStyleName(child)) {
         replaceStyleName(child.attrs, style, child.tagName);
       }
       applyChildren(child, style);
@@ -2365,7 +2366,7 @@ function mergeClassName(attrs, classResult) {
     attrs.className += ' ' + classResult;
   }
 }
-function havStyleName(node) {
+function haveStyleName(node) {
   return node && node.attrs && node.attrs.styleName;
 }
 

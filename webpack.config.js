@@ -1,8 +1,6 @@
 const webpack = require('webpack')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const ExtractTextPlugin = require('extract-text-webpack-plugin')
-const UglifyJSPlugin = require('uglifyjs-webpack-plugin')
-const CleanWebpackPlugin = require('clean-webpack-plugin')
 const path = require('path')
 
 module.exports = {
@@ -12,7 +10,7 @@ module.exports = {
     filename: "bundle.js"
   },
   resolve: {
-    extensions: ['.js', '.json', '.css'],
+    extensions: ['.js', '.json', '.css', '.vue'],
     alias: {
       '@': resolve('./demo')
     }
@@ -27,10 +25,15 @@ module.exports = {
   },
   module: {
     rules: [{
-      test: /\.js$/,
-      use: {
-          loader: "babel-loader",
-      },
+      test: /(\.js|\.vue)$/,
+      use: [{
+        loader: "babel-loader",
+      }, {
+        loader: "grass-loader",
+        options: {
+          libPath: __dirname + '/src'
+        },
+      }],
       exclude: /node_modules/
   	}, {
       test: /\.css$/, // css 可以通过 @import 'xxx.scss';
