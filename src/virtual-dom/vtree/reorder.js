@@ -156,32 +156,6 @@ export function reorder (aChildren, bChildren) {
     }
   }
 
-  /**
-   *  我们总结下，只要新旧俩节点 key 不等，那么分为以下两种情况处理
-   *  1. 如果是相邻俩节点的位移，我们只要把 后面的一个元素 插入 到前面即可（positionInBkeys === k + 1）
-   *  2. 如果不是相邻的位移的节点，那么代表是多距离位移，我们直接把当前的元素 remove（这个 item 瞬移开始😁）
-   *     然后我们对比删除后的 simulate 集合的最前面一个元素，如果和当前 wantedItem key 是相等的，那么
-   *     现在的顺序是对的，跳过，如果不等，我们直接插入 wantedItem（我们以新的 children 顺序为准），此时的
-   *     wantedItem 就是正确的位置，就放在这里，如果有 remove 掉的元素找到了此时的 wantedItem，那就是移动
-   *     否则，这个 wantedItem 就是新增的
-   *
-   *  那么还存在没有 wantedItem 和 没有 simulateItem 的情况
-   *  1. wantedItem 没有 key，那么此时 wantedItem 肯定不相等 simulateItem(相等已过滤)，而且 wantedItem 肯定是 free 元素
-   *     那么把 simulateItem 如果有 key，那肯定不算 free 元素，那位置肯定不对，就要 remove（瞬移），知道找到相等的为止
-   *     （肯定有，应为我们在上一次循环中，把新旧节点的都放到 newChildren 中了，只不过去重了）然后我们再对 bChildren 中剩下的，
-   *     继续进行循环，进行判断，最终 insert 里面的，其实这些就是那些瞬移的节点，只不过，这里可能少了，如果少了的，那就是真删了，
-   *     如果多了的，那就是真的新增的，如果找到了瞬移对应的节点，那就是真的移动了。
-   *
-   *  2. simulateItem 没有 key，那就是 free 元素，(想想 wantedItem 没有 key，开始了 free 元素的 move)，这里就是要
-   *     开始 free 元素的 insert (复位)，此处一直 insert wantedItem, 直到找到相等的为止，然后继续判断
-   *
-   *  3. 如果 simulateItem 没有，那有可能是我们再 remove 的时候给删没了（想想 wantedItem 没有 key 的 时候），我们只要
-   *     把当前的 wantedItem 插入到 insert 数组中
-   *
-   *  可以看到针对 wantedItem 和 simulateItem 为 free 元素的时候，一个使劲删，一个使劲加，知道找到相等的为止，因为没有 key
-   *  也不用管 key 对不对了，只要按照新的 item 顺序排列就好了
-   * */
-
   // 删除 simulate 中多余的元素，也就是残留的旧节点，因为我们把 bChildren 的节点都处理过，剩下的都是不需要的
   // 这里的 simulateIndex 是相同属性的节点计数，每次计数的时候，simulate 都会过掉一个元素，所以只要一般
   // 情况下都是想相等的，除非 simulate 有多余的节点
