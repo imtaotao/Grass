@@ -27,7 +27,7 @@ ul, li, p {
   padding: 0;
 }
 input[type=text], input[type=file] {
-	width: 60%;
+  width: 60%;
   font-size: 14px;
   outline: none;
   padding: 5px 0;
