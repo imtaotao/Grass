@@ -1,83 +1,83 @@
 .change-user-container {
-	position: fixed;
-	top: 0;
-	bottom: 0;
-	left: 0;
-	right: 0;
-	background: rgba(7,17,77,.2);
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(7,17,77,.2);
 }
 
 .change-user-box {
-	position: absolute;
-	width: 400px;
-	height: 400px;
-	background: rgba(255,255,255,.1);
-	left: calc(50% - 200px);
-	top: calc(50% - 200px);
-	border-radius: 5px;
+  position: absolute;
+  width: 400px;
+  height: 400px;
+  background: rgba(255,255,255,.1);
+  left: calc(50% - 200px);
+  top: calc(50% - 200px);
+  border-radius: 5px;
 }
 
 .change-user-detail {
-	box-sizing: border-box;
-	width: 100%;
-	padding: 10px 20px;
+  box-sizing: border-box;
+  width: 100%;
+  padding: 10px 20px;
 }
 
 .change-user-detail p {
-	width: 100%;
-	margin: 20px 0;
+  width: 100%;
+  margin: 20px 0;
 }
 
 .change-user-detail p span {
-	display: inline-block;
-	width: 100px;
-	height: 30px;
-	text-align: right;
+  display: inline-block;
+  width: 100px;
+  height: 30px;
+  text-align: right;
 }
 
 .change-user-detail p label:nth-child(2) {
-	margin-left: 40px;
+  margin-left: 40px;
 }
 
 .change-user-detail p input:not([type=radio]) {
-	background: rgba(7,17,77,.5);
-	border-radius: 5px;
-	padding:5px 10px;
-	width: 100px;
-	margin-left: 40px;
+  background: rgba(7,17,77,.5);
+  border-radius: 5px;
+  padding:5px 10px;
+  width: 100px;
+  margin-left: 40px;
 }
 
 .change-user-detail img {
-	width: 50px !important;
-	height: 50px;
-	vertical-align: middle;
-	border-radius: 50%;
-	margin-left: 10px;
-	border: 4px solid rgba(255,255,255,.1);
+  width: 50px !important;
+  height: 50px;
+  vertical-align: middle;
+  border-radius: 50%;
+  margin-left: 10px;
+  border: 4px solid rgba(255,255,255,.1);
 }
 
 .input-radio label {
-	margin-right: 20px;
+  margin-right: 20px;
 }
 
 .change-user-btn {
-	display: inline-block;
-	margin-left: 80px;
-	margin-top: 10px;
+  display: inline-block;
+  margin-left: 80px;
+  margin-top: 10px;
 }
 
 .btn-box span, .change-user-btn span {
-	display: inline-block;
-	width: 100px;
-	height: 30px;
-	line-height: 30px;
-	border-radius: 5px;
-	text-align: center;
-	background: #66b1e9;
-	cursor: pointer;
-	margin-right: 20px;
+  display: inline-block;
+  width: 100px;
+  height: 30px;
+  line-height: 30px;
+  border-radius: 5px;
+  text-align: center;
+  background: #66b1e9;
+  cursor: pointer;
+  margin-right: 20px;
 }
 
 .btn-box span:hover {
-	background: #2c97e7;
+  background: #2c97e7;
 }

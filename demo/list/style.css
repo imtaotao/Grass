@@ -1,70 +1,70 @@
 .list-box {
-	width: 100%;
-	box-sizing: border-box;
-	padding: 10px;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px;
 }
 
 .outside-ul {
-	padding: 15px;
-	border-top: .5px solid rgba(255,255,255,.4);
+  padding: 15px;
+  border-top: .5px solid rgba(255,255,255,.4);
 }
 
 .outside-ul > li {
-	width: 100%;
-	min-height: 35px;
-	margin-bottom: 10px;
-	border-bottom: .5px solid rgba(255,255,255,.1)
+  width: 100%;
+  min-height: 35px;
+  margin-bottom: 10px;
+  border-bottom: .5px solid rgba(255,255,255,.1)
 }
 
 .single-user p {
-	overflow: hidden;
+  overflow: hidden;
 }
 
 .single-user p span:nth-child(1) {
-	float: left;
+  float: left;
 }
 
 .operat-title {
-	float: right;
-	font-size: 14px;
-	color: rgba(255,255,255,.5);
-	cursor: pointer;
-	margin-right: 10px;
+  float: right;
+  font-size: 14px;
+  color: rgba(255,255,255,.5);
+  cursor: pointer;
+  margin-right: 10px;
 }
 
 .operat-title:hover {
-	color: #fff;
+  color: #fff;
 }
 
 .user-detail {
-	background: rgba(255,255,255,.1);
-	overflow: hidden;
-	margin: 15px 0;
+  background: rgba(255,255,255,.1);
+  overflow: hidden;
+  margin: 15px 0;
 }
 
 .detail-box {
-	width: 100%;
-	height: 100%;
-	padding: 10px;
-	box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  padding: 10px;
+  box-sizing: border-box;
 }
 
 .detail-box span {
-	display: inline-block;
-	line-height: 40px;
-	text-align: center;
-	width: 25%;
+  display: inline-block;
+  line-height: 40px;
+  text-align: center;
+  width: 25%;
 }
 
 .title-colu {
-	font-size: 14px;
-	color: rgba(255,255,255,.5);
+  font-size: 14px;
+  color: rgba(255,255,255,.5);
 }
 
 .user-pic {
-	width: 50px !important;
-	height: 50px;
-	vertical-align: middle;
-	border-radius: 50%;
-	border: 4px solid rgba(255,255,255,.1);
+  width: 50px !important;
+  height: 50px;
+  vertical-align: middle;
+  border-radius: 50%;
+  border: 4px solid rgba(255,255,255,.1);
 }

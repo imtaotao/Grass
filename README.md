@@ -1,7 +1,7 @@
 ## 一个简单的模板库，底层使用 virtual-dom，个人学习之用，我把他叫为 Grass
 
 ### 如何使用
-在 [demo](./demo/root/index.js) 中有例子
+在 [demo](./demo/root/index.grs) 中有例子
 ```js
   import Grass from './src'
   import child from 'xx/childComponent'
@@ -367,7 +367,7 @@ grass-loader 会预编译模板，所以你可以像 vue 一样使用单文件�
   + name 属性是这个无状态组件的组件名
   + styleSrc 属性为这个无状态组件的需要的 css，如果设置了此属性，会自动开启 css module（需要 css-loader 配合）
 
-```html 
+```html
   <template name="noState" styleSrc="./style.css">
     <div styleName="xx">{{ tao }}</div>'
   <template/>
