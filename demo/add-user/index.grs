@@ -75,9 +75,9 @@
         return _.notice('请重新选择头像吧~')
       }
 
-			const reader = new FileReader()
-			reader.readAsDataURL(file)
-			reader.onload = () => {
+      const reader = new FileReader()
+      reader.readAsDataURL(file)
+      reader.onload = () => {
         this.setState(state => {
           state.pic = reader.result
 

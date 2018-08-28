@@ -2,12 +2,12 @@
   <div styleName='list-box'>
     <ul styleName='outside-ul'>
       <li v-for="(val, i) of userList" styleName='single-user'>
-				<p>
-					<span>{{ val.name }}</span>
-					<span styleName='operat-title' @click="this.deleteUser.bind(this, i)">删除</span>
-					<span styleName='operat-title' @click="this.showChangeUS.bind(this, val, i)">修改</span>
-					<span styleName='operat-title' @click="this.changeShow.bind(this, i)">详情</span>
-				</p>
+      <p>
+        <span>{{ val.name }}</span>
+        <span styleName='operat-title' @click="this.deleteUser.bind(this, i)">删除</span>
+        <span styleName='operat-title' @click="this.showChangeUS.bind(this, val, i)">修改</span>
+        <span styleName='operat-title' @click="this.changeShow.bind(this, i)">详情</span>
+      </p>
 
         <div styleName='user-detail' className="animate"
           :style="this.getUserDetailStyle(val)">
