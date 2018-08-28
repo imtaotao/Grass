@@ -255,7 +255,8 @@ function run(runCode, directName, tagName, comp, callback, state) {
   }
 }
 
-var styleString = /\{[^\}]*\}/;
+var objectFormat = /\{[^\}]*\}/;
+var stringFormat = /.+\s*:\s*.+\s*;?/;
 function bind(props, comp, vnodeConf$$1) {
   if (!Array.isArray(props)) {
     dealSingleBindAttr(props, comp, vnodeConf$$1);
@@ -291,7 +292,7 @@ function dealSingleBindAttr(_ref, comp, vnodeConf$$1) {
       value = _ref.value;
 
   if (attrName === 'style') {
-    if (!styleString.test(value)) {
+    if (!value || stringFormat.test(value) && !objectFormat.test(value)) {
       vnodeConf$$1.attrs.style = spliceStyleStr(vnodeConf$$1.attrs[attrName], value);
       return;
     }
