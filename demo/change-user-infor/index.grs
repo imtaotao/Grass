@@ -1,0 +1,134 @@
+<template>
+  <div styleName='change-user-container' @click="this.hide(true)">
+    <div styleName='change-user-box'>
+      <div styleName='change-user-detail'>
+        <p>
+          <span>姓名：</span>
+          <input type='text' :value="infor.name" placeholder='请填写姓名' @change="this.change('name')"/>
+        </p>
+        <p>
+          <span>头像：</span>
+          <input type='file' placeholder='请上传您的图像' @change="this.updataPic.bind(this)"/>
+          <img :src="infor.pic"/>
+        </p>
+        <p>
+          <span>年龄：</span>
+          <input type='text' :value="infor.age" placeholder='请填写您的年龄' @change="this.change('age')"/>
+        </p>
+        <p styleName='input-radio'>
+          <span>性别：</span>
+          <label>
+            男：
+            <input value='男' type='radio' :checked="this.isChecked('男')" name='sex' @change="this.change('sex')"/>
+          </label>
+
+          <label>
+            女：
+            <input value='女' type='radio' :checked="this.isChecked('女')" name='sex' @change="this.change('sex')"/>
+          </label>
+        </p>
+      </div>
+      <div styleName='change-user-btn'>
+        <span @click="this.confirmBtn.bind(this)">确认</span>
+        <span @click="this.next.bind(null, false)">取消</span>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+  import Grass, { CSSModules } from "../../src";
+  import * as _ from '../util'
+  import List from '../list'
+  import style from './style'
+
+  @Grass.event
+  @CSSModules(style)
+  export default class ChangeUserComponent extends Grass.Component {
+    constructor(props) {
+      super(props)
+      this.state = {
+        index: null,
+        infor : {
+          name: '',
+          age: '',
+          pic: '',
+          sex: ''
+        },
+      }
+    }
+
+    createBefore () {
+       List.on(data => {
+        if (typeof data === 'string') {
+          return
+        }
+
+        this.setState({
+          infor: data[0],
+          index: data[1]
+        })
+      })
+    }
+
+    hide (isContainer) {
+      return e => {
+        if (isContainer && e.target === e.currentTarget) {
+          this.next(false)
+          return
+        }
+      }
+    }
+
+    confirmBtn (e) {
+      for (let key in this.state.info) {
+        if (key !== 'show') {
+          if (!this.state.info[key]) {
+            return _.notice('修改信息不能为空~')
+          }
+        }
+      }
+
+      if (Number.isNaN(this.state.infor.age)) {
+        return _.notice('请输入正确的年龄~')
+      }
+
+      this.next(this.state)
+      this.next(false)
+      _.notice('修改成功~')
+    }
+
+    change (key) {
+      return e => {
+        this.setState(state => {
+          state.infor[key] = e.target.value
+          return state
+        })
+      }
+
+      this.next(false)
+    }
+
+    updataPic () {
+      const file = e.target.files[0]
+
+      if (!file) {
+        return _.notice('请重新选择头像吧~')
+      }
+
+      const reader = new FileReader()
+      reader.readAsDataURL(file)
+      reader.onload = () => {
+        this.setState(state => {
+          state.infor.pic = reader.result
+          return state
+        })
+      }
+    }
+
+
+    isChecked (name) {
+      return name === this.state.infor.sex
+    }
+  }
+</script>

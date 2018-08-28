@@ -1,0 +1,39 @@
+:global .notice {
+  height:80px;
+  min-width:200px;
+  background:rgba(0,0,0,.6);
+  color:#fff;
+  line-height:80px;
+  font-size:20px;
+  text-align:center;
+  border-radius:3px;
+  position:fixed;
+  top:calc(50% - 40px);
+  left:calc(50% - 200px);
+  z-index:999999;
+  padding: 0 20px;
+  font-weight:bold;
+}
+
+:global .animate {
+  transition: all .25s;
+  -moz-transition: all .25s;
+  -webkit-transition: all .25s;
+}
+
+ul, li, p {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+input[type=text], input[type=file] {
+	width: 60%;
+    font-size: 14px;
+    outline: none;
+    padding: 5px 0;
+    background: none;
+    border:none;
+    padding: 3px 3px 10px 3px;
+    color: #ffbf74;
+    border-bottom: 1px solid rgba(0,0,0,.15);
+}

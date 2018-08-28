@@ -1,1 +1,1 @@
-import './demo/root'
+import './demo'

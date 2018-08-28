@@ -1,7 +1,8 @@
 import runExecuteContext from './execution-env'
 import * as _ from '../utils/index'
 
-const styleString = /\{[^\}]*\}/
+const objectFormat = /\{[^\}]*\}/
+const stringFormat = /.+\s*:\s*.+\s*;?/
 
 export default function bind (props, comp, vnodeConf) {
   if (!Array.isArray(props)) {
@@ -16,7 +17,10 @@ export default function bind (props, comp, vnodeConf) {
 
 function dealSingleBindAttr ({attrName, value}, comp, vnodeConf) {
   if (attrName === 'style') {
-    if (!styleString.test(value)) {
+    if (
+        !value ||
+        (stringFormat.test(value) && !objectFormat.test(value))
+    ) {
       vnodeConf.attrs.style = spliceStyleStr(vnodeConf.attrs[attrName], value)
       return
     }

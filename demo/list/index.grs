@@ -1,0 +1,126 @@
+<template>
+  <div styleName='list-box'>
+    <ul styleName='outside-ul'>
+      <li v-for="(val, i) of userList" styleName='single-user'>
+				<p>
+					<span>{{ val.name }}</span>
+					<span styleName='operat-title' @click="this.deleteUser.bind(this, i)">删除</span>
+					<span styleName='operat-title' @click="this.showChangeUS.bind(this, val, i)">修改</span>
+					<span styleName='operat-title' @click="this.changeShow.bind(this, i)">详情</span>
+				</p>
+
+        <div styleName='user-detail' className="animate"
+          :style="this.getUserDetailStyle(val)">
+          <ul styleName='detail-box'>
+            <li styleName='title-colu'>
+              <span v-for="val of title">{{ val }}</span>
+            </li>
+            <li>
+              <span v-for="(val, key) of val" v-if="key !== 'show'">
+                <img v-if="key === 'pic'" styleName='user-pic' :src="val"/>
+                <span v-if="key !== 'pic'">{{ val }}</span>
+              </span>
+            </li>
+          </ul>
+        </div>
+			</li>
+    </ul>
+  </div>
+</template>
+
+<script>
+  import Grass, { CSSModules } from "../../src"
+  import AddUser from '../add-user'
+  import ChangeUserComponent from '../change-user-infor'
+  import style from './style.css'
+  import * as _ from '../util'
+
+  @Grass.event
+  @CSSModules(style)
+  export default class List extends Grass.Component {
+    constructor(props) {
+      super(props)
+
+      const userList = JSON.parse(localStorage.getItem('User')  || '[]')
+
+      userList.forEach(val => val.show = false)
+
+      this.state = {
+        title : ['姓名', '头像', '性别', '年龄'],
+        userList,
+      }
+    }
+
+    createBefore () {
+      AddUser.on(data => {
+        this.addUser(data)
+      })
+
+      ChangeUserComponent.on(data => {
+        if (typeof data !== 'boolean') {
+          this.changeUserInfor(data)
+        }
+      })
+    }
+
+    addUser (data) {
+      if (!data) return
+
+      this.setState(state => {
+        state.userList.push(data)
+        _.changeUserInfor(state.userList)
+
+        return state
+      })
+    }
+
+    changeUserInfor ({infor, index}) {
+      if (!infor || index == null) {
+        return _.notice('修改失败了，请重新尝试吧~')
+      }
+
+      this.setState(state => {
+        state.userList[index] = infor
+        _.changeUserInfor(state.userList)
+
+        return state
+      })
+    }
+
+    deleteUser (i) {
+      this.setState(data => {
+        data.userList.splice(i, 1)
+        _.changeUserInfor(data.userList)
+        _.notice('删除成功！')
+
+        return data
+      })
+    }
+
+    changeShow (i) {
+      this.setState(state => {
+        state = _.deepClone(state)
+        state.userList[i].show = !state.userList[i].show
+
+        return state
+      })
+    }
+
+    showChangeUS (val, i) {
+      this.next(true)
+      this.next([val, i])
+    }
+
+    getUserDetailStyle (val) {
+      return val.show
+        ? {
+          height: '120px',
+          margin: '15px 0',
+        }
+        : {
+          height: 0,
+          margin: 0,
+        }
+    }
+  }
+</script>

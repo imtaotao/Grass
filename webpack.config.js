@@ -10,7 +10,7 @@ module.exports = {
     filename: "bundle.js"
   },
   resolve: {
-    extensions: ['.js', '.json', '.css', '.vue'],
+    extensions: ['.js', '.json', '.css', '.vue', '.grs'],
     alias: {
       '@': resolve('./demo')
     }
@@ -25,7 +25,7 @@ module.exports = {
   },
   module: {
     rules: [{
-      test: /(\.js|\.vue)$/,
+      test: /(\.js|\.grs)$/,
       use: [{
         loader: "babel-loader",
       }, {
@@ -65,7 +65,6 @@ module.exports = {
     new HtmlWebpackPlugin({
         template: __dirname + "/index.html"
     }),
-    new CleanWebpackPlugin(['dist']),
     new webpack.optimize.OccurrenceOrderPlugin(),
     // new webpack.optimize.UglifyJsPlugin(), // 暂时不压缩代码
     new ExtractTextPlugin("style.css"), // 生成的css文件名字

@@ -1,0 +1,62 @@
+<template>
+   <div styleName='list-container'>
+    <span @click="this.showModel.bind(this)" styleName='add-user'>
+      新增用户
+    </span>
+    <List />
+    <AddUser v-show="show" :hide="this.hideModel.bind(this)"/>
+    <div v-show="showChangeUS">
+      <ChangeUserComponent />
+    </div>
+  </div>
+</template>
+
+<script>
+  import Grass, { CSSModules } from '../../src'
+  import style from './style'
+  import List from '../list'
+  import AddUser from '../add-user'
+  import ChangeUserComponent from '../change-user-infor'
+
+  @CSSModules(style)
+  export default class UserList extends Grass.Component {
+    constructor(props) {
+      super(props)
+      this.state = {
+        show : false,
+        showChangeUS: false,
+      }
+
+
+    }
+
+    createBefore () {
+      ChangeUserComponent.on(data => {
+        this.setState({showChangeUS: data})
+      })
+
+      List.on(isShow => {
+        if (typeof isShow === 'boolean') {
+          this.setState({showChangeUS: isShow})
+        }
+      })
+    }
+
+    hideModel () {
+      this.setState({show: false})
+    }
+
+    showModel () {
+      this.setState({show: true})
+    }
+
+    component () {
+      return {
+        List,
+        AddUser,
+        ChangeUserComponent,
+      }
+    }
+  }
+</script>
+

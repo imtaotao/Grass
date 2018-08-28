@@ -1,0 +1,113 @@
+<template>
+  <div styleName='add-user-box' @click="this.hide.bind(this)">
+    <div styleName='add-user-form'>
+      <p>
+        <span>姓名：</span>
+        <input type='text' :value="name" placeholder='请填写姓名' @change="this.change('name')" />
+      </p>
+      <p>
+        <span>头像：</span>
+        <input type='file' placeholder='请上传您的图像' @change="this.updataPic.bind(this)"/>
+      </p>
+      <p>
+        <span>年龄：</span>
+        <input type='text' :value="age" placeholder='请填写您的年龄' @change="this.change('age')" />
+      </p>
+      <p styleName='input-radio'>
+        <span>性别：</span>
+        <label>
+          男：
+          <input value='男' type='radio' name='sex' @change="this.change('sex')" />
+        </label>
+
+        <label>
+          女：
+          <input value='女' type='radio' name='sex' @change="this.change('sex')" />
+        </label>
+      </p>
+      <div styleName='btn-box'>
+        <span @click="this.confirmBtn.bind(this)">确认</span>
+        <span @click="this.props.hide">取消</span>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+  import Grass, { CSSModules } from "../../src";
+  import * as _ from '../util'
+  import style from './style.css'
+
+  @Grass.event
+  @CSSModules(style)
+  export default class AddUser extends Grass.Component {
+    constructor(props) {
+      super(props)
+      this.state = {
+        name: '',
+        pic: '',
+        age: '',
+        sex: '',
+      }
+    }
+
+    hide (e) {
+      if (e.target === e.currentTarget) {
+        this.props.hide()
+      }
+    }
+
+    change (key) {
+      return e => {
+        const val = e.target.value
+
+        this.setState(state => {
+          state[key] = val
+
+          return state
+        })
+      }
+    }
+
+    updataPic (e) {
+      const file = e.target.files[0]
+      if (!file) {
+        return _.notice('请重新选择头像吧~')
+      }
+
+			const reader = new FileReader()
+			reader.readAsDataURL(file)
+			reader.onload = () => {
+        this.setState(state => {
+          state.pic = reader.result
+
+          return state
+        })
+			}
+    }
+
+    confirmBtn (e) {
+      for (let key in this.state) {
+        if (!this.state[key]) {
+          return _.notice('请填写完整的信息')
+        }
+      }
+      if (Number.isNaN(this.state.age)) {
+        return _.notice('请输入正确的年龄~')
+      }
+
+      this.next(this.state)
+
+      this.setState(state => {
+        for (let key in state) {
+          state[key] = ''
+        }
+
+        return state
+      })
+
+      this.props.hide()
+      _.notice('添加成功')
+    }
+  }
+</script>
