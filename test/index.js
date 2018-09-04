@@ -1,4 +1,5 @@
-import Grass from '../src'
+import Grass, { CSSModules } from '../src'
+import style from './style.css'
 
 class Child extends Grass.Component {
   constructor (props) {
@@ -36,13 +37,14 @@ class Child extends Grass.Component {
   }
 }
 
-
+@CSSModules(style)
 class Root extends Grass.Component {
   constructor () {
     super()
     this.state = {
       api: 'index',
       arr: [1, 2],
+      show: true,
       obj: {
         tt: 'chentao',
         ff: 'fangfang'
@@ -57,8 +59,8 @@ class Root extends Grass.Component {
   template () {
     return `
       <div>
-        <div @click="() => this.setState({arr: [1, 2, 3, 4]})">tttt</div>
-        <Child v-for="val of arr" :callback="this.callback.bind(this)"/>
+        <div @click="e => this.setState({show: !show})">点击</div>
+        <p v-if="show" transitionName="fade" styleName="test-block"></p>
       </div>
     `
   }

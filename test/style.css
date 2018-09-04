@@ -1,0 +1,16 @@
+.test-block {
+  width:100px; 
+  height: 20px; 
+  background:#000;
+  opacity: 1;
+}
+
+:global .fade-enter-active, :global .fade-leave-active {
+  transition: all 1s;
+  opacity: 1;
+  width: 200px;
+}
+:global .fade-enter, :global .fade-leave {
+  opacity: 0;
+  width: 100px;
+}

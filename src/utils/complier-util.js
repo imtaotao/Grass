@@ -139,6 +139,7 @@ export function removeChild (parent, child) {
 }
 
 const filterAttr = {
+  'transitionName': 1,
   'namespace': 1,
   'className': 1,
   'styleName': 1,

@@ -30,15 +30,18 @@ export default function applyPatch (vpatch, domNode, renderOptions) {
 function removeNode (domNode, vNode) {
   const parentNode = domNode.parentNode
 
+  addLeaveTransition(domNode, vNode)
+  
   if (parentNode) {
     parentNode.removeChild(domNode)
   }
 
   destroyWidget(domNode, vNode)
-
+ 
   return null
 }
 
+// 不需要再插入的时候添加 flip 动画，我们所有的 enter 动画都在 createElement 里面
 function insertNode (parentNode, vNode, renderOptions) {
   const newNode = renderOptions.render(vNode)
 
@@ -138,4 +141,23 @@ function updateWidget (a, b) {
   }
 
   return false
+}
+
+function addLeaveTransition (node, vnode) {
+  const transitionClassName = vnode.properties.transitionName
+
+  if (typeof transitionClassName === 'string') {
+    const enter = transitionClassName + '-leave'
+    const active = transitionClassName + '-leave-active'
+
+    node.addEventListener('webkitTransitionEnd', e => {
+      console.log(121);
+    })
+    
+    node.classList.add(enter, active)
+
+    requestAnimationFrame(() => {
+      node.classList.remove(enter)
+    })
+  }
 }
