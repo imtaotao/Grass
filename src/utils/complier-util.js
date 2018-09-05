@@ -139,7 +139,6 @@ export function removeChild (parent, child) {
 }
 
 const filterAttr = {
-  'transitionName': 1,
   'namespace': 1,
   'className': 1,
   'styleName': 1,
@@ -180,38 +179,50 @@ export function modifyOrdinayAttrAsLibAttr (node) {
 export function migrateCompStatus (outputNode, acceptNode) {
   if (!outputNode || !acceptNode) return
 
-  // 我们需要迁移的数据 vTextResult、vShowResult、className
-  if (hasOwn(outputNode, 'vTextResult')) {
-    const res = outputNode['vTextResult']
-    acceptNode.children.unshift(
-      vText(toString(res), acceptNode)
-    )
-  }
+  // 我们需要迁移的数据 vTextResult、vShowResult、vTransitionType、vTransitionData、className
+  transitionDirect()
+  transitionClass()
 
-  if (hasOwn(outputNode, 'vShowResult')) {
-    const res = outputNode['vShowResult']
-    bind(res, null, acceptNode)
-  }
+  function transitionDirect () {
+    if (hasOwn(outputNode, 'vTextResult')) {
+      const res = outputNode['vTextResult']
+      acceptNode.children.unshift(
+        vText(toString(res), acceptNode)
+      )
+    }
 
-  if (hasOwn(outputNode.attrs, 'className')) {
-    const outputClassName = outputNode.attrs['className']
-    const acceptClassName = acceptNode.attrs['className']
+    if (hasOwn(outputNode, 'vShowResult')) {
+      const res = outputNode['vShowResult']
+      bind(res, null, acceptNode)
+    }
 
-    if (acceptClassName) {
-      acceptNode.attrs['className'] = outputClassName + ' ' + acceptClassName
-    } else {
-      acceptNode.attrs['className'] = outputClassName
+    if (hasOwn(outputNode, 'vTransitionType')) {
+      acceptNode['vTransitionType'] = outputNode['vTransitionType']
+      acceptNode['vTransitionData'] = outputNode['vTransitionData']
     }
   }
 
-  if (hasOwn(outputNode.attrs, 'styleName')) {
-    const outputStyleName = outputNode.attrs['styleName']
-    const acceptStyleName = acceptNode.attrs['styleName']
+  function transitionClass () {
+    if (hasOwn(outputNode.attrs, 'className')) {
+      const outputClassName = outputNode.attrs['className']
+      const acceptClassName = acceptNode.attrs['className']
 
-    if (acceptStyleName) {
-      acceptNode.attrs['styleName'] = outputStyleName + ' ' + acceptStyleName
-    } else {
-      acceptNode.attrs['styleName'] = outputStyleName
+      if (acceptClassName) {
+        acceptNode.attrs['className'] = outputClassName + ' ' + acceptClassName
+      } else {
+        acceptNode.attrs['className'] = outputClassName
+      }
+    }
+
+    if (hasOwn(outputNode.attrs, 'styleName')) {
+      const outputStyleName = outputNode.attrs['styleName']
+      const acceptStyleName = acceptNode.attrs['styleName']
+
+      if (acceptStyleName) {
+        acceptNode.attrs['styleName'] = outputStyleName + ' ' + acceptStyleName
+      } else {
+        acceptNode.attrs['styleName'] = outputStyleName
+      }
     }
   }
 }
@@ -280,5 +291,6 @@ export function isClass (fun) {
     // 我们认为这个 function 是有可能会被当成 class 来使用
     return true
   }
+
   return true
 }

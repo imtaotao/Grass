@@ -15,8 +15,7 @@ export default function render (parentConf, ast, comp) {
     comp.constructor.CSSModules(vnodeConf, comp.name)
   }
 
-  return _h(vnodeConf.tagName, vnodeConf.attrs,
-    vnodeConf.customDirection, generatorChildren(vnodeConf.children, comp))
+  return _h(vnodeConf, generatorChildren(vnodeConf.children, comp))
 }
 
 function generatorChildren (children, comp) {
@@ -33,9 +32,7 @@ function generatorChildren (children, comp) {
       }
 
       // 递归创建 vnode
-      const _children = generatorChildren(conf.children, comp)
-
-      vnodeTree.push(_h(conf.tagName, conf.attrs, conf.customDirection, _children))
+      vnodeTree.push(_h(conf, generatorChildren(conf.children, comp)))
       continue
     }
 

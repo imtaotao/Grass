@@ -7,6 +7,7 @@ import vif from './if'
 import show from './show'
 import text from './text'
 import scope from './scope'
+import transition from './transition'
 import runCustomDirect from './custom-direct'
 import runExecuteContext from './execution-env'
 import { TAG, STATICTAG } from '../ast/parse-template'
@@ -83,12 +84,19 @@ function complierDirect (node, comp, vnodeConf) {
   const directs = node.direction
   const nomalDirects = []
   const customDirects = {}
+  const transtionHookFuns = {}
   let currentWeight = null // 当前保留指令
   let currentCustomDirect = null  // 当前自定义指令
 
   for (let i = 0; i < directs.length; i++) {
     const direct = directs[i]
     const key = Object.keys(direct)[0]
+
+    // 收集动画钩子函数
+    if (W.isTransitionHook(key)) {
+      transtionHookFuns[key] = direct[key]
+      continue
+    }
 
     // 添加自定义指令集合
     if (!W.isReservedDirect(key)) {
@@ -115,6 +123,7 @@ function complierDirect (node, comp, vnodeConf) {
     nomalDirects[weight] = direct[key]
   }
 
+
   // 指定自定义指令
   vnodeConf.customDirection = customDirects
 
@@ -123,10 +132,12 @@ function complierDirect (node, comp, vnodeConf) {
   for (let w = W.DIRECTLENGTH - 1; w > -1; w--) {
     if (!nomalDirects[w]) continue
     const directValue = nomalDirects[w]
-    const execResult = executSingleDirect(w, directValue, node, comp, vnodeConf)
+    const execResult = executSingleDirect(w, directValue, node, comp, vnodeConf, transtionHookFuns)
 
     if (node.for) return
-    if (execResult === false) return false
+    if (execResult === false) {
+      return false
+    }
   }
 
   // 在所有保留指令执行过后再执行自定义指令
@@ -167,7 +178,7 @@ function parseStaticNode (node, comp, vnodeConf) {
   vnodeConf.content = runExecuteContext(code, '{{ }}', vnodeConf.parent.tagName, comp)
 }
 
-function executSingleDirect (weight, val, node, comp, vnodeConf) {
+function executSingleDirect (weight, val, node, comp, vnodeConf, transtionHookFuns) {
   switch (weight) {
     case W.SHOW :
       show(val, comp, vnodeConf)
@@ -186,6 +197,10 @@ function executSingleDirect (weight, val, node, comp, vnodeConf) {
       break
     case W.IF :
       return vif(node, val, comp, vnodeConf)
+    case W.TRANSITION :
+      return transition(val, comp, vnodeConf, transtionHookFuns, true)
+    case W.ANIMATION :
+      return transition(val, comp, vnodeConf, transtionHookFuns, false)
     default :
       customDirect(val, comp, vnodeConf)
   }

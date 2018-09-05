@@ -1,4 +1,5 @@
 import applyProperties from './apply-properties'
+import { enter } from './transition'
 import { isVNode, isVText, isWidget } from '../vnode/typeof-vnode'
 
 export default function createElement (vnode) {
@@ -37,35 +38,7 @@ export default function createElement (vnode) {
     vnode.elementCreated(node, vnode)
   }
 
-  addEnterTransition(node, vnode)
+  enter(node, vnode)
 
   return node
-}
-
-function addEnterTransition (node, vnode) {
-  const transitionClassName = vnode.properties.transitionName
-
-  if (typeof transitionClassName === 'string') {
-    const enter = transitionClassName + '-enter'
-    const active = transitionClassName + '-enter-active'
-
-    node.addEventListener('webkitTransitionEnd', e => {
-      console.log(121);
-    })
-    node.classList.add(enter, active)
-
-    requestAnimationFrame(() => {
-      getLen(node)
-      node.classList.remove(enter)
-    })
-  }
-}
-
-function getLen (el) {
-  const styles = window.getComputedStyle(el)
-  const transitionDelays = styles['WebkitTransition' + 'Delay'].split(', ')
-  const transitionDuration = styles['WebkitTransition' + 'Duration'].split(', ')
-  console.log(styles['WebkitTransitionDuration'], styles.WebkitTransitionDuration);
-  window.sss = styles
-  console.log(transitionDelays, transitionDuration);
 }

@@ -1,6 +1,7 @@
 import Grass, { CSSModules } from '../src'
 import style from './style.css'
 
+@CSSModules(style)
 class Child extends Grass.Component {
   constructor (props) {
     super(props)
@@ -9,10 +10,10 @@ class Child extends Grass.Component {
     }
   }
   create() {
-    console.log('init');
+    // console.log('init');
   }
   destroy () {
-    console.log('销毁');
+    // console.log('销毁');
   }
 
   c () {
@@ -25,14 +26,9 @@ class Child extends Grass.Component {
 
   template () {
     return `
-      <div>
-        <div @click="this.c.bind(this)">
-          121
-        </div>
-        <div @click="this.cr.bind(this)">
-          {{ current }}
-        </div>
-      </div>
+      <p styleName="test-block">
+        <p v-if="this.props.show"></p>
+      </p>
     `
   }
 }
@@ -53,14 +49,40 @@ class Root extends Grass.Component {
   }
 
   callback (api) {
-    this.setState({arr: [1, 2, 3]})
+    console.log(1);
+    // this.setState({arr: [1, 2, 3, 4]})
+  }
+
+  beforeEnter () {
+    console.log('beforeEnter');
+
+  }
+
+  afterEnter () {
+    // console.log('afterEnter');
+  }
+
+  beforeLeave () {
+    // console.log('beforeLeave');
+
+  }
+
+  afterLeave () {
+    // console.log('afterLeave');
   }
 
   template () {
     return `
       <div>
         <div @click="e => this.setState({show: !show})">点击</div>
-        <p v-if="show" transitionName="fade" styleName="test-block"></p>
+        <div styleName="test-block">add</div>
+        <Child
+          v-if="show"
+          v-transition="'slide-fade'"
+          v-beforeEnter="this.beforeEnter"
+          v-afterEnter="this.afterEnter.bind(this)"
+          v-beforeLeave = "this.beforeLeave.bind(this)"
+          v-afterLeave="this.afterLeave.bind(this)"/>
       </div>
     `
   }

@@ -1,5 +1,6 @@
 import applyProperties from './apply-properties'
 import VPatch from '../vnode/vpatch'
+import { leave } from './transition'
 import { isWidget } from '../vnode/typeof-vnode'
 
 export default function applyPatch (vpatch, domNode, renderOptions) {
@@ -7,6 +8,7 @@ export default function applyPatch (vpatch, domNode, renderOptions) {
 
   switch (type) {
     case VPatch.REMOVE :
+      console.log(vpatch);
       return removeNode(domNode, vNode)
     case VPatch.INSERT :
       return insertNode(domNode, patch, renderOptions)
@@ -28,16 +30,17 @@ export default function applyPatch (vpatch, domNode, renderOptions) {
 }
 
 function removeNode (domNode, vNode) {
-  const parentNode = domNode.parentNode
+  const remove  = () => {
+    const parentNode = domNode.parentNode
+    if (parentNode) {
+      parentNode.removeChild(domNode)
+    }
 
-  addLeaveTransition(domNode, vNode)
-  
-  if (parentNode) {
-    parentNode.removeChild(domNode)
+    destroyWidget(domNode, vNode)
   }
 
-  destroyWidget(domNode, vNode)
- 
+  leave(domNode, vNode).then(remove)
+
   return null
 }
 
@@ -67,6 +70,7 @@ function stringPatch (domNode, vText, renderOptions) {
 }
 
 function widgetPatch (domNode, leftVNode, widget, renderOptions) {
+  console.log(121);
   const updating = updateWidget(leftVNode, widget)
 
   let newNode = updating
@@ -141,23 +145,4 @@ function updateWidget (a, b) {
   }
 
   return false
-}
-
-function addLeaveTransition (node, vnode) {
-  const transitionClassName = vnode.properties.transitionName
-
-  if (typeof transitionClassName === 'string') {
-    const enter = transitionClassName + '-leave'
-    const active = transitionClassName + '-leave-active'
-
-    node.addEventListener('webkitTransitionEnd', e => {
-      console.log(121);
-    })
-    
-    node.classList.add(enter, active)
-
-    requestAnimationFrame(() => {
-      node.classList.remove(enter)
-    })
-  }
 }

@@ -73,7 +73,6 @@ export function hasOwn (obj, key) {
 }
 
 export function remove (arr, item) {
-  if (!Array.isArray(arr)) return
   if (arr.length) {
     const index = arr.indexOf(item)
     if (index > -1) {

@@ -1,16 +1,18 @@
 .test-block {
-  width:100px; 
-  height: 20px; 
-  background:#000;
+  width:100px;
+  height: 20px;
+  background:#ddd;
   opacity: 1;
 }
 
-:global .fade-enter-active, :global .fade-leave-active {
-  transition: all 1s;
-  opacity: 1;
-  width: 200px;
+:global .slide-fade-enter-active {
+  transition: all .3s ease;
 }
-:global .fade-enter, :global .fade-leave {
+:global  .slide-fade-leave-active {
+  transition: all .8s cubic-bezier(1.0, 0.5, 0.8, 1.0);
+}
+:global  .slide-fade-enter, :global .slide-fade-leave-to
+/* .slide-fade-leave-active for below version 2.1.8 */ {
+  transform: translateX(10px);
   opacity: 0;
-  width: 100px;
 }
