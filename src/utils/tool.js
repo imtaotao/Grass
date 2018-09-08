@@ -118,6 +118,16 @@ export function isUndef (val) {
   return val === undefined || val === null
 }
 
+export function once (fun) {
+  let called = false
+  return function () {
+    if (!called) {
+      called = true
+      fun.apply(this, arguments)
+    }
+  }
+}
+
 export function warn (msg, noError) {
   const errorInfor = `[Grass tip]: ${msg}`
   if (noError) {

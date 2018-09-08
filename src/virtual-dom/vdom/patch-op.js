@@ -1,14 +1,16 @@
-import applyProperties from './apply-properties'
+import * as _ from '../../utils/index'
 import VPatch from '../vnode/vpatch'
+import applyProperties from './apply-properties'
 import { leave } from './transition'
 import { isWidget } from '../vnode/typeof-vnode'
+
+export const REMOVEQUEUE = {}
 
 export default function applyPatch (vpatch, domNode, renderOptions) {
   const { type, vNode, patch } = vpatch
 
   switch (type) {
     case VPatch.REMOVE :
-      console.log(vpatch);
       return removeNode(domNode, vNode)
     case VPatch.INSERT :
       return insertNode(domNode, patch, renderOptions)
@@ -30,15 +32,17 @@ export default function applyPatch (vpatch, domNode, renderOptions) {
 }
 
 function removeNode (domNode, vNode) {
-  const remove  = () => {
+  const remove = _.once(() => {
     const parentNode = domNode.parentNode
     if (parentNode) {
       parentNode.removeChild(domNode)
     }
 
     destroyWidget(domNode, vNode)
-  }
+    REMOVEQUEUE[vNode.$id] = null
+  })
 
+  REMOVEQUEUE[vNode.$id] = remove
   leave(domNode, vNode).then(remove)
 
   return null
@@ -70,7 +74,6 @@ function stringPatch (domNode, vText, renderOptions) {
 }
 
 function widgetPatch (domNode, leftVNode, widget, renderOptions) {
-  console.log(121);
   const updating = updateWidget(leftVNode, widget)
 
   let newNode = updating

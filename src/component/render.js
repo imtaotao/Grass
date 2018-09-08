@@ -8,6 +8,14 @@ import { createCompInstance } from './instance'
 
 export default function render (parentConf, ast, comp) {
   const vnodeConf = complierAst(ast, comp)
+  const key = parentConf 
+    ? parentConf.attrs.key 
+    : ''
+
+  const walk = {
+    name: key + comp.name,
+    i: 0,
+  }
 
   _.migrateCompStatus(parentConf, vnodeConf)
 
@@ -15,13 +23,17 @@ export default function render (parentConf, ast, comp) {
     comp.constructor.CSSModules(vnodeConf, comp.name)
   }
 
-  return _h(vnodeConf, generatorChildren(vnodeConf.children, comp))
+  return _h(vnodeConf, 
+    generatorChildren(vnodeConf.children, comp, walk), crtIndex(walk))
 }
 
-function generatorChildren (children, comp) {
+function generatorChildren (children, comp, walk) {
   const vnodeTree = []
   for (let i = 0; i < children.length; i++) {
-    if (!children[i]) continue
+    walk.i++
+    if (!children[i]) {
+      continue
+    }
 
     const conf = children[i]
     if (conf.type === TAG) {
@@ -32,7 +44,7 @@ function generatorChildren (children, comp) {
       }
 
       // 递归创建 vnode
-      vnodeTree.push(_h(conf, generatorChildren(conf.children, comp)))
+      vnodeTree.push(_h(conf, generatorChildren(conf.children, comp, walk)))
       continue
     }
 
@@ -92,4 +104,8 @@ function getChildComp (parentComp, tagName) {
   }
 
   return null
+}
+
+function crtIndex (walk) {
+  return walk.name + '_' + walk.i
 }

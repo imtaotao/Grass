@@ -27,7 +27,6 @@ class Child extends Grass.Component {
   template () {
     return `
       <p styleName="test-block">
-        <p v-if="this.props.show"></p>
       </p>
     `
   }
@@ -54,8 +53,8 @@ class Root extends Grass.Component {
   }
 
   beforeEnter () {
-    console.log('beforeEnter');
-
+    // console.log('beforeEnter');
+    this.flag = true
   }
 
   afterEnter () {
@@ -64,7 +63,7 @@ class Root extends Grass.Component {
 
   beforeLeave () {
     // console.log('beforeLeave');
-
+    // return false
   }
 
   afterLeave () {
@@ -77,6 +76,7 @@ class Root extends Grass.Component {
         <div @click="e => this.setState({show: !show})">点击</div>
         <div styleName="test-block">add</div>
         <Child
+          v-for="val of arr"
           v-if="show"
           v-transition="'slide-fade'"
           v-beforeEnter="this.beforeEnter"

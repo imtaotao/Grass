@@ -1,4 +1,5 @@
 import * as _ from '../../utils'
+import { REMOVEQUEUE } from './patch-op'
 
 const raf = window.requestAnimationFrame
     ? window.requestAnimationFrame.bind(window)
@@ -53,6 +54,11 @@ export function enter (node, vnode) {
 
     if (!vTransitionType) {
       return resolve()
+    }
+
+    const preRemove = REMOVEQUEUE[vnode.$id]
+    if (typeof preRemove === 'function') {
+      preRemove()
     }
 
     const { name, hookFuns } = vTransitionData

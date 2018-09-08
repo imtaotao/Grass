@@ -20,7 +20,7 @@ export default function createCompVnode (parentConf, parentComp, comp) {
 
 function createWidgetVnode (parentConf, parentComp, comp) {
   function WidgetElement () {
-    this._name = comp.name
+    this.$name = comp.name
     this.vTransitionType = parentConf.vTransitionType
     this.vTransitionData = parentConf.vTransitionData
   }
@@ -33,7 +33,11 @@ function createWidgetVnode (parentConf, parentComp, comp) {
   WidgetElement.prototype.customDirection = parentConf.customDirection || null
 
   WidgetElement.prototype.init = function() {
-    return createRealDom(parentConf, comp)
+    const dom = createRealDom(parentConf, comp)
+    // widget 组件真实渲染出来的 dom 起始就是组件的根节点 dom
+    this.$id = comp.$cacheState.vTree.$id
+
+    return dom
   }
 
   WidgetElement.prototype.update = function(previous, domNode) {
