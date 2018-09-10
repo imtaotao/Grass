@@ -55,7 +55,7 @@ export function enter (node, vnode) {
     if (!vTransitionType) {
       return resolve()
     }
-
+    console.log(vnode);
     const preRemove = REMOVEQUEUE[vnode.$id]
     if (typeof preRemove === 'function') {
       preRemove()

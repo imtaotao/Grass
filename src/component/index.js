@@ -1,5 +1,5 @@
 import * as _ from '../utils/index'
-import { createRealDom } from './widget-vnode'
+import { createDomNode } from './widget-vnode'
 import { createCompInstance } from './instance'
 import { enqueueSetState } from './setState'
 
@@ -13,7 +13,8 @@ export class Component {
       childComponent: {},
       componentElement: null,
       dom: null,
-      vTree: null,
+      vtree: null,
+      id: null,
     }
   }
 
@@ -42,7 +43,10 @@ export class Component {
 export function mount (rootDOM, compClass) {
   return new Promise((resolve) => {
     const comp = createCompInstance(compClass, {}, {})
-    const dom = createRealDom(null, comp)
+
+    comp.$id = '0'
+
+    const dom = createDomNode(null, comp)
 
     rootDOM.appendChild(dom)
     resolve(dom)

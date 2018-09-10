@@ -4,17 +4,13 @@ import createCompVnode from './widget-vnode'
 import { _h } from './overrides'
 import { TAG } from '../ast/parse-template'
 import { addCache, getCache } from './cache'
-import { createCompInstance } from './instance'
+import { createCompInstance, setCompId } from './instance'
 
 export default function render (parentConf, ast, comp) {
   const vnodeConf = complierAst(ast, comp)
-  const key = parentConf 
-    ? parentConf.attrs.key 
-    : ''
-
   const walk = {
-    name: key + comp.name,
-    i: 0,
+    name: comp.$id,
+    index: 0,
   }
 
   _.migrateCompStatus(parentConf, vnodeConf)
@@ -24,13 +20,13 @@ export default function render (parentConf, ast, comp) {
   }
 
   return _h(vnodeConf, 
-    generatorChildren(vnodeConf.children, comp, walk), crtIndex(walk))
+    generatorChildren(vnodeConf.children, comp, walk), getId(walk))
 }
 
 function generatorChildren (children, comp, walk) {
   const vnodeTree = []
   for (let i = 0; i < children.length; i++) {
-    walk.i++
+    walk.index++
     if (!children[i]) {
       continue
     }
@@ -39,12 +35,13 @@ function generatorChildren (children, comp, walk) {
     if (conf.type === TAG) {
       if (!_.isReservedTag(conf.tagName)) {
         // 自定义组件
-        vnodeTree.push(createCustomComp(conf, comp, i))
+        vnodeTree.push(createCustomComp(conf, comp, i, walk))
         continue
       }
 
       // 递归创建 vnode
-      vnodeTree.push(_h(conf, generatorChildren(conf.children, comp, walk)))
+      vnodeTree.push(_h(conf, 
+        generatorChildren(conf.children, comp, walk), getId(walk)))
       continue
     }
 
@@ -60,6 +57,7 @@ function generatorChildren (children, comp, walk) {
 
 function createCustomComp (parentConf, comp, i) {
   const cacheInstance = getCache(comp, parentConf.tagName, i)
+  const tagName = parentConf.tagName
 
   if (cacheInstance) {
     // 如果有缓存的组件，我们就使用缓存
@@ -68,15 +66,17 @@ function createCustomComp (parentConf, comp, i) {
     return createCompVnode(parentConf, comp, cacheInstance)
   }
 
-  const childComp = getChildComp(comp, parentConf.tagName)
+  const childComp = getChildComp(comp, tagName)
 
   if (typeof childComp !== 'function') {
-    _.grassWarn(`Component [${parentConf.tagName}] is not registered`, comp.name)
+    _.grassWarn(`Component [${tagName}] is not registered`, comp.name)
     return
   }
 
   const childCompInstance = createCompInstance(childComp, parentConf, comp)
-  addCache(comp, parentConf.tagName, childCompInstance, i)
+  
+  setCompId(comp, childCompInstance, i)
+  addCache(comp, tagName, childCompInstance, i)
 
   return createCompVnode(parentConf, comp, childCompInstance)
 }
@@ -95,17 +95,9 @@ function getChildComp (parentComp, tagName) {
     return childComps[tagName]
   }
 
-  if (Array.isArray(childComps)) {
-    for (let i = 0; i < childComps.length; i++) {
-      if (tagName === childComps[i].name) {
-        return childComps[i]
-      }
-    }
-  }
-
   return null
 }
 
-function crtIndex (walk) {
-  return walk.name + '_' + walk.i
+function getId (walk) {
+  return walk.name + '_' + walk.index
 }

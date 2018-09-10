@@ -33,9 +33,11 @@ function createWidgetVnode (parentConf, parentComp, comp) {
   WidgetElement.prototype.customDirection = parentConf.customDirection || null
 
   WidgetElement.prototype.init = function() {
-    const dom = createRealDom(parentConf, comp)
-    // widget 组件真实渲染出来的 dom 起始就是组件的根节点 dom
-    this.$id = comp.$cacheState.vTree.$id
+    const dom = createDomNode(parentConf, comp)
+    // 当创建 dom 时会存储 vTree
+    const rootVnodeId = comp.$cacheState.vtree.$id
+
+    this.$id = rootVnodeId
 
     return dom
   }
@@ -59,26 +61,26 @@ function createWidgetVnode (parentConf, parentComp, comp) {
   return new WidgetElement()
 }
 
-export function createRealDom (parentConf, comp) {
+export function createDomNode (parentConf, comp) {
   const ast = comp.constructor.$ast
 
   if (comp.noStateComp) {
-    const vTree = render(parentConf, ast, comp)
-    const dom = create(vTree)
+    const vtree = render(parentConf, ast, comp)
+    const dom = create(vtree)
 
     comp.$cacheState.dom = dom
-    comp.$cacheState.vTree = vTree
+    comp.$cacheState.vTree = vtree
 
     return dom
   }
 
   comp.createBefore()
 
-  const vTree = render(parentConf, ast, comp)
-  const dom = create(vTree)
+  const vtree = render(parentConf, ast, comp)
+  const dom = create(vtree)
 
   comp.$cacheState.dom = dom
-  comp.$cacheState.vTree = vTree
+  comp.$cacheState.vtree = vtree
 
   comp.create(dom)
 

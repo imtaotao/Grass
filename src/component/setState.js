@@ -68,7 +68,7 @@ function updateDomTree (comp) {
 
   const ast = comp.constructor.$ast
   const dom = comp.$cacheState.dom
-  const oldTree = comp.$cacheState.vTree
+  const oldTree = comp.$cacheState.vtree
   const newTree = render(comp.$parentConf, ast, comp)
 
   const patchs = diff(oldTree, newTree)
@@ -81,7 +81,7 @@ function updateDomTree (comp) {
     comp.didUpdate(dom)
   }
 
-  comp.$cacheState.vTree = newTree
+  comp.$cacheState.vtree = newTree
   comp.$parentConf = null
 }
 

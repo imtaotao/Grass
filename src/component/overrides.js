@@ -10,7 +10,7 @@ export function _h (vnodeConf, children, id) {
   })
 
   vnode.$id = id
-
+  
   if (vnodeConf.vTransitionType) {
     const { vTransitionType, vTransitionData } = vnodeConf
 
