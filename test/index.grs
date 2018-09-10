@@ -11,10 +11,9 @@
       v-beforeLeave = "this.beforeLeave.bind(this)"
       v-afterLeave="this.afterLeave.bind(this)"/>
     
-    <Child v-for="val of arr" v-if="show" v-transition="'slide-fade'" />
-    <div>
-      <span v-if="show" v-transition="'slide-fade'">taotao</span>
-    </div>
+    <Child v-if="show" v-transition="'slide-fade'" />
+    
+    <div></div>
   </div>
 </template>
 

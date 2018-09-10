@@ -55,7 +55,6 @@ export function enter (node, vnode) {
     if (!vTransitionType) {
       return resolve()
     }
-    console.log(vnode);
     const preRemove = REMOVEQUEUE[vnode.$id]
     if (typeof preRemove === 'function') {
       preRemove()
@@ -82,11 +81,10 @@ export function enter (node, vnode) {
     addTransitionClass(node, enterActiveClass)
 
     nextFrame(() => {
-
       addTransitionClass(node, enterToClass)
       removeTransitionClass(node, enterClass)
 
-      whenTransitionEnds(node, type, e => {
+      whenTransitionEnds(node, type, () => {
         removeTransitionClass(node, enterToClass)
         removeTransitionClass(node, enterActiveClass)
 
@@ -107,7 +105,7 @@ export function leave (node, vnode) {
     if (!vTransitionType) {
       return resolve()
     }
-
+    
     const { name, hookFuns } = vTransitionData
     const type = vTransitionType === 'transtion'
       ? TRANSITION
@@ -115,7 +113,7 @@ export function leave (node, vnode) {
 
     if (typeof hookFuns['v-beforeLeave'] === 'function') {
       if (hookFuns['v-beforeLeave'](node) === false) {
-        return resolve()
+        // return resolve()
       }
     }
 
@@ -128,11 +126,15 @@ export function leave (node, vnode) {
     addTransitionClass(node, leaveClass)
     addTransitionClass(node, leaveActiveClass)
 
+    console.log(node.classList.value, getTransitionInfo(node));
+    setTimeout(() => {
+      console.log(node.classList.value, node, getTransitionInfo(node));
+    }, 50) 
     nextFrame(() => {
       addTransitionClass(node, leaveToClass)
       removeTransitionClass(node, leaveClass)
 
-      whenTransitionEnds(node, type, e => {
+      whenTransitionEnds(node, type, () => {
         removeTransitionClass(node, leaveToClass)
         removeTransitionClass(node, leaveActiveClass)
 
@@ -175,13 +177,14 @@ function whenTransitionEnds (node, type, cb) {
     cb()
   }
 
-  const onEnd = () => {
+  const onEnd = e => {
     if (++ended >= propCount) {
       end()
     }
   }
-
+  
   setTimeout(() => {
+    console.log('e', timeout);
     if (ended < propCount) {
       end()
     }

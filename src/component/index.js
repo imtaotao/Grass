@@ -40,11 +40,11 @@ export class Component {
   }
 }
 
-export function mount (rootDOM, compClass) {
+export function mount (rootDOM, compClass, index = '0') {
   return new Promise((resolve) => {
     const comp = createCompInstance(compClass, {}, {})
 
-    comp.$id = '0'
+    comp.$id = _.toString(index)
 
     const dom = createDomNode(null, comp)
 

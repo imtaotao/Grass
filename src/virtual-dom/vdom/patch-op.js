@@ -5,7 +5,7 @@ import { leave } from './transition'
 import { isWidget } from '../vnode/typeof-vnode'
 
 export const REMOVEQUEUE = {}
-
+window.r = REMOVEQUEUE
 export default function applyPatch (vpatch, domNode, renderOptions) {
   const { type, vNode, patch } = vpatch
 
@@ -34,6 +34,7 @@ export default function applyPatch (vpatch, domNode, renderOptions) {
 function removeNode (domNode, vNode) {
   const remove = _.once(() => {
     const parentNode = domNode.parentNode
+
     if (parentNode) {
       parentNode.removeChild(domNode)
     }
