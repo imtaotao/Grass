@@ -87,6 +87,8 @@
   + `v-show`
   + `v-text`
   + `v-for`
+  + `v-transition`
+  + `v-animation`
   + 还可以自定义指令
 
 ```js
@@ -324,10 +326,70 @@ dom 跟新完毕后调用
   }
 ```
 
+### 动画
+Grass 提供了 `v-transition` 和 `v-animation` 来做动画，动画会在元素或者组件创建销毁时触发，并提供了四个钩子函数, 所有
++ `v-beforeEnter`
++ `v-afterEnter`
++ `v-beforeLeave`
++ `v-afterLeave`
+  
+```css
+  .slide-fade-enter-active {
+    transition: all .3s ease;
+  }
+  .slide-fade-leave-active {
+    transition: all .8s cubic-bezier(1.0, 0.5, 0.8, 1.0);
+  }
+  .slide-fade-enter, .slide-fade-leave-to {
+    transform: translateX(10px);
+    opacity: 0;
+  }
+```
+
+```html
+  <template>
+    <div
+    v-if="show"
+    v-transition="'slide-fade'"
+    v-beforeEnter="this.beforeEnter.bind(this)"
+    v-afterEnter="this.afterEnter.bind(this)"
+    v-beforeLeave = "this.beforeLeave.bind(this)"
+    v-afterLeave="this.afterLeave.bind(this)"></div>
+  </template>
+
+  <script>
+    import Grass, { CSSModules } from 'grass'
+    import style from './style.css'
+
+    @CSSModules(style)
+    class C extends Grass.Component {
+      constructor () {
+        super()
+      }
+
+      beforeEnter (dom) {
+        // ...
+      }
+
+      afterEnter (dom) {
+        // ...
+      }
+
+      beforeLeave (dom) {
+        // ...
+      }
+
+      afterLeave (dom) {
+        // ...
+      }
+    }
+  </script>
+```
+
 ### CSSModules
 Grass 提供了 一个 CSSModules api，用于配合 css-loader 做 css 的模块化
 ```js
-  import { CSSModules } from 'grass'
+  import Grass, { CSSModules } from 'grass'
   import style from './style.css'
 
   @CSSModules(style)
@@ -367,7 +429,7 @@ grass-loader 会预编译模板，所以你可以像 vue 一样使用单文件�
   + name 属性是这个无状态组件的组件名
   + styleSrc 属性为这个无状态组件的需要的 css，如果设置了此属性，会自动开启 css module（需要 css-loader 配合）
 
-```html
+```
   <template name="noState" styleSrc="./style.css">
     <div styleName="xx">{{ tao }}</div>'
   <template/>

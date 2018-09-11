@@ -6,13 +6,12 @@
 }
 
 :global .slide-fade-enter-active {
-  transition: all .3s ease;
+  transition: all 3s ease;
 }
-:global  .slide-fade-leave-active {
+:global .slide-fade-leave-active {
   transition: all .8s cubic-bezier(1.0, 0.5, 0.8, 1.0);
 }
-:global  .slide-fade-enter, :global .slide-fade-leave-to
-/* .slide-fade-leave-active for below version 2.1.8 */ {
-  transform: translateX(10px);
+:global .slide-fade-enter, :global .slide-fade-leave-to {
+  transform: translateX(100px);
   opacity: 0;
 }
