@@ -425,14 +425,14 @@ grass-loader 会预编译模板，所以你可以像 vue 一样使用单文件�
   }
 </script>
 ```
-对于无状态组件，应该只包含一个 `<template><template/>`，无状态模板有两个配置项可供选择
+对于无状态组件，应该只包含一个 `<template></template>`，无状态模板有两个配置项可供选择
   + name 属性是这个无状态组件的组件名
   + styleSrc 属性为这个无状态组件的需要的 css，如果设置了此属性，会自动开启 css module（需要 css-loader 配合）
 
-```
+```html
   <template name="noState" styleSrc="./style.css">
     <div styleName="xx">{{ tao }}</div>'
-  <template/>
+  </template>
 ```
 
 ### 逻辑图
