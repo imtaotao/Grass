@@ -5,15 +5,16 @@
     <Child
       v-for="val of arr"
       v-if="show"
+      v-text="val"
       v-transition="'slide-fade'"
       v-beforeEnter="this.beforeEnter"
       v-afterEnter="this.afterEnter.bind(this)"
       v-beforeLeave = "this.beforeLeave.bind(this)"
       v-afterLeave="this.afterLeave.bind(this)"/>
     
-    <Child v-if="show" v-transition="'slide-fade'" />
+    <Child  v-text="121" v-if="show" v-transition="'slide-fade'" />
     
-    <div></div>
+    <div v-if="show" v-transition="'slide-fade'">test</div>
   </div>
 </template>
 

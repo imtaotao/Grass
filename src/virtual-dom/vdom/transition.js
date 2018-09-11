@@ -1,5 +1,12 @@
 import * as _ from '../../utils'
-import { REMOVEQUEUE } from './patch-op'
+
+/**
+ * 现在的问题动画的问题是，新增的 dom 元素会把正在动画过程中的 dom 元素给替换掉
+ * 所以，现在要么尽量少用这种结构，要么在一个 dom 元素动画过程中，有新的 dom 插入
+ * 或者生成，立即停止掉其他正在动画的元素，但是这样就只能允许同一时间只能唯一动画
+ */
+
+export const REMOVEQUEUE = {}
 
 const raf = window.requestAnimationFrame
     ? window.requestAnimationFrame.bind(window)
@@ -113,10 +120,10 @@ export function leave (node, vnode) {
 
     if (typeof hookFuns['v-beforeLeave'] === 'function') {
       if (hookFuns['v-beforeLeave'](node) === false) {
-        // return resolve()
+        return resolve()
       }
     }
-
+  
     const {
         leaveClass,
         leaveActiveClass,
@@ -126,10 +133,6 @@ export function leave (node, vnode) {
     addTransitionClass(node, leaveClass)
     addTransitionClass(node, leaveActiveClass)
 
-    console.log(node.classList.value, getTransitionInfo(node));
-    setTimeout(() => {
-      console.log(node.classList.value, node, getTransitionInfo(node));
-    }, 50) 
     nextFrame(() => {
       addTransitionClass(node, leaveToClass)
       removeTransitionClass(node, leaveClass)
@@ -184,7 +187,6 @@ function whenTransitionEnds (node, type, cb) {
   }
   
   setTimeout(() => {
-    console.log('e', timeout);
     if (ended < propCount) {
       end()
     }

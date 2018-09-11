@@ -123,7 +123,7 @@ export function once (fun) {
   return function () {
     if (!called) {
       called = true
-      fun.apply(this, arguments)
+      return fun.apply(this, arguments)
     }
   }
 }

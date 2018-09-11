@@ -2,10 +2,9 @@ import * as _ from '../../utils/index'
 import VPatch from '../vnode/vpatch'
 import applyProperties from './apply-properties'
 import { leave } from './transition'
+import { REMOVEQUEUE } from './transition'
 import { isWidget } from '../vnode/typeof-vnode'
 
-export const REMOVEQUEUE = {}
-window.r = REMOVEQUEUE
 export default function applyPatch (vpatch, domNode, renderOptions) {
   const { type, vNode, patch } = vpatch
 
