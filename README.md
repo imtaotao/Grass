@@ -408,7 +408,7 @@ grass-loader 会预编译模板，所以你可以像 vue 一样使用单文件�
 ```html
 <template>
   <div styleName="xx">{{ tao }}</div>'
-<template/>
+</template>
 
 <script>
   import { CSSModules } from 'grass'
@@ -423,7 +423,7 @@ grass-loader 会预编译模板，所以你可以像 vue 一样使用单文件�
       }
     }
   }
-<script/>
+</script>
 ```
 对于无状态组件，应该只包含一个 `<template><template/>`，无状态模板有两个配置项可供选择
   + name 属性是这个无状态组件的组件名
