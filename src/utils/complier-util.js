@@ -1,5 +1,5 @@
 import bind from '../directives/bind'
-import { warn, hasOwn, toString, isEmptyObj } from './tool'
+import { warn, hasOwn, toString, isEmptyObj, setOnlyReadAttr } from './tool'
 import { TAG, TEXT } from '../ast/parse-template'
 import { isNumber, isObject, isPlainObject, isPrimitive, isGeneratorFunction } from './type-check'
 
@@ -193,6 +193,7 @@ export function migrateCompStatus (outputNode, acceptNode) {
 
     if (hasOwn(outputNode, 'vShowResult')) {
       const res = outputNode['vShowResult']
+      acceptNode.isShow = res
       bind(res, null, acceptNode)
     }
 

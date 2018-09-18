@@ -23,6 +23,7 @@ function createWidgetVnode (parentConf, parentComp, comp) {
     this.$name = comp.name
     this.vTransitionType = parentConf.vTransitionType
     this.vTransitionData = parentConf.vTransitionData
+    this.haveShowTag = parentConf.haveShowTag
   }
 
   WidgetElement.prototype.type = 'Widget'

@@ -143,6 +143,14 @@ var hasOwnProperty = Object.prototype.hasOwnProperty;
 function hasOwn(obj, key) {
   return hasOwnProperty.call(obj, key);
 }
+function remove(arr, item) {
+  if (arr.length) {
+    var index = arr.indexOf(item);
+    if (index > -1) {
+      return arr.splice(index, 1);
+    }
+  }
+}
 function toString(val) {
   return val == null ? '' : (typeof val === 'undefined' ? 'undefined' : _typeof(val)) === 'object' ? JSON.stringify(val, null, 2) : String(val);
 }
@@ -161,6 +169,15 @@ function setOnlyReadAttr(obj, key, val) {
 }
 function isUndef(val) {
   return val === undefined || val === null;
+}
+function once(fun) {
+  var called = false;
+  return function () {
+    if (!called) {
+      called = true;
+      return fun.apply(this, arguments);
+    }
+  };
 }
 function warn(msg, noError) {
   var errorInfor = '[Grass tip]: ' + msg;
@@ -573,6 +590,13 @@ function parseTemplate(html, compName) {
   }
 }
 
+function cached(fn) {
+  var cache = Object.create(null);
+  return function cachedFn(str) {
+    var hit = cache[str];
+    return hit || (cache[str] = fn(str));
+  };
+}
 function makeMap(str, expectsLowerCase) {
   var map = Object.create(null);
   var list = str.split(',');
@@ -685,30 +709,40 @@ function modifyOrdinayAttrAsLibAttr(node) {
 }
 function migrateCompStatus(outputNode, acceptNode) {
   if (!outputNode || !acceptNode) return;
-  if (hasOwn(outputNode, 'vTextResult')) {
-    var res = outputNode['vTextResult'];
-    acceptNode.children.unshift(vText(toString(res), acceptNode));
-  }
-  if (hasOwn(outputNode, 'vShowResult')) {
-    var _res = outputNode['vShowResult'];
-    bind(_res, null, acceptNode);
-  }
-  if (hasOwn(outputNode.attrs, 'className')) {
-    var outputClassName = outputNode.attrs['className'];
-    var acceptClassName = acceptNode.attrs['className'];
-    if (acceptClassName) {
-      acceptNode.attrs['className'] = outputClassName + ' ' + acceptClassName;
-    } else {
-      acceptNode.attrs['className'] = outputClassName;
+  transitionDirect();
+  transitionClass();
+  function transitionDirect() {
+    if (hasOwn(outputNode, 'vTextResult')) {
+      var res = outputNode['vTextResult'];
+      acceptNode.children.unshift(vText(toString(res), acceptNode));
+    }
+    if (hasOwn(outputNode, 'vShowResult')) {
+      var _res = outputNode['vShowResult'];
+      bind(_res, null, acceptNode);
+    }
+    if (hasOwn(outputNode, 'vTransitionType')) {
+      acceptNode['vTransitionType'] = outputNode['vTransitionType'];
+      acceptNode['vTransitionData'] = outputNode['vTransitionData'];
     }
   }
-  if (hasOwn(outputNode.attrs, 'styleName')) {
-    var outputStyleName = outputNode.attrs['styleName'];
-    var acceptStyleName = acceptNode.attrs['styleName'];
-    if (acceptStyleName) {
-      acceptNode.attrs['styleName'] = outputStyleName + ' ' + acceptStyleName;
-    } else {
-      acceptNode.attrs['styleName'] = outputStyleName;
+  function transitionClass() {
+    if (hasOwn(outputNode.attrs, 'className')) {
+      var outputClassName = outputNode.attrs['className'];
+      var acceptClassName = acceptNode.attrs['className'];
+      if (acceptClassName) {
+        acceptNode.attrs['className'] = outputClassName + ' ' + acceptClassName;
+      } else {
+        acceptNode.attrs['className'] = outputClassName;
+      }
+    }
+    if (hasOwn(outputNode.attrs, 'styleName')) {
+      var outputStyleName = outputNode.attrs['styleName'];
+      var acceptStyleName = acceptNode.attrs['styleName'];
+      if (acceptStyleName) {
+        acceptNode.attrs['styleName'] = outputStyleName + ' ' + acceptStyleName;
+      } else {
+        acceptNode.attrs['styleName'] = outputStyleName;
+      }
     }
   }
 }
@@ -756,26 +790,39 @@ function isClass(fun) {
   return true;
 }
 
+var inBrowser = typeof window !== 'undefined';
+var UA = inBrowser && window.navigator.userAgent.toLowerCase();
+var isIE = UA && /msie|trident/.test(UA);
+var isIE9 = UA && UA.indexOf('msie 9.0') > 0;
+var isEdge = UA && UA.indexOf('edge/') > 0;
+var isAndroid = UA && UA.indexOf('android') > 0;
+var isIOS = UA && /iphone|ipad|ipod|ios/.test(UA);
+var isChrome = UA && /chrome\/\d+/.test(UA) && !isEdge;
 var isHTMLTag = makeMap('html,body,base,head,link,meta,style,title,' + 'address,article,aside,footer,header,h1,h2,h3,h4,h5,h6,hgroup,nav,section,' + 'div,dd,dl,dt,figcaption,figure,picture,hr,img,li,main,ol,p,pre,ul,' + 'a,b,abbr,bdi,bdo,br,cite,code,data,dfn,em,i,kbd,mark,q,rp,rt,rtc,ruby,' + 's,samp,small,span,strong,sub,sup,time,u,var,wbr,area,audio,map,track,video,' + 'embed,object,param,source,canvas,script,noscript,del,ins,' + 'caption,col,colgroup,table,thead,tbody,td,th,tr,' + 'button,datalist,fieldset,form,input,label,legend,meter,optgroup,option,' + 'output,progress,select,textarea,' + 'details,dialog,menu,menuitem,summary,' + 'content,element,shadow,template,blockquote,iframe,tfoot');
 var isSVG = makeMap('svg,animate,circle,clippath,cursor,defs,desc,ellipse,filter,font-face,' + 'foreignObject,g,glyph,image,line,marker,mask,missing-glyph,path,pattern,' + 'polygon,polyline,rect,switch,symbol,text,textpath,tspan,use,view', true);
 function isReservedTag(tag) {
   return isHTMLTag(tag) || isSVG(tag);
 }
 
-var TEXT$1 = 0;
-var SHOW = 1;
-var ON = 2;
-var BIND = 3;
-var IF = 4;
-var FOR = 5;
+var TRANSITION = 0;
+var ANIMATION = 1;
+var TEXT$1 = 2;
+var SHOW = 3;
+var ON = 4;
+var BIND = 5;
+var IF = 6;
+var FOR = 7;
 var directWeight = {
   'v-show': SHOW,
   'v-for': FOR,
   'v-on': ON,
   'v-text': TEXT$1,
   'v-bind': BIND,
-  'v-if': IF
+  'v-if': IF,
+  'v-transition': TRANSITION,
+  'v-animation': ANIMATION
 };
+var TRANSITIONHOOK = ['v-beforeEnter', 'v-afterEnter', 'v-beforeLeave', 'v-afterLeave'];
 var DIRECTLENGTH = Object.keys(directWeight).length;
 function getWeight(direct) {
   var wight = directWeight[direct];
@@ -785,6 +832,9 @@ function getWeight(direct) {
 }
 function isReservedDirect(direct) {
   return direct.includes('v-') && getWeight(direct) !== undefined;
+}
+function isTransitionHook(direct) {
+  return TRANSITIONHOOK.includes(direct);
 }
 
 function vevent(events, comp, vnodeConf$$1) {
@@ -899,6 +949,21 @@ function text(val, comp, vnodeConf$$1) {
   }
 }
 
+function transition(val, comp, vnodeConf$$1, transtionHookFuns, isTransition) {
+  var directName = isTransition ? 'transtion' : 'animation';
+  var transitonName = runExecuteContext('return ' + val, directName, vnodeConf$$1.tagName, comp);
+  var hookFuns = {};
+  for (var key in transtionHookFuns) {
+    var fun = runExecuteContext('return ' + transtionHookFuns[key], directName, vnodeConf$$1.tagName, comp);
+    hookFuns[key] = fun;
+  }
+  vnodeConf$$1.vTransitionType = directName;
+  vnodeConf$$1.vTransitionData = {
+    name: transitonName,
+    hookFuns: hookFuns
+  };
+}
+
 function runCustomDirect(key, tagName, val, comp) {
   return runExecuteContext('\n    with ($obj_) {\n      return ' + val + ';\n    }', key.slice(2, key.length), tagName, comp);
 }
@@ -1007,12 +1072,17 @@ function complierDirect(node, comp, vnodeConf$$1) {
   var directs = node.direction;
   var nomalDirects = [];
   var customDirects = {};
+  var transtionHookFuns = {};
   var currentWeight = null;
   var currentCustomDirect = null;
 
   var _loop = function _loop(i) {
     var direct = directs[i];
     var key = Object.keys(direct)[0];
+    if (isTransitionHook(key)) {
+      transtionHookFuns[key] = direct[key];
+      return 'continue';
+    }
     if (!isReservedDirect(key)) {
       if (!haveRegisteredCustomDirect(key) || key === currentCustomDirect) {
         return 'continue';
@@ -1042,9 +1112,11 @@ function complierDirect(node, comp, vnodeConf$$1) {
   for (var w = DIRECTLENGTH - 1; w > -1; w--) {
     if (!nomalDirects[w]) continue;
     var directValue = nomalDirects[w];
-    var execResult = executSingleDirect(w, directValue, node, comp, vnodeConf$$1);
+    var execResult = executSingleDirect(w, directValue, node, comp, vnodeConf$$1, transtionHookFuns);
     if (node.for) return;
-    if (execResult === false) return false;
+    if (execResult === false) {
+      return false;
+    }
   }
   each(customDirects, function (val) {
     return val();
@@ -1067,7 +1139,7 @@ function parseStaticNode(node, comp, vnodeConf$$1) {
   var code = '\n    with ($obj_) {\n      function _s (_val_) { return _val_ };\n      return ' + node.expression + ';\n    }\n  ';
   vnodeConf$$1.content = runExecuteContext(code, '{{ }}', vnodeConf$$1.parent.tagName, comp);
 }
-function executSingleDirect(weight, val, node, comp, vnodeConf$$1) {
+function executSingleDirect(weight, val, node, comp, vnodeConf$$1, transtionHookFuns) {
   switch (weight) {
     case SHOW:
       show(val, comp, vnodeConf$$1);
@@ -1086,6 +1158,10 @@ function executSingleDirect(weight, val, node, comp, vnodeConf$$1) {
       break;
     case IF:
       return vif(node, val, comp, vnodeConf$$1);
+    case TRANSITION:
+      return transition(val, comp, vnodeConf$$1, transtionHookFuns, true);
+    case ANIMATION:
+      return transition(val, comp, vnodeConf$$1, transtionHookFuns, false);
     default:
       customDirect(val, comp, vnodeConf$$1);
   }
@@ -1570,6 +1646,226 @@ function isObject$2(x) {
   return (typeof x === 'undefined' ? 'undefined' : _typeof(x)) === 'object' && x !== null;
 }
 
+var REMOVEQUEUE = {};
+var raf = window.requestAnimationFrame ? window.requestAnimationFrame.bind(window) : setTimeout;
+function nextFrame(fn) {
+  raf(function () {
+    raf(fn);
+  });
+}
+var autoCssTransition = cached(function (name) {
+  return {
+    enterClass: name + '-enter',
+    enterToClass: name + '-enter-to',
+    enterActiveClass: name + '-enter-active',
+    leaveClass: name + '-leave',
+    leaveToClass: name + '-leave-to',
+    leaveActiveClass: name + '-leave-active'
+  };
+});
+var TRANSITION$1 = 'transition';
+var ANIMATION$1 = 'animation';
+var hasTransition = inBrowser && !isIE9;
+var transitionProp = 'transition';
+var transitionEndEvent = 'transitionend';
+var animationEndEvent = 'animationend';
+if (hasTransition) {
+  if (window.ontransitionend === undefined && window.onwebkittransitionend !== undefined) {
+    transitionProp = 'WebkitTransition';
+    transitionEndEvent = 'webkitTransitionEnd';
+  }
+  if (window.onanimationend === undefined && window.onwebkitanimationend !== undefined) {
+    animationEndEvent = 'webkitAnimationEnd';
+  }
+}
+function enter(node, vnode) {
+  return new Promise(function (resolve) {
+    var vTransitionType = vnode.vTransitionType,
+        vTransitionData = vnode.vTransitionData;
+
+    if (!vTransitionType) {
+      return resolve();
+    }
+    var preRemove = REMOVEQUEUE[vnode.$id];
+    if (typeof preRemove === 'function') {
+      preRemove();
+    }
+    var name = vTransitionData.name,
+        hookFuns = vTransitionData.hookFuns;
+
+    var type = vTransitionType === 'transtion' ? TRANSITION$1 : ANIMATION$1;
+    if (typeof hookFuns['v-beforeEnter'] === 'function') {
+      if (hookFuns['v-beforeEnter'](node) === false) {
+        return resolve();
+      }
+    }
+
+    var _autoCssTransition = autoCssTransition(name),
+        enterClass = _autoCssTransition.enterClass,
+        enterActiveClass = _autoCssTransition.enterActiveClass,
+        enterToClass = _autoCssTransition.enterToClass;
+
+    addTransitionClass(node, enterClass);
+    addTransitionClass(node, enterActiveClass);
+    nextFrame(function () {
+      addTransitionClass(node, enterToClass);
+      removeTransitionClass(node, enterClass);
+      whenTransitionEnds(node, type, function () {
+        removeTransitionClass(node, enterToClass);
+        removeTransitionClass(node, enterActiveClass);
+        if (typeof hookFuns['v-afterEnter'] === 'function') {
+          hookFuns['v-afterEnter'](node);
+        }
+        resolve();
+      });
+    });
+  });
+}
+function leave(node, vnode) {
+  return new Promise(function (resolve) {
+    var vTransitionType = vnode.vTransitionType,
+        vTransitionData = vnode.vTransitionData;
+
+    if (!vTransitionType) {
+      return resolve();
+    }
+    var name = vTransitionData.name,
+        hookFuns = vTransitionData.hookFuns;
+
+    var type = vTransitionType === 'transtion' ? TRANSITION$1 : ANIMATION$1;
+    if (typeof hookFuns['v-beforeLeave'] === 'function') {
+      if (hookFuns['v-beforeLeave'](node) === false) {
+        return resolve();
+      }
+    }
+
+    var _autoCssTransition2 = autoCssTransition(name),
+        leaveClass = _autoCssTransition2.leaveClass,
+        leaveActiveClass = _autoCssTransition2.leaveActiveClass,
+        leaveToClass = _autoCssTransition2.leaveToClass;
+
+    addTransitionClass(node, leaveClass);
+    addTransitionClass(node, leaveActiveClass);
+    nextFrame(function () {
+      addTransitionClass(node, leaveToClass);
+      removeTransitionClass(node, leaveClass);
+      whenTransitionEnds(node, type, function () {
+        removeTransitionClass(node, leaveToClass);
+        removeTransitionClass(node, leaveActiveClass);
+        if (typeof hookFuns['v-afterLeave'] === 'function') {
+          hookFuns['v-afterLeave'](node);
+        }
+        resolve();
+      });
+    });
+  });
+}
+function addTransitionClass(node, cls) {
+  var transitionClasses = node._transitionClasses || (node._transitionClasses = []);
+  if (transitionClasses.indexOf(cls) < 0) {
+    transitionClasses.push(cls);
+    addClass(node, cls);
+  }
+}
+function removeTransitionClass(node, cls) {
+  if (node._transitionClasses) {
+    remove(node._transitionClasses, cls);
+  }
+  removeClass(node, cls);
+}
+function whenTransitionEnds(node, type, cb) {
+  var ended = 0;
+
+  var _getTransitionInfo = getTransitionInfo(node),
+      propCount = _getTransitionInfo.propCount,
+      timeout = _getTransitionInfo.timeout;
+
+  var event = type === TRANSITION$1 ? transitionEndEvent : animationEndEvent;
+  var end = function end() {
+    node.removeEventListener(event, onEnd);
+    cb();
+  };
+  var onEnd = function onEnd(e) {
+    if (++ended >= propCount) {
+      end();
+    }
+  };
+  setTimeout(function () {
+    if (ended < propCount) {
+      end();
+    }
+  }, timeout + 1);
+  node.addEventListener(event, onEnd);
+}
+function getTransitionInfo(node) {
+  var styles = window.getComputedStyle(node);
+  var transitionDelays = styles[transitionProp + 'Delay'].split(', ');
+  var transitionDurations = styles[transitionProp + 'Duration'].split(', ');
+  var transitionTimeout = getTimeout(transitionDelays, transitionDurations);
+  var propCount = transitionDurations.length;
+  var timeout = transitionTimeout;
+  return { propCount: propCount, timeout: timeout };
+}
+function getTimeout(delays, durations) {
+  while (delays.length < durations.length) {
+    delays = delays.concat(delays);
+  }
+  return Math.max.apply(null, durations.map(function (d, i) {
+    return toMs(d) + toMs(delays[i]);
+  }));
+}
+function toMs(s) {
+  return Number(s.slice(0, -1)) * 1000;
+}
+function addClass(node, cls) {
+  if (!cls || !(cls = cls.trim())) {
+    return;
+  }
+  if (node.classList) {
+    if (cls.indexOf(' ') > -1) {
+      cls.split(/\s+/).forEach(function (c) {
+        return node.classList.add(c);
+      });
+    } else {
+      node.classList.add(cls);
+    }
+  } else {
+    var cur = ' ' + (node.getAttribute('class') || '') + ' ';
+    if (cur.indexOf(' ' + cls + ' ') < 0) {
+      node.setAttribute('class', (cur + cls).trim());
+    }
+  }
+}
+function removeClass(node, cls) {
+  if (!cls || !(cls = cls.trim())) {
+    return;
+  }
+  if (node.classList) {
+    if (cls.indexOf(' ') > -1) {
+      cls.split(/\s+/).forEach(function (c) {
+        return node.classList.remove(c);
+      });
+    } else {
+      node.classList.remove(cls);
+    }
+    if (!node.classList.length) {
+      node.removeAttribute('class');
+    }
+  } else {
+    var cur = ' ' + (node.getAttribute('class') || '') + ' ';
+    var tar = ' ' + cls + ' ';
+    while (cur.indexOf(tar) >= 0) {
+      cur = cur.replace(tar, ' ');
+    }
+    cur = cur.trim();
+    if (cur) {
+      node.setAttribute('class', cur);
+    } else {
+      node.removeAttribute('class');
+    }
+  }
+}
+
 function createElement(vnode) {
   if (isWidget(vnode)) {
     var _node = vnode.init();
@@ -1597,6 +1893,7 @@ function createElement(vnode) {
   if (typeof vnode.elementCreated === 'function') {
     vnode.elementCreated(node, vnode);
   }
+  enter(node, vnode);
   return node;
 }
 
@@ -1683,11 +1980,16 @@ function applyPatch(vpatch, domNode, renderOptions) {
   }
 }
 function removeNode(domNode, vNode) {
-  var parentNode = domNode.parentNode;
-  if (parentNode) {
-    parentNode.removeChild(domNode);
-  }
-  destroyWidget(domNode, vNode);
+  var remove$$1 = once(function () {
+    var parentNode = domNode.parentNode;
+    if (parentNode) {
+      parentNode.removeChild(domNode);
+    }
+    destroyWidget(domNode, vNode);
+    REMOVEQUEUE[vNode.$id] = null;
+  });
+  REMOVEQUEUE[vNode.$id] = remove$$1;
+  leave(domNode, vNode).then(remove$$1);
   return null;
 }
 function insertNode(parentNode, vNode, renderOptions) {
@@ -1697,14 +1999,16 @@ function insertNode(parentNode, vNode, renderOptions) {
   }
   return parentNode;
 }
-function stringPatch(domNode, vText, renderOptions) {
+function stringPatch(domNode, vText$$1, renderOptions) {
   if (domNode.nodeType === 3) {
-    domNode.replaceData(0, domNode.length, vText.text);
+    domNode.replaceData(0, domNode.length, vText$$1.text);
     return domNode;
   }
   var parentNode = domNode.parentNode;
-  var newNode = renderOptions.render(vText);
-  parentNode.replaceChild(domNode, newNode);
+  var newNode = renderOptions.render(vText$$1);
+  if (parentNode && newNode !== domNode) {
+    parentNode.replaceChild(newNode, domNode);
+  }
   return newNode;
 }
 function widgetPatch(domNode, leftVNode, widget, renderOptions) {
@@ -1734,10 +2038,10 @@ function reorderChildren(domNode, moves) {
 
   var keyMap = {};
   for (var i = 0, len = removes.length; i < len; i++) {
-    var remove = removes[i];
-    var node = childNodes[remove.from];
-    if (remove.key) {
-      keyMap[remove.key] = node;
+    var remove$$1 = removes[i];
+    var node = childNodes[remove$$1.from];
+    if (remove$$1.key) {
+      keyMap[remove$$1.key] = node;
     }
     domNode.removeChild(node);
   }
@@ -1813,11 +2117,22 @@ var diff$1 = diff;
 var patch$1 = patch;
 var create$1 = createElement;
 
-function _h(tagName, attrs, customDirection, children) {
+function _h(vnodeConf$$1, children, id) {
+  var tagName = vnodeConf$$1.tagName,
+      attrs = vnodeConf$$1.attrs,
+      customDirection = vnodeConf$$1.customDirection;
+
   var vnode = h$1(tagName, attrs, children, function (dom, vnode) {
-    elementCreated(dom, vnode.customDirection);
+    elementCreated(dom, customDirection, vnode);
   });
-  setOnlyReadAttr(vnode, 'customDirection', customDirection || null);
+  vnode.$id = id;
+  if (vnodeConf$$1.vTransitionType) {
+    var vTransitionType = vnodeConf$$1.vTransitionType,
+        vTransitionData = vnodeConf$$1.vTransitionData;
+
+    setOnlyReadAttr(vnode, 'vTransitionType', vTransitionType);
+    setOnlyReadAttr(vnode, 'vTransitionData', vTransitionData);
+  }
   return vnode;
 }
 
@@ -1894,7 +2209,7 @@ function updateDomTree(comp) {
   }
   var ast = comp.constructor.$ast;
   var dom = comp.$cacheState.dom;
-  var oldTree = comp.$cacheState.vTree;
+  var oldTree = comp.$cacheState.vtree;
   var newTree = render(comp.$parentConf, ast, comp);
   var patchs = diff$1(oldTree, newTree);
   patch$1(dom, patchs);
@@ -1902,7 +2217,7 @@ function updateDomTree(comp) {
   if (!isNoStateComp) {
     comp.didUpdate(dom);
   }
-  comp.$cacheState.vTree = newTree;
+  comp.$cacheState.vtree = newTree;
   comp.$parentConf = null;
 }
 function updateChildComp(comp) {
@@ -1983,27 +2298,38 @@ function createAst(comp) {
   }
   return ast;
 }
+function setCompId(parentComp, comp, index) {
+  var preId = parentComp.$id;
+  var currentId = preId + '_' + index;
+  comp.$id = currentId;
+}
 
 function render(parentConf, ast, comp) {
   var vnodeConf$$1 = complierAst(ast, comp);
+  var walk = {
+    name: comp.$id,
+    index: 0
+  };
   migrateCompStatus(parentConf, vnodeConf$$1);
   if (typeof comp.constructor.CSSModules === 'function') {
     comp.constructor.CSSModules(vnodeConf$$1, comp.name);
   }
-  return _h(vnodeConf$$1.tagName, vnodeConf$$1.attrs, vnodeConf$$1.customDirection, generatorChildren(vnodeConf$$1.children, comp));
+  return _h(vnodeConf$$1, generatorChildren(vnodeConf$$1.children, comp, walk), getId(walk));
 }
-function generatorChildren(children, comp) {
+function generatorChildren(children, comp, walk) {
   var vnodeTree = [];
   for (var i = 0; i < children.length; i++) {
-    if (!children[i]) continue;
+    walk.index++;
+    if (!children[i]) {
+      continue;
+    }
     var conf = children[i];
     if (conf.type === TAG) {
       if (!isReservedTag(conf.tagName)) {
-        vnodeTree.push(createCustomComp(conf, comp, i));
+        vnodeTree.push(createCustomComp(conf, comp, i, walk));
         continue;
       }
-      var _children = generatorChildren(conf.children, comp);
-      vnodeTree.push(_h(conf.tagName, conf.attrs, conf.customDirection, _children));
+      vnodeTree.push(_h(conf, generatorChildren(conf.children, comp, walk), getId(walk)));
       continue;
     }
     var content = toString(conf.content);
@@ -2015,17 +2341,19 @@ function generatorChildren(children, comp) {
 }
 function createCustomComp(parentConf, comp, i) {
   var cacheInstance = getCache(comp, parentConf.tagName, i);
+  var tagName = parentConf.tagName;
   if (cacheInstance) {
     cacheInstance.$parentConf = parentConf;
     return createCompVnode(parentConf, comp, cacheInstance);
   }
-  var childComp = getChildComp(comp, parentConf.tagName);
+  var childComp = getChildComp(comp, tagName);
   if (typeof childComp !== 'function') {
-    grassWarn('Component [' + parentConf.tagName + '] is not registered', comp.name);
+    grassWarn('Component [' + tagName + '] is not registered', comp.name);
     return;
   }
   var childCompInstance = createCompInstance(childComp, parentConf, comp);
-  addCache(comp, parentConf.tagName, childCompInstance, i);
+  setCompId(comp, childCompInstance, i);
+  addCache(comp, tagName, childCompInstance, i);
   return createCompVnode(parentConf, comp, childCompInstance);
 }
 function getChildComp(parentComp, tagName) {
@@ -2037,14 +2365,10 @@ function getChildComp(parentComp, tagName) {
   if (isPlainObject(childComps)) {
     return childComps[tagName];
   }
-  if (Array.isArray(childComps)) {
-    for (var i = 0; i < childComps.length; i++) {
-      if (tagName === childComps[i].name) {
-        return childComps[i];
-      }
-    }
-  }
   return null;
+}
+function getId(walk) {
+  return walk.name + '_' + walk.index;
 }
 
 function createCompVnode(parentConf, parentComp, comp) {
@@ -2058,13 +2382,18 @@ function createCompVnode(parentConf, parentComp, comp) {
 }
 function createWidgetVnode(parentConf, parentComp, comp) {
   function WidgetElement() {
-    this._name = comp.name;
+    this.$name = comp.name;
+    this.vTransitionType = parentConf.vTransitionType;
+    this.vTransitionData = parentConf.vTransitionData;
   }
   WidgetElement.prototype.type = 'Widget';
   WidgetElement.prototype.count = 0;
   WidgetElement.prototype.customDirection = parentConf.customDirection || null;
   WidgetElement.prototype.init = function () {
-    return createRealDom(parentConf, comp);
+    var dom = createDomNode(parentConf, comp);
+    var rootVnodeId = comp.$cacheState.vtree.$id;
+    this.$id = rootVnodeId;
+    return dom;
   };
   WidgetElement.prototype.update = function (previous, domNode) {
     console.info('component update', comp.name);
@@ -2080,20 +2409,20 @@ function createWidgetVnode(parentConf, parentComp, comp) {
   };
   return new WidgetElement();
 }
-function createRealDom(parentConf, comp) {
+function createDomNode(parentConf, comp) {
   var ast = comp.constructor.$ast;
   if (comp.noStateComp) {
-    var _vTree = render(parentConf, ast, comp);
-    var _dom = create$1(_vTree);
+    var _vtree = render(parentConf, ast, comp);
+    var _dom = create$1(_vtree);
     comp.$cacheState.dom = _dom;
-    comp.$cacheState.vTree = _vTree;
+    comp.$cacheState.vTree = _vtree;
     return _dom;
   }
   comp.createBefore();
-  var vTree = render(parentConf, ast, comp);
-  var dom = create$1(vTree);
+  var vtree = render(parentConf, ast, comp);
+  var dom = create$1(vtree);
   comp.$cacheState.dom = dom;
-  comp.$cacheState.vTree = vTree;
+  comp.$cacheState.vtree = vtree;
   comp.create(dom);
   return dom;
 }
@@ -2110,7 +2439,8 @@ var Component = function () {
       childComponent: {},
       componentElement: null,
       dom: null,
-      vTree: null
+      vtree: null,
+      id: null
     };
   }
 
@@ -2153,10 +2483,12 @@ var Component = function () {
   return Component;
 }();
 function mount(rootDOM, compClass) {
+  var index = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : '0';
+
   return new Promise(function (resolve) {
     var comp = createCompInstance(compClass, {}, {});
-    var dom = createRealDom(null, comp);
-    window.s = comp.$cacheState;
+    comp.$id = toString(index);
+    var dom = createDomNode(null, comp);
     rootDOM.appendChild(dom);
     resolve(dom);
   });
@@ -2246,7 +2578,7 @@ function extendEvent(compClass) {
     }
     return compClass;
   };
-  compClass.once = function once(callback) {
+  compClass.once = function once$$1(callback) {
     if (typeof callback === 'function') {
       nextOB.once(callback);
     }

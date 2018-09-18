@@ -24,7 +24,7 @@ export default function createElement (vnode) {
 
   const { properties, children } = vnode
 
-  applyProperties(node, properties)
+  applyProperties(node, vnode, properties)
 
   for (let i = 0, len = children.length; i < len; i++) {
     const childNode = createElement(children[i])
@@ -38,7 +38,9 @@ export default function createElement (vnode) {
     vnode.elementCreated(node, vnode)
   }
 
-  enter(node, vnode)
+  if (!vnode.haveShowTag) {
+    enter(node, vnode)
+  }
 
   return node
 }

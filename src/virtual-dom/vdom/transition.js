@@ -4,6 +4,7 @@ import * as _ from '../../utils'
  * 现在的问题动画的问题是，新增的 dom 元素会把正在动画过程中的 dom 元素给替换掉
  * 所以，现在要么尽量少用这种结构，要么在一个 dom 元素动画过程中，有新的 dom 插入
  * 或者生成，立即停止掉其他正在动画的元素，但是这样就只能允许同一时间只能唯一动画
+ * 所以，我们最好用 v-show 来动画，这样没有 dom 的变动
  */
 
 export const REMOVEQUEUE = {}
@@ -55,16 +56,19 @@ if (hasTransition) {
   }
 }
 
-export function enter (node, vnode) {
+export function enter (node, vnode, isStyle) {
   return new Promise(resolve => {
     const { vTransitionType, vTransitionData } = vnode
 
     if (!vTransitionType) {
       return resolve()
     }
-    const preRemove = REMOVEQUEUE[vnode.$id]
-    if (typeof preRemove === 'function') {
-      preRemove()
+
+    if (!isStyle) {
+      const preRemove = REMOVEQUEUE[vnode.$id]
+      if (typeof preRemove === 'function') {
+        preRemove()
+      }
     }
 
     const { name, hookFuns } = vTransitionData
@@ -105,7 +109,7 @@ export function enter (node, vnode) {
   })
 }
 
-export function leave (node, vnode) {
+export function leave (node, vnode, isStyle) {
   return new Promise(resolve => {
     const { vTransitionType, vTransitionData } = vnode
 
@@ -221,7 +225,7 @@ function toMs (s) {
   return Number(s.slice(0, -1)) * 1000
 }
 
-function addClass (node, cls) {
+export function addClass (node, cls) {
   if (!cls || !(cls = cls.trim())) {
     return
   }
@@ -242,7 +246,7 @@ function addClass (node, cls) {
   }
 }
 
-function removeClass (node, cls) {
+export function removeClass (node, cls) {
   if (!cls || !(cls = cls.trim())) {
     return
   }

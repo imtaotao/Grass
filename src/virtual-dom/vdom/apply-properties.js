@@ -1,13 +1,24 @@
-export default function applyProperties(node, props, previous) {
+import * as _ from '../../utils/index'
+import { enter, leave, addClass } from './transition'
+
+export default function applyProperties(node, vnode, props, previous) {
   for (let propName in props) {
     const propValue = props[propName]
-
+    
     if (propValue === undefined) {
       removeProperty(node, propName, propValue, previous)
     } else if (isObject(propValue)) {
       patchObject(node, propName, propValue, previous)
     } else {
-      node[propName] = propValue
+      if (propName === 'style' && vnode.haveShowTag) {
+        transition(node, vnode, propValue, () => {
+          node[propName] = propValue
+        })
+      } else if (propName === 'className') {
+        addClass(node, propValue)
+      } else {
+        node[propName] = propValue
+      }
     }
   }
 }
@@ -72,6 +83,26 @@ function patchObject (node, propName, propValue, previous) {
     node[propName][key] = value === undefined
       ? replacer
       : value
+  }
+}
+
+function transition (node, vnode, propValue, callback) {
+  if (node._transitionCallback) {
+    node._transitionCallback()
+  }
+ 
+  const isShow = !propValue
+
+  node._transitionCallback = _.once(() => {
+    callback()
+    node._transitionCallback = null
+  })
+
+  if (isShow) {
+    node._transitionCallback()
+    enter(node, vnode, true)
+  } else {
+    leave(node, vnode, true).then(node._transitionCallback)
   }
 }
 
