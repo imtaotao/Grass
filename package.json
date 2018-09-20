@@ -1,12 +1,21 @@
 {
-  "name": "grass",
-  "version": "1.0.0",
+  "name": "tt-grass",
+  "version": "0.0.0-beta.1",
   "description": "",
-  "main": "dist/common.js",
-  "module": "src/index.js",
+  "main": "dist/grass.common.js",
+  "module": "dist/grass.esm.js",
   "scripts": {
     "dev": "cross-env NODE_ENV=development webpack-dev-server",
     "build": "node build.js"
+  },
+  "keywords": [
+    "grass",
+    "template",
+    "virtual-dom"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/imtaotao/Grass.git"
   },
   "author": "chentao",
   "license": "ISC",
@@ -32,12 +41,12 @@
     "uglifyjs-webpack-plugin": "^1.1.2",
     "webpack": "^3.10.0",
     "webpack-dev-server": "^2.9.7",
-    "grass-loader": "^0.0.1"
-  },
-  "dependencies": {
+    "grass-loader": "^0.0.1",
     "autoprefixer": "^7.2.5",
     "postcss-cssnext": "^3.1.0",
     "postcss-import": "^11.0.0",
     "virtual-dom": "^2.1.1"
+  },
+  "dependencies": {
   }
 }

@@ -1,7 +1,7 @@
 ## 一个简单的模板库，底层使用 virtual-dom，个人学习之用，我把他叫为 Grass
 
 ### 如何使用
-在 [demo](./demo/root/index.grs) 中有例子
+在 [demo](https://github.com/imtaotao/Grass/tree/master/demo/root/index.grs) 中有例子
 ```js
   import Grass from './src'
   import child from 'xx/childComponent'
