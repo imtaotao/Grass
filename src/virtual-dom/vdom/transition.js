@@ -7,6 +7,13 @@ import * as _ from '../../utils'
  * 所以，我们最好用 v-show 来动画，这样没有 dom 的变动
  */
 
+
+/**
+ * 解决思路：
+ * 对于新旧真实节点的渲染，我们可以在每个动画的节点的 parentNode 上面进行缓存，
+ * 因为对于新旧真实节点，肯定在同一个父组件上面，我们这样就可以缩小范围，并且可以对比 virtual-dom 的 
+ * key 和 tagName，这样就能保证在新节点插入的时候，终止掉旧节点的动画，并删除
+*/
 export const REMOVEQUEUE = {}
 
 const raf = window.requestAnimationFrame
@@ -71,6 +78,8 @@ export function enter (node, vnode, isStyle) {
       }
     }
 
+    node._isTransitioning = true
+
     const { name, hookFuns } = vTransitionData
     const type = vTransitionType === 'transtion'
       ? TRANSITION
@@ -78,15 +87,13 @@ export function enter (node, vnode, isStyle) {
 
     if (typeof hookFuns['v-beforeEnter'] === 'function') {
       if (hookFuns['v-beforeEnter'](node) === false) {
+        node._isTransitioning = false
         return resolve()
       }
     }
 
-    const {
-        enterClass,
-        enterActiveClass,
-        enterToClass,
-    } = autoCssTransition(name)
+
+    const { enterClass, enterActiveClass, enterToClass } = autoCssTransition(name)
 
     addTransitionClass(node, enterClass)
     addTransitionClass(node, enterActiveClass)
@@ -103,6 +110,7 @@ export function enter (node, vnode, isStyle) {
           hookFuns['v-afterEnter'](node)
         }
 
+        node._isTransitioning = false
         resolve()
       })
     })
@@ -116,7 +124,9 @@ export function leave (node, vnode, isStyle) {
     if (!vTransitionType) {
       return resolve()
     }
-    
+
+    node._isTransitioning = true
+
     const { name, hookFuns } = vTransitionData
     const type = vTransitionType === 'transtion'
       ? TRANSITION
@@ -124,15 +134,12 @@ export function leave (node, vnode, isStyle) {
 
     if (typeof hookFuns['v-beforeLeave'] === 'function') {
       if (hookFuns['v-beforeLeave'](node) === false) {
+        node._isTransitioning = false
         return resolve()
       }
     }
   
-    const {
-        leaveClass,
-        leaveActiveClass,
-        leaveToClass,
-    } = autoCssTransition(name)
+    const { leaveClass, leaveActiveClass, leaveToClass } = autoCssTransition(name)
 
     addTransitionClass(node, leaveClass)
     addTransitionClass(node, leaveActiveClass)
@@ -149,6 +156,7 @@ export function leave (node, vnode, isStyle) {
           hookFuns['v-afterLeave'](node)
         }
 
+        node._isTransitioning = false
         resolve()
       })
     })

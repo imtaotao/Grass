@@ -87,8 +87,12 @@ function patchObject (node, propName, propValue, previous) {
 }
 
 function transition (node, vnode, propValue, callback) {
-  if (node._transitionCallback) {
-    node._transitionCallback()
+  if (node._isTranstioning) {
+    if (node._transitionCallback) {
+      node._transitionCallback()
+    } else {
+      return
+    }
   }
  
   const isShow = !propValue
