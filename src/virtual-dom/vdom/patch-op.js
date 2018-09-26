@@ -2,7 +2,6 @@ import * as _ from '../../utils/index'
 import VPatch from '../vnode/vpatch'
 import applyProperties from './apply-properties'
 import { leave } from './transition'
-import { REMOVEQUEUE } from './transition'
 import { isWidget } from '../vnode/typeof-vnode'
 
 export default function applyPatch (vpatch, domNode, renderOptions) {
@@ -31,26 +30,24 @@ export default function applyPatch (vpatch, domNode, renderOptions) {
 }
 
 function removeNode (domNode, vNode) {
-  const remove = _.once(() => {
-    const parentNode = domNode.parentNode
+  const remove = _.once((parent) => {
+    const parentNode = domNode.parentNode || parent
 
     if (parentNode) {
       parentNode.removeChild(domNode)
     }
 
     destroyWidget(domNode, vNode)
-    REMOVEQUEUE[vNode.$id] = null
   })
 
-  REMOVEQUEUE[vNode.$id] = remove
-  leave(domNode, vNode).then(remove)
+  leave(domNode, vNode, remove)
 
   return null
 }
 
 // 不需要再插入的时候添加 flip 动画，我们所有的 enter 动画都在 createElement 里面
 function insertNode (parentNode, vNode, renderOptions) {
-  const newNode = renderOptions.render(vNode)
+  const newNode = renderOptions.render(vNode, parentNode)
 
   if (parentNode) {
     parentNode.appendChild(newNode)

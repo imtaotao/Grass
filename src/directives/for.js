@@ -39,14 +39,17 @@ export default function vfor (node, comp, vnodeConf) {
 
   function vforCallback (i) {
     const cloneNode = _.vnodeConf(node, vnodeConf.parent)
-    cloneNode.attrs['key'] = i + '_'
+    const key = vnodeConf.attrs.indexKey + '_' + i
+
+    cloneNode.attrs['key'] = key
+    cloneNode.attrs['indexKey'] = key
 
     // 我们要避免无限递归的进入 for 指令
     node.for = false
 
     cloneNodes[i] = parseSingleNode(node, comp, cloneNode) === false
-        ? null
-        : cloneNode
+      ? null
+      : cloneNode
   }
 
   scope.create()
@@ -62,8 +65,9 @@ function serachIndex (node) {
   const children = node.parent.children
   const length = children.length
   for (let i = 0; i < length; i++) {
-    if (children[i] === node)
+    if (children[i] === node) {
       return i
+    }
   }
 }
 

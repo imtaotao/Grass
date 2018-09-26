@@ -1,22 +1,26 @@
 <template>
   <div>
-    <div @click="e => this.setState({show: !show})">点击</div>
-    <div styleName="test-block">add</div>
+    <div @click="this.callback.bind(this)">点击</div>
+    <div>
+      <Child
+      v-for="val of arr"
+      v-if="show"
+      v-text="val"
+      v-transition="'slide-fade'"/>
+    </div>
+     <div v-show="show" v-transition="'slide-fade'">--------</div>
     <Child
       v-for="val of arr"
       v-if="show"
       v-text="val"
-      v-transition="'slide-fade'"
-      v-beforeEnter="this.beforeEnter"
-      v-afterEnter="this.afterEnter.bind(this)"
-      v-beforeLeave = "this.beforeLeave.bind(this)"/>
+      v-transition="'slide-fade'"/>
 
-    <Child  v-text="121" v-show="show" v-transition="'slide-fade'" />
-    <div v-show="show" v-transition="'slide-fade'">test</div>
+    <p v-show="show" v-transition="'slide-fade'">fff</p>
   </div>
 </template>
 
 <script>
+ 
 import Grass, { CSSModules } from '../src'
 import Child from './child'
 import style from './style.css'
@@ -37,8 +41,7 @@ class Root extends Grass.Component {
   }
 
   callback (api) {
-    console.log(1);
-    // this.setState({arr: [1, 2, 3, 4]})
+    this.setState({show: !this.state.show, arr: [1, 2, 3, 4]})
   }
 
   beforeEnter (dom) {

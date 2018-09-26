@@ -59,20 +59,24 @@ export function parseTemplate (html, compName) {
   function parseStart () {
     const match = html.match(startTagOpen)
     if (match && match[0]) {
+      let indexKey, parent, container
       const tagStr = match[0]
       const tagName = match[1]
-      const tagNode = createTag(
-        tagName,
-        scope === ast
-          ? null
-          : scope
-      )
-
-      if (scope !== ast) {
-        scope.children.push(tagNode)
+      const isRoot = scope === ast
+      
+      if (isRoot) {
+        parent = null
+        indexKey = _.toString(ast.length)
+        container = ast
       } else {
-        ast.push(tagNode)
+        parent = scope
+        indexKey = _.toString(scope.children.length)
+        container = scope.children
       }
+     
+      const tagNode = createTag(tagName, indexKey, parent)
+      container.push(tagNode)
+    
       // 作用域下降
       scope = tagNode
       advance(tagStr.length)
@@ -251,14 +255,14 @@ export function parseTemplate (html, compName) {
     scope.direction.push(vAttr)
   }
 
-  function createTag (tagName, parent) {
+  function createTag (tagName, indexKey, parent) {
     const root = parent ? false : true
     return {
       type: TAG,
       tagName,
       bindState: [],
       children: [],
-      attrs: {},
+      attrs: { indexKey },
       start: index,
       end: null,
       parent,

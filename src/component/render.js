@@ -8,10 +8,6 @@ import { createCompInstance, setCompId } from './instance'
 
 export default function render (parentConf, ast, comp) {
   const vnodeConf = complierAst(ast, comp)
-  const walk = {
-    name: comp.$id,
-    index: 0,
-  }
 
   _.migrateCompStatus(parentConf, vnodeConf)
 
@@ -19,14 +15,12 @@ export default function render (parentConf, ast, comp) {
     comp.constructor.CSSModules(vnodeConf, comp.name)
   }
 
-  return _h(vnodeConf, 
-    generatorChildren(vnodeConf.children, comp, walk), getId(walk))
+  return _h(vnodeConf, generatorChildren(vnodeConf.children, comp))
 }
 
-function generatorChildren (children, comp, walk) {
+function generatorChildren (children, comp) {
   const vnodeTree = []
   for (let i = 0; i < children.length; i++) {
-    walk.index++
     if (!children[i]) {
       continue
     }
@@ -35,13 +29,12 @@ function generatorChildren (children, comp, walk) {
     if (conf.type === TAG) {
       if (!_.isReservedTag(conf.tagName)) {
         // 自定义组件
-        vnodeTree.push(createCustomComp(conf, comp, i, walk))
+        vnodeTree.push(createCustomComp(conf, comp, i))
         continue
       }
 
       // 递归创建 vnode
-      vnodeTree.push(_h(conf, 
-        generatorChildren(conf.children, comp, walk), getId(walk)))
+      vnodeTree.push(_h(conf, generatorChildren(conf.children, comp)))
       continue
     }
 
@@ -96,8 +89,4 @@ function getChildComp (parentComp, tagName) {
   }
 
   return null
-}
-
-function getId (walk) {
-  return walk.name + '_' + walk.index
 }

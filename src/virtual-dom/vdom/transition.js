@@ -1,4 +1,5 @@
 import * as _ from '../../utils'
+import { isWidget } from '../vnode/typeof-vnode'
 
 /**
  * 现在的问题动画的问题是，新增的 dom 元素会把正在动画过程中的 dom 元素给替换掉
@@ -14,7 +15,6 @@ import * as _ from '../../utils'
  * 因为对于新旧真实节点，肯定在同一个父组件上面，我们这样就可以缩小范围，并且可以对比 virtual-dom 的 
  * key 和 tagName，这样就能保证在新节点插入的时候，终止掉旧节点的动画，并删除
 */
-export const REMOVEQUEUE = {}
 
 const raf = window.requestAnimationFrame
     ? window.requestAnimationFrame.bind(window)
@@ -46,86 +46,98 @@ export let animationProp = 'animation'
 export let animationEndEvent = 'animationend'
 
 if (hasTransition) {
-  if (
-      window.ontransitionend === undefined &&
-      window.onwebkittransitionend !== undefined
-  ) {
+  if (window.ontransitionend === undefined &&
+      window.onwebkittransitionend !== undefined) {
     transitionProp = 'WebkitTransition'
     transitionEndEvent = 'webkitTransitionEnd'
   }
 
-  if (
-      window.onanimationend === undefined &&
-      window.onwebkitanimationend !== undefined
-  ) {
+  if (window.onanimationend === undefined &&
+      window.onwebkitanimationend !== undefined) {
     animationProp = 'WebkitAnimation'
     animationEndEvent = 'webkitAnimationEnd'
   }
 }
 
-export function enter (node, vnode, isStyle) {
-  return new Promise(resolve => {
-    const { vTransitionType, vTransitionData } = vnode
+export function enter (node, vnode, rm) {
+  const { vTransitionType, vTransitionData } = vnode
 
-    if (!vTransitionType) {
-      return resolve()
+  if (!vTransitionType) {
+    rm()
+    return
+  }
+
+  if (_.isDef(node._leaveCb)) {
+    node._leaveCb.cancelled = true
+    node._leaveCb()
+  }
+
+  if (node._enterCb) {
+    rm()
+    return
+  }
+
+  const { name, hookFuns } = vTransitionData
+  const type = vTransitionType === 'transtion'
+    ? TRANSITION
+    : ANIMATION
+
+  if (typeof hookFuns['v-beforeEnter'] === 'function') {
+    if (hookFuns['v-beforeEnter'](node) === false) {
+      rm()
+      return
+    }
+  }
+
+  const { enterClass, enterActiveClass, enterToClass } = autoCssTransition(name)
+
+  const cb = node._enterCb = _.once(() => {
+    removeTransitionClass(node, enterToClass)
+    removeTransitionClass(node, enterActiveClass)
+
+    if (typeof hookFuns['v-afterEnter'] === 'function') {
+      hookFuns['v-afterEnter'](node)
     }
 
-    if (!isStyle) {
-      const preRemove = REMOVEQUEUE[vnode.$id]
-      if (typeof preRemove === 'function') {
-        preRemove()
-      }
+    node._enterCb = null
+    rm()
+  })
+  
+  const parent = vnode.parentNode
+  const pendingNode = parent && parent._pending && parent._pending[vnode.indexKey]
+  if (pendingNode) {
+    const { node, vnode:_ov } = pendingNode
+    if (_ov.tag === vnode.tag && node._leaveCb) {
+      node._leaveCb(parent)
     }
+  }
 
-    node._isTransitioning = true
-
-    const { name, hookFuns } = vTransitionData
-    const type = vTransitionType === 'transtion'
-      ? TRANSITION
-      : ANIMATION
-
-    if (typeof hookFuns['v-beforeEnter'] === 'function') {
-      if (hookFuns['v-beforeEnter'](node) === false) {
-        node._isTransitioning = false
-        return resolve()
-      }
-    }
-
-
-    const { enterClass, enterActiveClass, enterToClass } = autoCssTransition(name)
-
-    addTransitionClass(node, enterClass)
-    addTransitionClass(node, enterActiveClass)
-
-    nextFrame(() => {
-      addTransitionClass(node, enterToClass)
-      removeTransitionClass(node, enterClass)
-
-      whenTransitionEnds(node, type, () => {
-        removeTransitionClass(node, enterToClass)
-        removeTransitionClass(node, enterActiveClass)
-
-        if (typeof hookFuns['v-afterEnter'] === 'function') {
-          hookFuns['v-afterEnter'](node)
-        }
-
-        node._isTransitioning = false
-        resolve()
-      })
-    })
+  addTransitionClass(node, enterClass)
+  addTransitionClass(node, enterActiveClass)
+  nextFrame(() => {
+    addTransitionClass(node, enterToClass)
+    removeTransitionClass(node, enterClass)
+    whenTransitionEnds(node, type, cb)
   })
 }
 
-export function leave (node, vnode, isStyle) {
-  return new Promise(resolve => {
+export function leave (node, vnode, rm) {
     const { vTransitionType, vTransitionData } = vnode
 
     if (!vTransitionType) {
-      return resolve()
+      rm()
+      return
     }
 
-    node._isTransitioning = true
+    if (_.isDef(node._enterCb)) {
+      node._enterCb.cancelled = true
+      node._enterCb()
+    }
+
+    if (node._leaveCb) {
+      rm()
+      return
+    }
 
     const { name, hookFuns } = vTransitionData
     const type = vTransitionType === 'transtion'
@@ -134,33 +146,44 @@ export function leave (node, vnode, isStyle) {
 
     if (typeof hookFuns['v-beforeLeave'] === 'function') {
       if (hookFuns['v-beforeLeave'](node) === false) {
-        node._isTransitioning = false
-        return resolve()
+        rm()
+        return
       }
     }
-  
+
     const { leaveClass, leaveActiveClass, leaveToClass } = autoCssTransition(name)
+
+    const cb = node._leaveCb = _.once((parent) => {
+      if (node.parentNode && node.parentNode._pending) {
+        node.parentNode._pending[vnode.indexKey] = null
+      }
+      
+      removeTransitionClass(node, leaveToClass)
+      removeTransitionClass(node, leaveActiveClass)
+
+      if (typeof hookFuns['v-afterLeave'] === 'function') {
+        hookFuns['v-afterLeave'](node)
+      }
+
+      node._leaveCb = null
+      rm(parent)
+    })
+ 
+    // 记录离开动画的元素
+    if (node.parentNode) {
+      if (!node.parentNode._pending) {
+        node.parentNode._pending = {}
+      }
+      node.parentNode._pending[vnode.indexKey] = { node, vnode }
+    }
 
     addTransitionClass(node, leaveClass)
     addTransitionClass(node, leaveActiveClass)
-
     nextFrame(() => {
       addTransitionClass(node, leaveToClass)
       removeTransitionClass(node, leaveClass)
-
-      whenTransitionEnds(node, type, () => {
-        removeTransitionClass(node, leaveToClass)
-        removeTransitionClass(node, leaveActiveClass)
-
-        if (typeof hookFuns['v-afterLeave'] === 'function') {
-          hookFuns['v-afterLeave'](node)
-        }
-
-        node._isTransitioning = false
-        resolve()
-      })
+      whenTransitionEnds(node, type, cb)
     })
-  })
 }
 
 function addTransitionClass (node, cls) {
@@ -212,7 +235,6 @@ function getTransitionInfo (node) {
   const transitionDelays = styles[transitionProp + 'Delay'].split(', ')
   const transitionDurations = styles[transitionProp + 'Duration'].split(', ')
   const transitionTimeout = getTimeout(transitionDelays, transitionDurations)
-
   const propCount = transitionDurations.length
   const timeout = transitionTimeout
 

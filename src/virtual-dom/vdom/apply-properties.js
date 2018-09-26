@@ -87,26 +87,13 @@ function patchObject (node, propName, propValue, previous) {
 }
 
 function transition (node, vnode, propValue, callback) {
-  if (node._isTranstioning) {
-    if (node._transitionCallback) {
-      node._transitionCallback()
-    } else {
-      return
-    }
-  }
- 
   const isShow = !propValue
 
-  node._transitionCallback = _.once(() => {
-    callback()
-    node._transitionCallback = null
-  })
-
   if (isShow) {
-    node._transitionCallback()
-    enter(node, vnode, true)
+    callback()
+    enter(node, vnode, _.noop)
   } else {
-    leave(node, vnode, true).then(node._transitionCallback)
+    leave(node, vnode, callback)
   }
 }
 
