@@ -72,6 +72,7 @@ function updateDomTree (comp) {
   const dom = comp.$cacheState.dom
   const oldTree = comp.$cacheState.vtree
   const newTree = render(comp.$parentConf, ast, comp)
+  console.log(newTree, typeof newTree);
   const patchs = diff(oldTree, newTree)
 
   patch(dom, patchs)

@@ -1,35 +1,5 @@
-<template>
+<template name="Child" styleSrc="./style.css">
   <p styleName="test-block" v-show="this.props.show">
-    <a v-for="(val, i) of arr">{{ val }}</a>
+    121
   </p>
 </template>
-
-<script>
-  import Grass, { CSSModules } from '../src'
-  import style from './style.css'
-
-  @CSSModules(style)
-  export default class Child extends Grass.Component {
-    constructor (props) {
-      super(props)
-      this.state = {
-        current: 'aa',
-        arr: [1,2,3],
-      }
-    }
-    create() {
-      // console.log('init');
-    }
-    destroy () {
-      // console.log('销毁');
-    }
-
-    c () {
-      this.props.callback('taotao')
-    }
-
-    cr () {
-      this.setState({current: 'ff'})
-    }
-  }
-</script>
