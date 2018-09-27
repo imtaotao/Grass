@@ -3,10 +3,14 @@
     <div @click="this.callback.bind(this)">点击</div>
     <div>
       <Child
+      :show="show"
       v-for="val of arr"
-      v-if="show"
       v-text="val"
-      v-transition="'slide-fade'"/>
+      v-transition="'slide-fade'"
+      v-beforeEnter="this.beforeEnter"
+      v-afterEnter="this.afterEnter"
+      v-beforeLeave="this.beforeLeave"
+      v-afterLeave="this.afterLeave"></Child>
     </div>
   </div>
 </template>
@@ -38,22 +42,19 @@ class Root extends Grass.Component {
 
   beforeEnter (dom) {
     // console.log(dom);
-    // console.log('beforeEnter');
-    // return false
+    console.log('beforeEnter');
   }
 
-  afterEnter () {
-    // console.log('afterEnter');
+  afterEnter (dom) {
+    console.log('afterEnter');
   }
 
-  beforeLeave () {
-    // console.log('beforeLeave');
-    // return false
+  beforeLeave (dom) {
+    console.log('beforeLeave');
   }
 
   afterLeave (dom) {
-    // console.log('afterLeave');
-    // console.log(dom);
+    console.log('afterLeave');
   }
 
   component () {

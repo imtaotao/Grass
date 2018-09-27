@@ -1,5 +1,5 @@
 <template>
-  <p styleName="test-block" >
+  <p styleName="test-block" v-show="this.props.show">
     <a v-for="(val, i) of arr">{{ val }}</a>
   </p>
 </template>

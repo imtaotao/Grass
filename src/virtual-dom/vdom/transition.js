@@ -248,6 +248,19 @@ function toMs (s) {
   return Number(s.slice(0, -1)) * 1000
 }
 
+export function applyPendingNode(parentNode) {
+  const pendingNode = parentNode && parentNode._pending
+
+  if (pendingNode && pendingNode.length) {
+    for (let i = 0, len = pendingNode.length; i < len; i++) {
+      const node = pendingNode[i]
+      node._leaveCb && node._leaveCb(true)
+    }
+
+    parentNode._pending = []
+  }
+}
+
 export function addClass (node, cls) {
   if (!cls || !(cls = cls.trim())) {
     return

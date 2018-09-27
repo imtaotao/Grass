@@ -1,7 +1,7 @@
 import * as _ from '../../utils/index'
 import VPatch from '../vnode/vpatch'
 import applyProperties from './apply-properties'
-import { leave } from './transition'
+import { leave, applyPendingNode } from './transition'
 import { isWidget } from '../vnode/typeof-vnode'
 
 export default function applyPatch (vpatch, domNode, renderOptions) {
@@ -47,17 +47,10 @@ function removeNode (domNode, vNode) {
 
 // 不需要再插入的时候添加 flip 动画，我们所有的 enter 动画都在 createElement 里面
 function insertNode (parentNode, vNode, renderOptions) {
+  // 移除正在动画的元素
+  applyPendingNode(parentNode)
+
   const newNode = renderOptions.render(vNode, parentNode)
-  const pendingNode = parentNode._pending
-
-  if (pendingNode && pendingNode.length) {
-    for (let i = 0, len = pendingNode.length; i < len; i++) {
-      const node = pendingNode[i]
-      node._leaveCb && node._leaveCb(true)
-    }
-
-    parentNode._pending = []
-  }
 
   if (parentNode) {
     parentNode.appendChild(newNode)

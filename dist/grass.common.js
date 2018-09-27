@@ -160,15 +160,11 @@ function isEmptyObj(obj) {
   }
   return true;
 }
-function setOnlyReadAttr(obj, key, val) {
-  Object.defineProperty(obj, key, {
-    get: function get$$1() {
-      return val;
-    }
-  });
-}
 function isUndef(val) {
   return val === undefined || val === null;
+}
+function isDef(val) {
+  return val !== undefined && val !== null;
 }
 function once(fun) {
   var called = false;
@@ -397,14 +393,23 @@ function parseTemplate(html, compName) {
   function parseStart() {
     var match = html.match(startTagOpen);
     if (match && match[0]) {
+      var indexKey = void 0,
+          parent = void 0,
+          container = void 0;
       var tagStr = match[0];
       var tagName = match[1];
-      var tagNode = createTag(tagName, scope === ast ? null : scope);
-      if (scope !== ast) {
-        scope.children.push(tagNode);
+      var isRoot = scope === ast;
+      if (isRoot) {
+        parent = null;
+        indexKey = toString(ast.length);
+        container = ast;
       } else {
-        ast.push(tagNode);
+        parent = scope;
+        indexKey = toString(scope.children.length);
+        container = scope.children;
       }
+      var tagNode = createTag(tagName, indexKey, parent);
+      container.push(tagNode);
       scope = tagNode;
       advance(tagStr.length);
       var end = void 0,
@@ -548,7 +553,7 @@ function parseTemplate(html, compName) {
     }
     scope.direction.push(vAttr);
   }
-  function createTag(tagName, parent) {
+  function createTag(tagName, indexKey, parent) {
     var root = parent ? false : true;
     return {
       type: TAG,
@@ -557,6 +562,7 @@ function parseTemplate(html, compName) {
       children: [],
       attrs: {},
       start: index,
+      indexKey: indexKey,
       end: null,
       parent: parent,
       root: root,
@@ -718,6 +724,7 @@ function migrateCompStatus(outputNode, acceptNode) {
     }
     if (hasOwn(outputNode, 'vShowResult')) {
       var _res = outputNode['vShowResult'];
+      acceptNode.isShow = _res;
       bind(_res, null, acceptNode);
     }
     if (hasOwn(outputNode, 'vTransitionType')) {
@@ -803,6 +810,7 @@ var isSVG = makeMap('svg,animate,circle,clippath,cursor,defs,desc,ellipse,filter
 function isReservedTag(tag) {
   return isHTMLTag(tag) || isSVG(tag);
 }
+function noop() {}
 
 var TRANSITION = 0;
 var ANIMATION = 1;
@@ -894,7 +902,8 @@ function vfor(node, comp, vnodeConf$$1) {
   }
   function vforCallback(i) {
     var cloneNode = vnodeConf(node, vnodeConf$$1.parent);
-    cloneNode.attrs['key'] = i + '_';
+    var key = vnodeConf$$1.attrs.indexKey + '_' + i;
+    cloneNode.attrs['key'] = key;
     node.for = false;
     cloneNodes[i] = parseSingleNode(node, comp, cloneNode) === false ? null : cloneNode;
   }
@@ -909,7 +918,9 @@ function serachIndex(node) {
   var children = node.parent.children;
   var length = children.length;
   for (var i = 0; i < length; i++) {
-    if (children[i] === node) return i;
+    if (children[i] === node) {
+      return i;
+    }
   }
 }
 function replaceWithLoopRes(node, res, i) {
@@ -929,9 +940,13 @@ function vif(node, val, comp, vnodeConf$$1) {
 }
 
 function show(val, comp, vnodeConf$$1) {
-  var code = 'with($obj_) { return !!(' + val + '); }';
-  var value = runExecuteContext(code, 'show', vnodeConf$$1.tagName, comp) ? '' : 'display: none';
-  var bindValue = { attrName: 'style', value: value };
+  var code = '\n    with($obj_) {\n      return !!(' + val + ');\n    }';
+  var isShow = !!runExecuteContext(code, 'show', vnodeConf$$1.tagName, comp);
+  var bindValue = {
+    attrName: 'style',
+    value: isShow ? '' : 'display: none'
+  };
+  vnodeConf$$1.isShow = isShow;
   if (isReservedTag(vnodeConf$$1.tagName)) {
     bind(bindValue, comp, vnodeConf$$1);
     return;
@@ -1587,66 +1602,6 @@ function isUndef$3(v) {
   return v === undefined || v === null;
 }
 
-function applyProperties(node, props, previous) {
-  for (var propName in props) {
-    var propValue = props[propName];
-    if (propValue === undefined) {
-      removeProperty(node, propName, propValue, previous);
-    } else if (isObject$2(propValue)) {
-      patchObject(node, propName, propValue, previous);
-    } else {
-      node[propName] = propValue;
-    }
-  }
-}
-function removeProperty(node, propName, previous) {
-  if (!previous) {
-    return;
-  }
-  var previousValue = previous[propName];
-  if (propName === 'attributes') {
-    for (var attrName in previousValue) {
-      node.removeAttribute(attrName);
-    }
-  } else if (propName === 'style') {
-    for (var styleName in previousValue) {
-      node.style[styleName] = '';
-    }
-  } else if (typeof previousValue === 'string') {
-    node[propName] = '';
-  } else {
-    node[propName] = null;
-  }
-}
-function patchObject(node, propName, propValue, previous) {
-  var previousValue = previous ? previous[propName] : undefined;
-  if (propName === 'attributes') {
-    for (var attrName in propValue) {
-      var attrValue = propValue[attrName];
-      attrValue === undefined ? node.removeAttribute(attrName) : node.setAttribute(attrName, attrValue);
-    }
-    return;
-  }
-  if (previousValue && isObject$2(previousValue)) {
-    if (Object.getPrototypeOf(previousValue) !== Object.getPrototypeOf(propValue)) {
-      node[propName] = propValue;
-      return;
-    }
-  }
-  if (!isObject$2(node[propName])) {
-    node[propName] = {};
-  }
-  var replacer = propName === 'style' ? '' : undefined;
-  for (var key in propValue) {
-    var value = propValue[key];
-    node[propName][key] = value === undefined ? replacer : value;
-  }
-}
-function isObject$2(x) {
-  return (typeof x === 'undefined' ? 'undefined' : _typeof(x)) === 'object' && x !== null;
-}
-
-var REMOVEQUEUE = {};
 var raf = window.requestAnimationFrame ? window.requestAnimationFrame.bind(window) : setTimeout;
 function nextFrame(fn) {
   raf(function () {
@@ -1678,86 +1633,111 @@ if (hasTransition) {
     animationEndEvent = 'webkitAnimationEnd';
   }
 }
-function enter(node, vnode) {
-  return new Promise(function (resolve) {
-    var vTransitionType = vnode.vTransitionType,
-        vTransitionData = vnode.vTransitionData;
+function enter(node, vnode, rm) {
+  var vTransitionType = vnode.vTransitionType,
+      vTransitionData = vnode.vTransitionData;
 
-    if (!vTransitionType) {
-      return resolve();
+  if (!vTransitionType) {
+    rm();
+    return;
+  }
+  if (isDef(node._leaveCb)) {
+    node._leaveCb();
+  }
+  if (node._enterCb) {
+    rm();
+    return;
+  }
+  var name = vTransitionData.name,
+      hookFuns = vTransitionData.hookFuns;
+
+  var type = vTransitionType === 'transtion' ? TRANSITION$1 : ANIMATION$1;
+  if (typeof hookFuns['v-beforeEnter'] === 'function') {
+    if (hookFuns['v-beforeEnter'](node) === false) {
+      rm();
+      return;
     }
-    var preRemove = REMOVEQUEUE[vnode.$id];
-    if (typeof preRemove === 'function') {
-      preRemove();
+  }
+
+  var _autoCssTransition = autoCssTransition(name),
+      enterClass = _autoCssTransition.enterClass,
+      enterActiveClass = _autoCssTransition.enterActiveClass,
+      enterToClass = _autoCssTransition.enterToClass;
+
+  var cb = node._enterCb = once(function () {
+    removeTransitionClass(node, enterToClass);
+    removeTransitionClass(node, enterActiveClass);
+    if (typeof hookFuns['v-afterEnter'] === 'function') {
+      hookFuns['v-afterEnter'](node);
     }
-    var name = vTransitionData.name,
-        hookFuns = vTransitionData.hookFuns;
-
-    var type = vTransitionType === 'transtion' ? TRANSITION$1 : ANIMATION$1;
-    if (typeof hookFuns['v-beforeEnter'] === 'function') {
-      if (hookFuns['v-beforeEnter'](node) === false) {
-        return resolve();
-      }
-    }
-
-    var _autoCssTransition = autoCssTransition(name),
-        enterClass = _autoCssTransition.enterClass,
-        enterActiveClass = _autoCssTransition.enterActiveClass,
-        enterToClass = _autoCssTransition.enterToClass;
-
-    addTransitionClass(node, enterClass);
-    addTransitionClass(node, enterActiveClass);
-    nextFrame(function () {
-      addTransitionClass(node, enterToClass);
-      removeTransitionClass(node, enterClass);
-      whenTransitionEnds(node, type, function () {
-        removeTransitionClass(node, enterToClass);
-        removeTransitionClass(node, enterActiveClass);
-        if (typeof hookFuns['v-afterEnter'] === 'function') {
-          hookFuns['v-afterEnter'](node);
-        }
-        resolve();
-      });
-    });
+    node._enterCb = null;
+    rm();
+  });
+  addTransitionClass(node, enterClass);
+  addTransitionClass(node, enterActiveClass);
+  nextFrame(function () {
+    addTransitionClass(node, enterToClass);
+    removeTransitionClass(node, enterClass);
+    whenTransitionEnds(node, type, cb);
   });
 }
-function leave(node, vnode) {
-  return new Promise(function (resolve) {
-    var vTransitionType = vnode.vTransitionType,
-        vTransitionData = vnode.vTransitionData;
+function leave(node, vnode, rm) {
+  var vTransitionType = vnode.vTransitionType,
+      vTransitionData = vnode.vTransitionData;
 
-    if (!vTransitionType) {
-      return resolve();
+  if (!vTransitionType) {
+    rm();
+    return;
+  }
+  if (isDef(node._enterCb)) {
+    node._enterCb();
+  }
+  if (node._leaveCb) {
+    rm();
+    return;
+  }
+  var name = vTransitionData.name,
+      hookFuns = vTransitionData.hookFuns;
+
+  var type = vTransitionType === 'transtion' ? TRANSITION$1 : ANIMATION$1;
+  if (typeof hookFuns['v-beforeLeave'] === 'function') {
+    if (hookFuns['v-beforeLeave'](node) === false) {
+      rm();
+      return;
     }
-    var name = vTransitionData.name,
-        hookFuns = vTransitionData.hookFuns;
+  }
 
-    var type = vTransitionType === 'transtion' ? TRANSITION$1 : ANIMATION$1;
-    if (typeof hookFuns['v-beforeLeave'] === 'function') {
-      if (hookFuns['v-beforeLeave'](node) === false) {
-        return resolve();
-      }
+  var _autoCssTransition2 = autoCssTransition(name),
+      leaveClass = _autoCssTransition2.leaveClass,
+      leaveActiveClass = _autoCssTransition2.leaveActiveClass,
+      leaveToClass = _autoCssTransition2.leaveToClass;
+
+  if (node.parentNode) {
+    if (!node.parentNode._pending) {
+      node.parentNode._pending = [];
     }
-
-    var _autoCssTransition2 = autoCssTransition(name),
-        leaveClass = _autoCssTransition2.leaveClass,
-        leaveActiveClass = _autoCssTransition2.leaveActiveClass,
-        leaveToClass = _autoCssTransition2.leaveToClass;
-
-    addTransitionClass(node, leaveClass);
-    addTransitionClass(node, leaveActiveClass);
-    nextFrame(function () {
-      addTransitionClass(node, leaveToClass);
-      removeTransitionClass(node, leaveClass);
-      whenTransitionEnds(node, type, function () {
-        removeTransitionClass(node, leaveToClass);
-        removeTransitionClass(node, leaveActiveClass);
-        if (typeof hookFuns['v-afterLeave'] === 'function') {
-          hookFuns['v-afterLeave'](node);
-        }
-        resolve();
-      });
-    });
+    var index = node.parentNode._pending.length;
+    node._index = index;
+    node.parentNode._pending[index] = node;
+  }
+  var cb = node._leaveCb = once(function (noRemove) {
+    if (!noRemove && node.parentNode && node.parentNode._pending) {
+      node.parentNode._pending.splice(node._index, 1);
+    }
+    removeTransitionClass(node, leaveToClass);
+    removeTransitionClass(node, leaveActiveClass);
+    if (typeof hookFuns['v-afterLeave'] === 'function') {
+      hookFuns['v-afterLeave'](node);
+    }
+    node._leaveCb = null;
+    rm();
+  });
+  addTransitionClass(node, leaveClass);
+  addTransitionClass(node, leaveActiveClass);
+  nextFrame(function () {
+    addTransitionClass(node, leaveToClass);
+    removeTransitionClass(node, leaveClass);
+    whenTransitionEnds(node, type, cb);
   });
 }
 function addTransitionClass(node, cls) {
@@ -1817,6 +1797,16 @@ function getTimeout(delays, durations) {
 function toMs(s) {
   return Number(s.slice(0, -1)) * 1000;
 }
+function applyPendingNode(parentNode) {
+  var pendingNode = parentNode && parentNode._pending;
+  if (pendingNode && pendingNode.length) {
+    for (var i = 0, len = pendingNode.length; i < len; i++) {
+      var node = pendingNode[i];
+      node._leaveCb && node._leaveCb(true);
+    }
+    parentNode._pending = [];
+  }
+}
 function addClass(node, cls) {
   if (!cls || !(cls = cls.trim())) {
     return;
@@ -1866,9 +1856,90 @@ function removeClass(node, cls) {
   }
 }
 
-function createElement(vnode) {
+function applyProperties(node, vnode, props, previous) {
+  var _loop = function _loop(propName) {
+    var propValue = props[propName];
+    if (propValue === undefined) {
+      removeProperty(node, propName, propValue, previous);
+    } else if (isObject$2(propValue)) {
+      patchObject(node, propName, propValue, previous);
+    } else {
+      if (propName === 'style' && vnode.haveShowTag) {
+        transition$1(node, vnode, propValue, function () {
+          node[propName] = propValue;
+        });
+      } else if (propName === 'className') {
+        addClass(node, propValue);
+      } else {
+        node[propName] = propValue;
+      }
+    }
+  };
+
+  for (var propName in props) {
+    _loop(propName);
+  }
+}
+function removeProperty(node, propName, previous) {
+  if (!previous) {
+    return;
+  }
+  var previousValue = previous[propName];
+  if (propName === 'attributes') {
+    for (var attrName in previousValue) {
+      node.removeAttribute(attrName);
+    }
+  } else if (propName === 'style') {
+    for (var styleName in previousValue) {
+      node.style[styleName] = '';
+    }
+  } else if (typeof previousValue === 'string') {
+    node[propName] = '';
+  } else {
+    node[propName] = null;
+  }
+}
+function patchObject(node, propName, propValue, previous) {
+  var previousValue = previous ? previous[propName] : undefined;
+  if (propName === 'attributes') {
+    for (var attrName in propValue) {
+      var attrValue = propValue[attrName];
+      attrValue === undefined ? node.removeAttribute(attrName) : node.setAttribute(attrName, attrValue);
+    }
+    return;
+  }
+  if (previousValue && isObject$2(previousValue)) {
+    if (Object.getPrototypeOf(previousValue) !== Object.getPrototypeOf(propValue)) {
+      node[propName] = propValue;
+      return;
+    }
+  }
+  if (!isObject$2(node[propName])) {
+    node[propName] = {};
+  }
+  var replacer = propName === 'style' ? '' : undefined;
+  for (var key in propValue) {
+    var value = propValue[key];
+    node[propName][key] = value === undefined ? replacer : value;
+  }
+}
+function transition$1(node, vnode, propValue, callback) {
+  var isShow = !propValue;
+  if (isShow) {
+    applyPendingNode(node.parentNode);
+    callback();
+    enter(node, vnode, noop);
+  } else {
+    leave(node, vnode, callback);
+  }
+}
+function isObject$2(x) {
+  return (typeof x === 'undefined' ? 'undefined' : _typeof(x)) === 'object' && x !== null;
+}
+
+function createElement(vnode, parentNode) {
   if (isWidget(vnode)) {
-    var _node = vnode.init();
+    var _node = vnode.init(parentNode);
     if (typeof vnode.elementCreated === 'function') {
       vnode.elementCreated(_node, vnode);
     }
@@ -1883,7 +1954,7 @@ function createElement(vnode) {
   var properties = vnode.properties,
       children = vnode.children;
 
-  applyProperties(node, properties);
+  applyProperties(node, vnode, properties);
   for (var i = 0, len = children.length; i < len; i++) {
     var childNode = createElement(children[i]);
     if (childNode) {
@@ -1893,7 +1964,12 @@ function createElement(vnode) {
   if (typeof vnode.elementCreated === 'function') {
     vnode.elementCreated(node, vnode);
   }
-  enter(node, vnode);
+  if (!vnode.haveShowTag) {
+    if (!node.parentNode && parentNode) {
+      node.parent = parentNode;
+    }
+    enter(node, vnode, noop);
+  }
   return node;
 }
 
@@ -1903,7 +1979,7 @@ function domIndex(rootNode, tree, indices) {
     return {};
   }
   indices.sort(function (a, b) {
-    return a > b;
+    return a > b ? 1 : -1;
   });
   return recurse(rootNode, tree, indices, null, 0);
 }
@@ -1973,7 +2049,7 @@ function applyPatch(vpatch, domNode, renderOptions) {
       reorderChildren(domNode, patch);
       return domNode;
     case VirtualPatch.PROPS:
-      applyProperties(domNode, patch, vNode.properties);
+      applyProperties(domNode, vNode, patch, vNode.properties);
       return domNode;
     default:
       return domNode;
@@ -1986,14 +2062,13 @@ function removeNode(domNode, vNode) {
       parentNode.removeChild(domNode);
     }
     destroyWidget(domNode, vNode);
-    REMOVEQUEUE[vNode.$id] = null;
   });
-  REMOVEQUEUE[vNode.$id] = remove$$1;
-  leave(domNode, vNode).then(remove$$1);
+  leave(domNode, vNode, remove$$1);
   return null;
 }
 function insertNode(parentNode, vNode, renderOptions) {
-  var newNode = renderOptions.render(vNode);
+  applyPendingNode(parentNode);
+  var newNode = renderOptions.render(vNode, parentNode);
   if (parentNode) {
     parentNode.appendChild(newNode);
   }
@@ -2117,7 +2192,7 @@ var diff$1 = diff;
 var patch$1 = patch;
 var create$1 = createElement;
 
-function _h(vnodeConf$$1, children, id) {
+function _h(vnodeConf$$1, children) {
   var tagName = vnodeConf$$1.tagName,
       attrs = vnodeConf$$1.attrs,
       customDirection = vnodeConf$$1.customDirection;
@@ -2125,13 +2200,15 @@ function _h(vnodeConf$$1, children, id) {
   var vnode = h$1(tagName, attrs, children, function (dom, vnode) {
     elementCreated(dom, customDirection, vnode);
   });
-  vnode.$id = id;
   if (vnodeConf$$1.vTransitionType) {
     var vTransitionType = vnodeConf$$1.vTransitionType,
         vTransitionData = vnodeConf$$1.vTransitionData;
 
-    setOnlyReadAttr(vnode, 'vTransitionType', vTransitionType);
-    setOnlyReadAttr(vnode, 'vTransitionData', vTransitionData);
+    vnode.vTransitionType = vTransitionType;
+    vnode.vTransitionData = vTransitionData;
+  }
+  if (!isUndef(vnodeConf$$1.isShow)) {
+    vnode.haveShowTag = true;
   }
   return vnode;
 }
@@ -2306,30 +2383,25 @@ function setCompId(parentComp, comp, index) {
 
 function render(parentConf, ast, comp) {
   var vnodeConf$$1 = complierAst(ast, comp);
-  var walk = {
-    name: comp.$id,
-    index: 0
-  };
   migrateCompStatus(parentConf, vnodeConf$$1);
   if (typeof comp.constructor.CSSModules === 'function') {
     comp.constructor.CSSModules(vnodeConf$$1, comp.name);
   }
-  return _h(vnodeConf$$1, generatorChildren(vnodeConf$$1.children, comp, walk), getId(walk));
+  return _h(vnodeConf$$1, generatorChildren(vnodeConf$$1.children, comp));
 }
-function generatorChildren(children, comp, walk) {
+function generatorChildren(children, comp) {
   var vnodeTree = [];
   for (var i = 0; i < children.length; i++) {
-    walk.index++;
     if (!children[i]) {
       continue;
     }
     var conf = children[i];
     if (conf.type === TAG) {
       if (!isReservedTag(conf.tagName)) {
-        vnodeTree.push(createCustomComp(conf, comp, i, walk));
+        vnodeTree.push(createCustomComp(conf, comp, i));
         continue;
       }
-      vnodeTree.push(_h(conf, generatorChildren(conf.children, comp, walk), getId(walk)));
+      vnodeTree.push(_h(conf, generatorChildren(conf.children, comp)));
       continue;
     }
     var content = toString(conf.content);
@@ -2367,9 +2439,6 @@ function getChildComp(parentComp, tagName) {
   }
   return null;
 }
-function getId(walk) {
-  return walk.name + '_' + walk.index;
-}
 
 function createCompVnode(parentConf, parentComp, comp) {
   var $cacheState = comp.$cacheState;
@@ -2385,15 +2454,13 @@ function createWidgetVnode(parentConf, parentComp, comp) {
     this.$name = comp.name;
     this.vTransitionType = parentConf.vTransitionType;
     this.vTransitionData = parentConf.vTransitionData;
+    this.haveShowTag = parentConf.haveShowTag;
   }
   WidgetElement.prototype.type = 'Widget';
   WidgetElement.prototype.count = 0;
   WidgetElement.prototype.customDirection = parentConf.customDirection || null;
-  WidgetElement.prototype.init = function () {
-    var dom = createDomNode(parentConf, comp);
-    var rootVnodeId = comp.$cacheState.vtree.$id;
-    this.$id = rootVnodeId;
-    return dom;
+  WidgetElement.prototype.init = function (parentNode) {
+    return createDomNode(parentConf, comp);
   };
   WidgetElement.prototype.update = function (previous, domNode) {
     console.info('component update', comp.name);

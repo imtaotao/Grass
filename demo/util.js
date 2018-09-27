@@ -1,7 +1,7 @@
 export function notice (msg, time) {
-  time = !Number.isNaN(time)
-    ? time
-    : 2000
+  if (isNaN(time)) {
+    time = 1500
+  }
 
   const noticeCompnent = document.createElement('div')
   noticeCompnent.innerHTML = msg
@@ -13,7 +13,7 @@ export function notice (msg, time) {
     noticeCompnent.style.webkitTransition = '-webkit-transform 0.5s ease-in, opacity 0.5s ease-in'
     noticeCompnent.style.opacity = '0'
     setTimeout(() => document.body.removeChild(noticeCompnent), 500)
-  }, time )
+  }, time)
 }
 
 export function deepClone (data) {
