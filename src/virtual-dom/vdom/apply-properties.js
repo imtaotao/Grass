@@ -90,10 +90,24 @@ function transition (node, vnode, propValue, callback) {
   const isShow = !propValue
   
   if (isShow) {
+    applyPendingNode(node)
     callback()
     enter(node, vnode, _.noop)
   } else {
     leave(node, vnode, callback)
+  }
+}
+
+function applyPendingNode (node) {
+  const pendingNode = node.parentNode && node.parentNode._pending
+
+  if (pendingNode && pendingNode.length) {
+    for (let i = 0, len = pendingNode.length; i < len; i++) {
+      const node = pendingNode[i]
+      node._leaveCb && node._leaveCb(true)
+    }
+
+    node.parentNode._pending = []
   }
 }
 

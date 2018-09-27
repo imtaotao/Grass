@@ -4,19 +4,10 @@
     <div>
       <Child
       v-for="val of arr"
-      v-show="show"
+      v-if="show"
       v-text="val"
       v-transition="'slide-fade'"/>
     </div>
-    
-     <div v-show="show" v-transition="'slide-fade'">--------</div>
-    <div
-      v-for="val of arr"
-      v-show="show"
-      v-text="val"
-      v-transition="'slide-fade'">12121</div>
-
-    <p v-show="show" v-transition="'slide-fade'">fff</p>
   </div>
 </template>
 
