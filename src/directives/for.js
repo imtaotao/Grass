@@ -42,7 +42,6 @@ export default function vfor (node, comp, vnodeConf) {
     const key = vnodeConf.attrs.indexKey + '_' + i
 
     cloneNode.attrs['key'] = key
-    cloneNode.attrs['indexKey'] = key
 
     // 我们要避免无限递归的进入 for 指令
     node.for = false

@@ -40,9 +40,10 @@ export default function createElement (vnode, parentNode) {
   }
 
   if (!vnode.haveShowTag) {
-    if (!vnode.parentNode) {
-      vnode.parentNode = parentNode
+    if (!node.parentNode && parentNode) {
+      node.parent = parentNode
     }
+
     enter(node, vnode, _.noop)
   }
 

@@ -68,7 +68,6 @@ export function enter (node, vnode, rm) {
   }
 
   if (_.isDef(node._leaveCb)) {
-    node._leaveCb.cancelled = true
     node._leaveCb()
   }
 
@@ -102,15 +101,6 @@ export function enter (node, vnode, rm) {
     node._enterCb = null
     rm()
   })
-  
-  const parent = vnode.parentNode
-  const pendingNode = parent && parent._pending && parent._pending[vnode.indexKey]
-  if (pendingNode) {
-    const { node, vnode:_ov } = pendingNode
-    if (_ov.tag === vnode.tag && node._leaveCb) {
-      node._leaveCb(parent)
-    }
-  }
 
   addTransitionClass(node, enterClass)
   addTransitionClass(node, enterActiveClass)
@@ -130,7 +120,6 @@ export function leave (node, vnode, rm) {
     }
 
     if (_.isDef(node._enterCb)) {
-      node._enterCb.cancelled = true
       node._enterCb()
     }
 
@@ -153,11 +142,23 @@ export function leave (node, vnode, rm) {
 
     const { leaveClass, leaveActiveClass, leaveToClass } = autoCssTransition(name)
 
-    const cb = node._leaveCb = _.once((parent) => {
-      if (node.parentNode && node.parentNode._pending) {
-        node.parentNode._pending[vnode.indexKey] = null
+    // 记录离开动画的元素
+    if (node.parentNode) {
+      if (!node.parentNode._pending) {
+        node.parentNode._pending = []
       }
-      
+
+      const index = node.parentNode._pending.length
+
+      node._index = index
+      node.parentNode._pending[index] = node
+    }
+
+    const cb = node._leaveCb = _.once((noRemove) => {
+      if (!noRemove && node.parentNode && node.parentNode._pending) {
+        node.parentNode._pending.splice(node._index, 1)
+      }
+
       removeTransitionClass(node, leaveToClass)
       removeTransitionClass(node, leaveActiveClass)
 
@@ -166,16 +167,8 @@ export function leave (node, vnode, rm) {
       }
 
       node._leaveCb = null
-      rm(parent)
+      rm()
     })
- 
-    // 记录离开动画的元素
-    if (node.parentNode) {
-      if (!node.parentNode._pending) {
-        node.parentNode._pending = {}
-      }
-      node.parentNode._pending[vnode.indexKey] = { node, vnode }
-    }
 
     addTransitionClass(node, leaveClass)
     addTransitionClass(node, leaveActiveClass)

@@ -182,13 +182,6 @@ export function migrateCompStatus (outputNode, acceptNode) {
   // 我们需要迁移的数据 vTextResult、vShowResult、vTransitionType、vTransitionData、className, indexKey
   transitionDirect()
   transitionClass()
-  transitionNamalAttr()
-  
-  function transitionNamalAttr () {
-    if (hasOwn(outputNode.attrs, 'indexKey')) {
-      acceptNode.attrs['indexKey'] = outputNode.attrs['indexKey']
-    }
-  }
 
   function transitionDirect () {
     if (hasOwn(outputNode, 'vTextResult')) {

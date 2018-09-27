@@ -2,7 +2,9 @@
 // 不然每一次 setState 都进行一次 diff patch，太伤了
 import * as _ from '../utils/index'
 import render from './render'
-import { diff, patch} from '../virtual-dom/index'
+import { diff } from '../virtual-dom/index'
+import { patch } from '../virtual-dom/index'
+// import { patch } from 'virtual-dom'
 
 const capacity = 1024
 
@@ -73,7 +75,7 @@ function updateDomTree (comp) {
   const patchs = diff(oldTree, newTree)
 
   patch(dom, patchs)
-
+ 
   updateChildComp(comp)
 
   if (!isNoStateComp) {

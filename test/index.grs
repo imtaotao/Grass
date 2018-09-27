@@ -4,16 +4,17 @@
     <div>
       <Child
       v-for="val of arr"
-      v-if="show"
+      v-show="show"
       v-text="val"
       v-transition="'slide-fade'"/>
     </div>
+    
      <div v-show="show" v-transition="'slide-fade'">--------</div>
-    <Child
+    <div
       v-for="val of arr"
-      v-if="show"
+      v-show="show"
       v-text="val"
-      v-transition="'slide-fade'"/>
+      v-transition="'slide-fade'">12121</div>
 
     <p v-show="show" v-transition="'slide-fade'">fff</p>
   </div>
@@ -41,7 +42,7 @@ class Root extends Grass.Component {
   }
 
   callback (api) {
-    this.setState({show: !this.state.show, arr: [1, 2, 3, 4]})
+    this.setState({show: !this.state.show, arr: [1, 2, 3, 4, 5]})
   }
 
   beforeEnter (dom) {

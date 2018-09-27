@@ -88,7 +88,7 @@ function patchObject (node, propName, propValue, previous) {
 
 function transition (node, vnode, propValue, callback) {
   const isShow = !propValue
-
+  
   if (isShow) {
     callback()
     enter(node, vnode, _.noop)

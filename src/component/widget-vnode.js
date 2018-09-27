@@ -24,7 +24,6 @@ function createWidgetVnode (parentConf, parentComp, comp) {
     this.vTransitionType = parentConf.vTransitionType
     this.vTransitionData = parentConf.vTransitionData
     this.haveShowTag = parentConf.haveShowTag
-    this.indexKey = parentConf.attrs.indexKey
   }
 
   WidgetElement.prototype.type = 'Widget'
@@ -35,7 +34,7 @@ function createWidgetVnode (parentConf, parentComp, comp) {
   WidgetElement.prototype.customDirection = parentConf.customDirection || null
 
   WidgetElement.prototype.init = function (parentNode) {
-    return createDomNode(parentConf, comp, parentNode)
+    return createDomNode(parentConf, comp)
   }
 
   WidgetElement.prototype.update = function (previous, domNode) {
@@ -57,12 +56,11 @@ function createWidgetVnode (parentConf, parentComp, comp) {
   return new WidgetElement()
 }
 
-export function createDomNode (parentConf, comp, parentNode) {
+export function createDomNode (parentConf, comp) {
   const ast = comp.constructor.$ast
 
   if (comp.noStateComp) {
     const vtree = render(parentConf, ast, comp)
-    vtree.parentNode = parentNode
     const dom = create(vtree)
 
     comp.$cacheState.dom = dom
@@ -74,7 +72,6 @@ export function createDomNode (parentConf, comp, parentNode) {
   comp.createBefore()
 
   const vtree = render(parentConf, ast, comp)
-  vtree.parentNode = parentNode
   const dom = create(vtree)
 
   comp.$cacheState.dom = dom

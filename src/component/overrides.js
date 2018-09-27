@@ -8,8 +8,6 @@ export function _h (vnodeConf, children) {
   const vnode = h(tagName, attrs, children, (dom, vnode) => {
     elementCreated(dom, customDirection, vnode)
   })
-
-  vnode.indexKey = vnodeConf.attrs.indexKey
   
   if (vnodeConf.vTransitionType) {
     const { vTransitionType, vTransitionData } = vnodeConf

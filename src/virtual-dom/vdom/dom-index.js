@@ -6,7 +6,7 @@ export default function domIndex (rootNode, tree, indices) {
     return {}
   }
 
-  indices.sort((a, b) => a > b)
+  indices.sort((a, b) => a > b ? 1 : -1)
   return recurse(rootNode, tree, indices, null, 0)
 }
 
