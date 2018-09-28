@@ -12,59 +12,60 @@
       v-beforeLeave="this.beforeLeave"
       v-afterLeave="this.afterLeave"></Child>
     </div>
+
+    <div v-for="val of arr"  v-transition="'slide-fade'" v-if="show">fsda</div>
   </div>
 </template>
 
 <script>
- 
-import Grass, { CSSModules } from '../src'
-import Child from './child'
-import style from './style.css'
+  import Grass, { CSSModules } from '../src'
+  import Child from './child'
+  import style from './style.css'
 
-@CSSModules(style)
-class Root extends Grass.Component {
-  constructor () {
-    super()
-    this.state = {
-      api: 'index',
-      arr: [1, 2],
-      show: true,
-      obj: {
-        tt: 'chentao',
-        ff: 'fangfang'
+  @CSSModules(style)
+  class Root extends Grass.Component {
+    constructor () {
+      super()
+      this.state = {
+        api: 'index',
+        arr: [1, 2],
+        show: true,
+        obj: {
+          tt: 'chentao',
+          ff: 'fangfang'
+        }
       }
+    }
+
+    callback (api) {
+      this.setState({show: !this.state.show, arr: [1, 2, 3, 4, 5]})
+    }
+
+    beforeEnter (dom) {
+      // console.log(dom);
+      console.log('beforeEnter');
+    }
+
+    afterEnter (dom) {
+      console.log('afterEnter');
+    }
+
+    beforeLeave (dom) {
+      console.log('beforeLeave');
+    }
+
+    afterLeave (dom) {
+      console.log('afterLeave');
+    }
+
+    component () {
+      return { Child }
     }
   }
 
-  callback (api) {
-    this.setState({show: !this.state.show, arr: [1, 2, 3, 4, 5]})
-  }
 
-  beforeEnter (dom) {
-    // console.log(dom);
-    console.log('beforeEnter');
-  }
-
-  afterEnter (dom) {
-    console.log('afterEnter');
-  }
-
-  beforeLeave (dom) {
-    console.log('beforeLeave');
-  }
-
-  afterLeave (dom) {
-    console.log('afterLeave');
-  }
-
-  component () {
-    return { Child }
-  }
-}
-
-
-Grass.directive('tt', (dom, val) => {
-  console.log(dom, val);
-})
-Grass.mount(document.getElementById('root'), Root) 
+  Grass.directive('tt', (dom, val) => {
+    console.log(dom, val);
+  })
+  Grass.mount(document.getElementById('root'), Root) 
 </script>

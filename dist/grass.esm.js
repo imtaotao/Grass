@@ -1718,7 +1718,7 @@ function leave(node, vnode, rm) {
   }
   var cb = node._leaveCb = once(function (noRemove) {
     if (!noRemove && node.parentNode && node.parentNode._pending) {
-      node.parentNode._pending.splice(node._index, 1);
+      node.parentNode._pending[node._index] = null;
     }
     removeTransitionClass(node, leaveToClass);
     removeTransitionClass(node, leaveActiveClass);
@@ -1798,7 +1798,7 @@ function applyPendingNode(parentNode) {
   if (pendingNode && pendingNode.length) {
     for (var i = 0, len = pendingNode.length; i < len; i++) {
       var node = pendingNode[i];
-      node._leaveCb && node._leaveCb(true);
+      node && node._leaveCb && node._leaveCb(true);
     }
     parentNode._pending = [];
   }
@@ -2337,7 +2337,7 @@ function createCompInstance(comConstructor, parentConf, parentComp) {
         childComponent: {},
         componentElement: null,
         dom: null,
-        vTree: null
+        vtree: null
       },
       setState: function setState(partialState) {
         enqueueSetState(this, partialState);
@@ -2478,7 +2478,7 @@ function createDomNode(parentConf, comp) {
     var _vtree = render(parentConf, ast, comp);
     var _dom = create$1(_vtree);
     comp.$cacheState.dom = _dom;
-    comp.$cacheState.vTree = _vtree;
+    comp.$cacheState.vtree = _vtree;
     return _dom;
   }
   comp.createBefore();
