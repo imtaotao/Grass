@@ -25,7 +25,7 @@ export function createCompInstance (comConstructor, parentConf, parentComp) {
         childComponent: {},
         componentElement: null,
         dom: null,
-        vTree: null,
+        vtree: null,
       },
       setState (partialState) {
         enqueueSetState(this, partialState)

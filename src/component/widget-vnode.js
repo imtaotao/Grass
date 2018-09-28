@@ -64,7 +64,7 @@ export function createDomNode (parentConf, comp) {
     const dom = create(vtree)
 
     comp.$cacheState.dom = dom
-    comp.$cacheState.vTree = vtree
+    comp.$cacheState.vtree = vtree
 
     return dom
   }
