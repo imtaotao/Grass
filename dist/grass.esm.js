@@ -2337,7 +2337,7 @@ function createCompInstance(comConstructor, parentConf, parentComp) {
         childComponent: {},
         componentElement: null,
         dom: null,
-        vTree: null
+        vtree: null
       },
       setState: function setState(partialState) {
         enqueueSetState(this, partialState);
@@ -2478,7 +2478,7 @@ function createDomNode(parentConf, comp) {
     var _vtree = render(parentConf, ast, comp);
     var _dom = create$1(_vtree);
     comp.$cacheState.dom = _dom;
-    comp.$cacheState.vTree = _vtree;
+    comp.$cacheState.vtree = _vtree;
     return _dom;
   }
   comp.createBefore();
