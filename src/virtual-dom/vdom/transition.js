@@ -60,7 +60,7 @@ if (hasTransition) {
 }
 
 export function enter (node, vnode, rm) {
-  const { vTransitionType, vTransitionData } = vnode
+  const { vTransitionType, vTransitionData } = vnode.data
 
   if (!vTransitionType) {
     rm()
@@ -112,7 +112,7 @@ export function enter (node, vnode, rm) {
 }
 
 export function leave (node, vnode, rm) {
-    const { vTransitionType, vTransitionData } = vnode
+    const { vTransitionType, vTransitionData } = vnode.data
 
     if (!vTransitionType) {
       rm()

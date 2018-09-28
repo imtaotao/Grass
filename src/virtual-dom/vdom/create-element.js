@@ -39,7 +39,7 @@ export default function createElement (vnode, parentNode) {
     vnode.elementCreated(node, vnode)
   }
 
-  if (!vnode.haveShowTag) {
+  if (!vnode.data.haveShowTag) {
     if (!node.parentNode && parentNode) {
       node.parent = parentNode
     }

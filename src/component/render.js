@@ -1,10 +1,10 @@
 import * as _ from '../utils/index'
 import complierAst from '../directives/index'
 import createCompVnode from './widget-vnode'
-import { _h } from './overrides'
+import { createElement } from './createElement'
 import { TAG } from '../ast/parse-template'
 import { addCache, getCache } from './cache'
-import { createCompInstance, setCompId } from './instance'
+import { createCompInstance } from './instance'
 
 export default function render (parentConf, ast, comp) {
   const vnodeConf = complierAst(ast, comp)
@@ -15,7 +15,10 @@ export default function render (parentConf, ast, comp) {
     comp.constructor.CSSModules(vnodeConf, comp.name)
   }
 
-  return _h(vnodeConf, generatorChildren(vnodeConf.children, comp))
+  return createElement(
+    vnodeConf,
+    generatorChildren(vnodeConf.children, comp)
+  )
 }
 
 function generatorChildren (children, comp) {
@@ -34,7 +37,10 @@ function generatorChildren (children, comp) {
       }
 
       // 递归创建 vnode
-      vnodeTree.push(_h(conf, generatorChildren(conf.children, comp)))
+      vnodeTree.push(createElement(
+        conf,
+        generatorChildren(conf.children, comp)
+      ))
       continue
     }
 
@@ -67,8 +73,7 @@ function createCustomComp (parentConf, comp, i) {
   }
 
   const childCompInstance = createCompInstance(childComp, parentConf, comp)
-  
-  setCompId(comp, childCompInstance, i)
+
   addCache(comp, tagName, childCompInstance, i)
 
   return createCompVnode(parentConf, comp, childCompInstance)
@@ -76,7 +81,9 @@ function createCustomComp (parentConf, comp, i) {
 
 // 拿到子组件
 function getChildComp (parentComp, tagName) {
-  if (!parentComp.component) return null
+  if (!parentComp.component) {
+    return null
+  }
 
   let childComps = parentComp.component
 

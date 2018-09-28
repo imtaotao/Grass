@@ -67,10 +67,3 @@ export function createAst (comp) {
 
   return ast
 }
-
-export function setCompId (parentComp, comp, index) {
-  const preId = parentComp.$id
-  const currentId = preId + '_' + index
-
-  comp.$id = currentId
-}

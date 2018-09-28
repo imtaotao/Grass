@@ -21,9 +21,10 @@ export default function createCompVnode (parentConf, parentComp, comp) {
 function createWidgetVnode (parentConf, parentComp, comp) {
   function WidgetElement () {
     this.$name = comp.name
-    this.vTransitionType = parentConf.vTransitionType
-    this.vTransitionData = parentConf.vTransitionData
-    this.haveShowTag = parentConf.haveShowTag
+    this.data = Object.create(null)
+    this.data.vTransitionType = parentConf.vTransitionType
+    this.data.vTransitionData = parentConf.vTransitionData
+    this.data.haveShowTag = parentConf.haveShowTag
   }
 
   WidgetElement.prototype.type = 'Widget'
