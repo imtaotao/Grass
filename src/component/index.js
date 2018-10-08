@@ -43,7 +43,6 @@ export class Component {
 export function mount (rootDOM, compClass, index = '0') {
   return new Promise((resolve) => {
     const comp = createCompInstance(compClass, {}, {})
-
     comp.$id = _.toString(index)
 
     const dom = createDomNode(null, comp)

@@ -39,9 +39,10 @@ export default function vfor (node, comp, vnodeConf) {
 
   function vforCallback (i) {
     const cloneNode = _.vnodeConf(node, vnodeConf.parent)
-    const key = vnodeConf.attrs.indexKey + '_' + i
+    const key = vnodeConf.indexKey + '_' + i
 
     cloneNode.attrs['key'] = key
+    cloneNode.indexKey = key
 
     // 我们要避免无限递归的进入 for 指令
     node.for = false

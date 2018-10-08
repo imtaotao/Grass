@@ -20,11 +20,14 @@ export default function createCompVnode (parentConf, parentComp, comp) {
 
 function createWidgetVnode (parentConf, parentComp, comp) {
   function WidgetElement () {
-    this.$name = comp.name
+    this.name = comp.name
+    this.id = parentConf.indexKey
+    this.comp = comp
     this.data = Object.create(null)
     this.data.vTransitionType = parentConf.vTransitionType
     this.data.vTransitionData = parentConf.vTransitionData
     this.data.haveShowTag = parentConf.haveShowTag
+    this.data.parentConf = parentConf
   }
 
   WidgetElement.prototype.type = 'Widget'
@@ -34,17 +37,18 @@ function createWidgetVnode (parentConf, parentComp, comp) {
 
   WidgetElement.prototype.customDirection = parentConf.customDirection || null
 
-  WidgetElement.prototype.init = function (parentNode) {
+  WidgetElement.prototype.init = function () {
     return createDomNode(parentConf, comp)
   }
 
   WidgetElement.prototype.update = function (previous, domNode) {
-    console.info('component update', comp.name);
+    // 沿用旧的 comp
+    this.comp = previous.comp
+    update(this)
+    return domNode
   }
 
   WidgetElement.prototype.destroy = function(dom) {
-    // 组件销毁需要清除缓存
-    removeCache(parentComp, parentConf.tagName, comp)
     if (!comp.noStateComp) {
       comp.destroy(dom)
     }
@@ -64,6 +68,7 @@ export function createDomNode (parentConf, comp) {
     const vtree = render(parentConf, ast, comp)
     const dom = create(vtree)
 
+    window.u = comp
     comp.$cacheState.dom = dom
     comp.$cacheState.vtree = vtree
 
@@ -81,4 +86,23 @@ export function createDomNode (parentConf, comp) {
   comp.create(dom)
 
   return dom
+}
+
+function update ({comp, data: {parentConf}}) {
+  console.log(comp.$cacheState.dom);
+  if (comp && parentConf) {
+    const newProps = _.getProps(parentConf.attrs)
+
+    if (comp.noStateComp) {
+      comp.props = newProps
+      comp.setState({})
+    } else {
+      const needUpdate = comp.willReceiveProps(newProps)
+
+      if (needUpdate !== false) {
+        comp.props = newProps
+        comp.setState({})
+      }
+    }
+  }
 }

@@ -50,7 +50,7 @@ function insertNode (parentNode, vNode, renderOptions) {
   // 移除正在动画的元素
   applyPendingNode(parentNode)
 
-  const newNode = renderOptions.render(vNode, parentNode)
+  const newNode = renderOptions.render(vNode)
 
   if (parentNode) {
     parentNode.appendChild(newNode)

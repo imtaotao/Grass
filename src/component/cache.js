@@ -1,4 +1,4 @@
-export function addCache (parentComp, compName, comp, i) {
+export function addCache (parentComp, compName, comp, indexKey) {
   const childs = parentComp.$cacheState.childComponent[compName]
 
   if (!childs) {
@@ -6,7 +6,7 @@ export function addCache (parentComp, compName, comp, i) {
   }
 
   // 第一次进入的时候 i 可能并不为 0
-  parentComp.$cacheState.childComponent[compName][i] = comp
+  parentComp.$cacheState.childComponent[compName][indexKey] = comp
 }
 
 export function removeCache (parentComp, compName, comp) {
@@ -22,11 +22,11 @@ export function removeCache (parentComp, compName, comp) {
   }
 }
 
-export function getCache (parentComp, compName, i) {
+export function getCache (parentComp, compName, indexKey) {
   const childs = parentComp.$cacheState.childComponent[compName]
 
-  if (childs && childs[i]){
-    return childs[i]
+  if (childs && childs[indexKey]){
+    return childs[indexKey]
   }
 
   return null

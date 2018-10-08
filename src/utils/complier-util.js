@@ -94,24 +94,25 @@ export function deepClone (obj, similarArr) {
 
 export function vnodeConf (astNode, parent) {
   if (astNode.type === TAG) {
-    const { tagName, attrs, direction } = astNode
+    const { tagName, attrs, indexKey, direction } = astNode
     const _attrs = deepClone(attrs)
     const _direction = deepClone(direction)
     const _children = []
 
-    return vTag(tagName, _attrs, _direction, _children, parent)
+    return vTag(tagName, _attrs, indexKey, _direction, _children, parent)
   }
 
   return vText(astNode.content, parent)
 }
 
-export function vTag (tagName, attrs, direction, children, parent) {
+export function vTag (tagName, attrs, indexKey, direction, children, parent) {
   const node = Object.create(null)
 
   node.type = TAG
   node.attrs = attrs
   node.parent = parent
   node.tagName = tagName
+  node.indexKey = indexKey
   node.children = children
   node.direction = direction
 

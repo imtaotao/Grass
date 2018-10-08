@@ -2,15 +2,8 @@
   <div>
     <div @click="this.callback.bind(this)">点击</div>
     <div>
-      <Child
-      :show="show"
-      v-for="val of arr"
-      v-text="val"
-      v-transition="'slide-fade'"
-      v-beforeEnter="this.beforeEnter"
-      v-afterEnter="this.afterEnter"
-      v-beforeLeave="this.beforeLeave"
-      v-afterLeave="this.afterLeave"></Child>
+      
+      <bb :text="show"/>
     </div>
 
     <div v-for="val of arr"  v-transition="'slide-fade'" v-if="show">fsda</div>
@@ -43,23 +36,28 @@
 
     beforeEnter (dom) {
       // console.log(dom);
-      console.log('beforeEnter');
+      // console.log('beforeEnter');
     }
 
     afterEnter (dom) {
-      console.log('afterEnter');
+      // console.log('afterEnter');
     }
 
     beforeLeave (dom) {
-      console.log('beforeLeave');
+      // console.log('beforeLeave');
     }
 
     afterLeave (dom) {
-      console.log('afterLeave');
+      // console.log('afterLeave');
     }
 
     component () {
-      return { Child }
+      return {
+        Child,
+        bb: function bb () {
+          return `<div>{{text}}</div>`
+        }
+      }
     }
   }
 

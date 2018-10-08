@@ -32,7 +32,7 @@ function generatorChildren (children, comp) {
     if (conf.type === TAG) {
       if (!_.isReservedTag(conf.tagName)) {
         // 自定义组件
-        vnodeTree.push(createCustomComp(conf, comp, i))
+        vnodeTree.push(createCustomComp(conf, comp))
         continue
       }
 
@@ -54,16 +54,17 @@ function generatorChildren (children, comp) {
   return vnodeTree
 }
 
-function createCustomComp (parentConf, comp, i) {
-  const cacheInstance = getCache(comp, parentConf.tagName, i)
+function createCustomComp (parentConf, comp) {
+  const indexKey = parentConf.indexKey
+  const cacheInstance = getCache(comp, parentConf.tagName, indexKey)
   const tagName = parentConf.tagName
 
-  if (cacheInstance) {
-    // 如果有缓存的组件，我们就使用缓存
-    // 同时需要改变对子组件的 props 以及 指令，进行重新 diff
-    cacheInstance.$parentConf = parentConf
-    return createCompVnode(parentConf, comp, cacheInstance)
-  }
+  // if (cacheInstance) {
+  //   // 如果有缓存的组件，我们就使用缓存
+  //   // 同时需要改变对子组件的 props 以及 指令，进行重新 diff
+  //   cacheInstance.$parentConf = parentConf
+  //   return createCompVnode(parentConf, comp, cacheInstance)
+  // }
 
   const childComp = getChildComp(comp, tagName)
 
@@ -74,7 +75,7 @@ function createCustomComp (parentConf, comp, i) {
 
   const childCompInstance = createCompInstance(childComp, parentConf, comp)
 
-  addCache(comp, tagName, childCompInstance, i)
+  // addCache(comp, tagName, childCompInstance, indexKey)
 
   return createCompVnode(parentConf, comp, childCompInstance)
 }

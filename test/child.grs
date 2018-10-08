@@ -1,5 +1,5 @@
 <template name="Child" styleSrc="./style.css">
-  <p styleName="test-block" v-show="this.props.show">
+  <p styleName="test-block">
     121
   </p>
 </template>
