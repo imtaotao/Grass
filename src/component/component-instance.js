@@ -10,6 +10,13 @@ export function getComponentInstance (widgetVNode) {
 
   if (isClass) {
     instance = new componentClass(data.parentConfig.attrs)
+
+    if (typeof instance.state === 'function') {
+      const res = instance.state()
+      _.isPlainObject(res)
+        ? instance.state = res
+        : _.grassWarn('Component "state" must be a "Object"', instance.name)
+    }
   } else {
     const props = getProps(data.parentConfig.attrs)
     const template = componentClass(props)

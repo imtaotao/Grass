@@ -19,7 +19,7 @@ export function enqueueSetState (component, partialState) {
 
 /**
  *  We can use batch update in asynchronous task, this can be avioded non-stop render
- *  Do it, we no need everytime to diff and patch
+ *  do it, we no need everytime to diff and patch
  **/
 function batchUpdateQueue (component) {
   Promise.resolve().then(() => {

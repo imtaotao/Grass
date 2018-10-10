@@ -22,17 +22,6 @@ import { createVnodeConf } from './util'
  */
 
 export default function complierDirectFromAst (ast, comp) {
-  if (!comp.noStateComp) {
-    const state = comp.state
-
-    if (_.isFunction(state)) {
-      const res = state()
-      _.isPlainObject(res)
-        ? comp.state = res
-        : _.grassWarn('Component "state" must be a "Object"', comp.name)
-    }
-  }
-
   const vnodeConf = createVnodeConf(ast)
   vnodeConf.props = Object.create(null)
 
@@ -57,8 +46,9 @@ export function complierChildrenNode (node, comp, vnodeConf) {
 export function parseSingleNode (node, comp, vnodeConf) {
   switch (node.type) {
     case TAG :
-      if (parseTagNode(node, comp, vnodeConf) === false)
+      if (parseTagNode(node, comp, vnodeConf) === false) {
         return false
+      }
       break
     case STATICTAG :
       parseStaticNode(node, comp, vnodeConf)
