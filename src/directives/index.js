@@ -20,7 +20,7 @@ import { haveRegisteredCustomDirect } from '../global-api/constom-directive'
  *  所以我们只能尽量降低每次编译指令时的开销
  */
 
-export default function complierAst (ast, comp) {
+export default function complierDirectFromAst (ast, comp) {
   if (!comp.noStateComp) {
     const state = comp.state
 

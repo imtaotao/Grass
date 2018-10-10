@@ -4,7 +4,6 @@ import * as _ from '../utils/index'
 import render from './render'
 import { diff } from '../virtual-dom/index'
 import { patch } from '../virtual-dom/index'
-// import { patch } from 'virtual-dom'
 
 const capacity = 1024
 
@@ -76,7 +75,7 @@ function updateDomTree (comp) {
 
   patch(dom, patchs)
  
-  updateChildComp(comp)
+  // updateChildComp(comp)
 
   if (!isNoStateComp) {
     comp.didUpdate(dom)

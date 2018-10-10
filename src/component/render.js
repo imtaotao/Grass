@@ -1,5 +1,5 @@
 import * as _ from '../utils/index'
-import complierAst from '../directives/index'
+import complierDirectFromAst from '../directives/index'
 import createCompVnode from './widget-vnode'
 import { createElement } from './createElement'
 import { TAG } from '../ast/parse-template'
@@ -7,7 +7,7 @@ import { addCache, getCache } from './cache'
 import { createCompInstance } from './instance'
 
 export default function render (parentConf, ast, comp) {
-  const vnodeConf = complierAst(ast, comp)
+  const vnodeConf = complierDirectFromAst(ast, comp)
 
   _.migrateCompStatus(parentConf, vnodeConf)
 
