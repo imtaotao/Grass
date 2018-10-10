@@ -12,6 +12,7 @@ import runCustomDirect from './custom-direct'
 import runExecuteContext from './execution-env'
 import { TAG, STATICTAG } from '../ast/parse-template'
 import { haveRegisteredCustomDirect } from '../global-api/constom-directive'
+import { createVnodeConf } from './util'
 
 /**
  *  vnodeConf 作为一个创建 vnodeTree 的配置项
@@ -32,7 +33,7 @@ export default function complierDirectFromAst (ast, comp) {
     }
   }
 
-  const vnodeConf = _.vnodeConf(ast)
+  const vnodeConf = createVnodeConf(ast)
   vnodeConf.props = Object.create(null)
 
   parseSingleNode(ast, comp, vnodeConf)
@@ -47,7 +48,7 @@ export function complierChildrenNode (node, comp, vnodeConf) {
   if (!children || !children.length) return
 
   for (let i = 0; i < children.length; i++) {
-    const childVnodeConf = _.vnodeConf(children[i], vnodeConf)
+    const childVnodeConf = createVnodeConf(children[i], vnodeConf)
     vnodeConf.children.push(childVnodeConf)
     parseSingleNode(children[i], comp, childVnodeConf)
   }
@@ -66,7 +67,7 @@ export function parseSingleNode (node, comp, vnodeConf) {
 
   if (!node.for) {
     if (vnodeConf.type === TAG && _.isReservedTag(vnodeConf.tagName)) {
-      _.modifyOrdinayAttrAsLibAttr(vnodeConf)
+      modifyOrdinayAttrAsLibAttr(vnodeConf)
     }
 
     complierChildrenNode(node, comp, vnodeConf)
@@ -203,5 +204,43 @@ function executSingleDirect (weight, val, node, comp, vnodeConf, transtionHookFu
       return transition(val, comp, vnodeConf, transtionHookFuns, false)
     default :
       customDirect(val, comp, vnodeConf)
+  }
+}
+
+const filterAttr = {
+  'namespace': 1,
+  'className': 1,
+  'styleName': 1,
+  'style': 1,
+  'class': 1,
+  'key': 1,
+  'id': 1,
+}
+
+const isFilter = key => {
+  return filterAttr[key] || key.slice(0, 2) === 'on'
+}
+
+function modifyOrdinayAttrAsLibAttr (node) {
+  if (!node.attrs) return
+  const keyWord = 'attributes'
+  const attrs = node.attrs
+  const originAttr = attrs[keyWord]
+  const keys = Object.keys(attrs)
+
+  attrs[keyWord] = Object.create(null)
+
+  for (let i = 0, len = keys.length; i < len; i++) {
+    const key = keys[i]
+    if (isFilter(key)) continue
+    attrs[keyWord][key] = attrs[key]
+
+    if (key !== keyWord) {
+      attrs[key] = undefined
+    }
+  }
+
+  if (originAttr) {
+    attrs[keyWord][keyWord] = originAttr
   }
 }

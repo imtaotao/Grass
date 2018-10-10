@@ -1,5 +1,6 @@
 import * as _ from '../utils/index'
 import scope from './scope'
+import { createVnodeConf } from './util'
 import { parseSingleNode } from './index'
 import runExecuteContext from './execution-env'
 
@@ -38,7 +39,7 @@ export default function vfor (node, comp, vnodeConf) {
   }
 
   function vforCallback (i) {
-    const cloneNode = _.vnodeConf(node, vnodeConf.parent)
+    const cloneNode = createVnodeConf(node, vnodeConf.parent)
     const key = vnodeConf.indexKey + '_' + i
 
     cloneNode.attrs['key'] = key

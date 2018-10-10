@@ -2,8 +2,7 @@
   <div>
     <div @click="this.callback.bind(this)">点击</div>
     <div>
-      
-      <bb :text="show"/>
+      <bb v-show="show"/>
     </div>
 
     <div v-for="val of arr"  v-transition="'slide-fade'" v-if="show">fsda</div>
@@ -55,7 +54,7 @@
       return {
         Child,
         bb: function bb () {
-          return `<div>{{text}}</div>`
+          return `<div>1</div>`
         }
       }
     }

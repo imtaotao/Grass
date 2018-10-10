@@ -151,7 +151,7 @@ function remove(arr, item) {
     }
   }
 }
-function toString(val) {
+function toString$1(val) {
   return val == null ? '' : (typeof val === 'undefined' ? 'undefined' : _typeof(val)) === 'object' ? JSON.stringify(val, null, 2) : String(val);
 }
 function isEmptyObj(obj) {
@@ -401,11 +401,11 @@ function parseTemplate(html, compName) {
       var isRoot = scope === ast;
       if (isRoot) {
         parent = null;
-        indexKey = toString(ast.length);
+        indexKey = toString$1(ast.length);
         container = ast;
       } else {
         parent = scope;
-        indexKey = toString(scope.children.length);
+        indexKey = toString$1(scope.children.length);
         container = scope.children;
       }
       var tagNode = createTag(tagName, indexKey, parent);
@@ -648,26 +648,28 @@ function vnodeConf(astNode, parent) {
   if (astNode.type === TAG) {
     var tagName = astNode.tagName,
         attrs = astNode.attrs,
+        indexKey = astNode.indexKey,
         direction = astNode.direction;
 
     var _attrs = deepClone(attrs);
     var _direction = deepClone(direction);
     var _children = [];
-    return vTag(tagName, _attrs, _direction, _children, parent);
+    return vTag(tagName, _attrs, indexKey, _direction, _children, parent);
   }
-  return vText(astNode.content, parent);
+  return vText$1(astNode.content, parent);
 }
-function vTag(tagName, attrs, direction, children, parent) {
+function vTag(tagName, attrs, indexKey, direction, children, parent) {
   var node = Object.create(null);
   node.type = TAG;
   node.attrs = attrs;
   node.parent = parent;
   node.tagName = tagName;
+  node.indexKey = indexKey;
   node.children = children;
   node.direction = direction;
   return node;
 }
-function vText(content, parent) {
+function vText$1(content, parent) {
   var node = Object.create(null);
   node.type = TEXT;
   node.parent = parent;
@@ -711,46 +713,6 @@ function modifyOrdinayAttrAsLibAttr(node) {
   }
   if (originAttr) {
     attrs[keyWord][keyWord] = originAttr;
-  }
-}
-function migrateCompStatus(outputNode, acceptNode) {
-  if (!outputNode || !acceptNode) return;
-  transitionDirect();
-  transitionClass();
-  function transitionDirect() {
-    if (hasOwn(outputNode, 'vTextResult')) {
-      var res = outputNode['vTextResult'];
-      acceptNode.children.unshift(vText(toString(res), acceptNode));
-    }
-    if (hasOwn(outputNode, 'vShowResult')) {
-      var _res = outputNode['vShowResult'];
-      acceptNode.isShow = _res;
-      bind(_res, null, acceptNode);
-    }
-    if (hasOwn(outputNode, 'vTransitionType')) {
-      acceptNode['vTransitionType'] = outputNode['vTransitionType'];
-      acceptNode['vTransitionData'] = outputNode['vTransitionData'];
-    }
-  }
-  function transitionClass() {
-    if (hasOwn(outputNode.attrs, 'className')) {
-      var outputClassName = outputNode.attrs['className'];
-      var acceptClassName = acceptNode.attrs['className'];
-      if (acceptClassName) {
-        acceptNode.attrs['className'] = outputClassName + ' ' + acceptClassName;
-      } else {
-        acceptNode.attrs['className'] = outputClassName;
-      }
-    }
-    if (hasOwn(outputNode.attrs, 'styleName')) {
-      var outputStyleName = outputNode.attrs['styleName'];
-      var acceptStyleName = acceptNode.attrs['styleName'];
-      if (acceptStyleName) {
-        acceptNode.attrs['styleName'] = outputStyleName + ' ' + acceptStyleName;
-      } else {
-        acceptNode.attrs['styleName'] = outputStyleName;
-      }
-    }
   }
 }
 var filterPropsList = {
@@ -811,376 +773,6 @@ function isReservedTag(tag) {
   return isHTMLTag(tag) || isSVG(tag);
 }
 function noop() {}
-
-var TRANSITION = 0;
-var ANIMATION = 1;
-var TEXT$1 = 2;
-var SHOW = 3;
-var ON = 4;
-var BIND = 5;
-var IF = 6;
-var FOR = 7;
-var directWeight = {
-  'v-show': SHOW,
-  'v-for': FOR,
-  'v-on': ON,
-  'v-text': TEXT$1,
-  'v-bind': BIND,
-  'v-if': IF,
-  'v-transition': TRANSITION,
-  'v-animation': ANIMATION
-};
-var TRANSITIONHOOK = ['v-beforeEnter', 'v-afterEnter', 'v-beforeLeave', 'v-afterLeave'];
-var DIRECTLENGTH = Object.keys(directWeight).length;
-function getWeight(direct) {
-  var wight = directWeight[direct];
-  if (direct.includes('v-bind')) wight = BIND;
-  if (direct.includes('v-on')) wight = ON;
-  return wight;
-}
-function isReservedDirect(direct) {
-  return direct.includes('v-') && getWeight(direct) !== undefined;
-}
-function isTransitionHook(direct) {
-  return TRANSITIONHOOK.includes(direct);
-}
-
-function vevent(events, comp, vnodeConf$$1) {
-  if (isReservedTag(vnodeConf$$1.tagName)) {
-    var _iteratorNormalCompletion = true;
-    var _didIteratorError = false;
-    var _iteratorError = undefined;
-
-    try {
-      for (var _iterator = events[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-        var event = _step.value;
-
-        var name = event.attrName;
-        var code = '\n        with ($obj_) {\n          return ' + event.value + ';\n        }\n      ';
-        vnodeConf$$1.attrs['on' + name] = runExecuteContext(code, 'on', vnodeConf$$1.tagName, comp);
-      }
-    } catch (err) {
-      _didIteratorError = true;
-      _iteratorError = err;
-    } finally {
-      try {
-        if (!_iteratorNormalCompletion && _iterator.return) {
-          _iterator.return();
-        }
-      } finally {
-        if (_didIteratorError) {
-          throw _iteratorError;
-        }
-      }
-    }
-  }
-}
-
-function vfor(node, comp, vnodeConf$$1) {
-  if (!node.for || !node.forArgs) return;
-  if (!node.parent) {
-    sendDirectWarn('v-for', comp.name);
-    return;
-  }
-  var cloneNodes = [];
-  var _node$forArgs = node.forArgs,
-      keys = _node$forArgs.key,
-      data = _node$forArgs.data,
-      isMultiple = _node$forArgs.isMultiple;
-
-  var code = '\n    var $data;\n\n    with($obj_) { $data = ' + data + '; }\n\n    if ($data) {\n      $callback_($data);\n    }\n  ';
-  function loopData(data) {
-    each(data, function (val, key, i) {
-      if (isMultiple) {
-        scope$1.add(keys[0], val);
-        scope$1.add(keys[1], key);
-      } else {
-        scope$1.add(keys, val);
-      }
-      vforCallback(i);
-    });
-  }
-  function vforCallback(i) {
-    var cloneNode = vnodeConf(node, vnodeConf$$1.parent);
-    var key = vnodeConf$$1.attrs.indexKey + '_' + i;
-    cloneNode.attrs['key'] = key;
-    node.for = false;
-    cloneNodes[i] = parseSingleNode(node, comp, cloneNode) === false ? null : cloneNode;
-  }
-  scope$1.create();
-  runExecuteContext(code, 'for', vnodeConf$$1.tagName, comp, loopData);
-  scope$1.destroy();
-  var index = serachIndex(vnodeConf$$1);
-  replaceWithLoopRes(vnodeConf$$1, cloneNodes, index);
-  node.for = true;
-}
-function serachIndex(node) {
-  var children = node.parent.children;
-  var length = children.length;
-  for (var i = 0; i < length; i++) {
-    if (children[i] === node) {
-      return i;
-    }
-  }
-}
-function replaceWithLoopRes(node, res, i) {
-  var children = node.parent.children;
-  children.splice.apply(children, [i, 1].concat(toConsumableArray(res)));
-}
-
-function vif(node, val, comp, vnodeConf$$1) {
-  if (!node.parent) {
-    return sendDirectWarn('v-if', comp.name);
-  }
-  var res = runExecuteContext('\n    with($obj_) {\n      return !!(' + val + ');\n    }\n  ', 'if', vnodeConf$$1.tagName, comp);
-  if (!res) {
-    removeChild(vnodeConf$$1.parent, vnodeConf$$1);
-  }
-  return res;
-}
-
-function show(val, comp, vnodeConf$$1) {
-  var code = '\n    with($obj_) {\n      return !!(' + val + ');\n    }';
-  var isShow = !!runExecuteContext(code, 'show', vnodeConf$$1.tagName, comp);
-  var bindValue = {
-    attrName: 'style',
-    value: isShow ? '' : 'display: none'
-  };
-  vnodeConf$$1.isShow = isShow;
-  if (isReservedTag(vnodeConf$$1.tagName)) {
-    bind(bindValue, comp, vnodeConf$$1);
-    return;
-  }
-  vnodeConf$$1.vShowResult = bindValue;
-}
-
-function text(val, comp, vnodeConf$$1) {
-  var code = 'with($obj_) { return ' + val + '; }';
-  var content = runExecuteContext(code, 'text', vnodeConf$$1.tagName, comp);
-  if (isReservedTag(vnodeConf$$1.tagName)) {
-    vnodeConf$$1.children = [vText(content, vnodeConf$$1)];
-  } else {
-    vnodeConf$$1.vTextResult = content;
-  }
-}
-
-function transition(val, comp, vnodeConf$$1, transtionHookFuns, isTransition) {
-  var directName = isTransition ? 'transtion' : 'animation';
-  var transitonName = runExecuteContext('return ' + val, directName, vnodeConf$$1.tagName, comp);
-  var hookFuns = {};
-  for (var key in transtionHookFuns) {
-    var fun = runExecuteContext('return ' + transtionHookFuns[key], directName, vnodeConf$$1.tagName, comp);
-    hookFuns[key] = fun;
-  }
-  vnodeConf$$1.vTransitionType = directName;
-  vnodeConf$$1.vTransitionData = {
-    name: transitonName,
-    hookFuns: hookFuns
-  };
-}
-
-function runCustomDirect(key, tagName, val, comp) {
-  return runExecuteContext('\n    with ($obj_) {\n      return ' + val + ';\n    }', key.slice(2, key.length), tagName, comp);
-}
-
-var Container = function () {
-  function Container(val) {
-    classCallCheck(this, Container);
-
-    this._value = val;
-  }
-
-  createClass(Container, [{
-    key: 'pipe',
-    value: function pipe(fun) {
-      return Container.of(fun(this._value));
-    }
-  }, {
-    key: 'safePipe',
-    value: function safePipe(fun) {
-      return isUndef(this._value) ? Container.of(null) : Container.of(fun(this._value));
-    }
-  }, {
-    key: 'maybe',
-    value: function maybe(fun) {
-      return fun ? fun(this._value) : this._value;
-    }
-  }], [{
-    key: 'of',
-    value: function of(val) {
-      return new Container(val);
-    }
-  }]);
-  return Container;
-}();
-
-var directContainer = Object.create(null);
-function customDirective(direct, callback) {
-  directContainer['v-' + direct] = Container.of(callback);
-  return this;
-}
-function haveRegisteredCustomDirect(key) {
-  return hasOwn(directContainer, key);
-}
-function elementCreated(dom, direaction) {
-  if (!direaction || isEmptyObj(direaction)) return;
-  var keys = Object.keys(direaction);
-
-  var _loop = function _loop(i, len) {
-    var key = keys[i];
-    var val = directContainer[key];
-    val.safePipe(function (callback) {
-      callback(dom, direaction[key]);
-    });
-  };
-
-  for (var i = 0, len = keys.length; i < len; i++) {
-    _loop(i, len);
-  }
-}
-
-function complierAst(ast, comp) {
-  if (!comp.noStateComp) {
-    var state = comp.state;
-    if (isFunction(state)) {
-      var res = state();
-      isPlainObject(res) ? comp.state = res : grassWarn('Component "state" must be a "Object"', comp.name);
-    }
-  }
-  var vnodeConf$$1 = vnodeConf(ast);
-  vnodeConf$$1.props = Object.create(null);
-  parseSingleNode(ast, comp, vnodeConf$$1);
-  scope$1.resetScope();
-  return vnodeConf$$1;
-}
-function complierChildrenNode(node, comp, vnodeConf$$1) {
-  var children = node.children;
-  if (!children || !children.length) return;
-  for (var i = 0; i < children.length; i++) {
-    var childVnodeConf = vnodeConf(children[i], vnodeConf$$1);
-    vnodeConf$$1.children.push(childVnodeConf);
-    parseSingleNode(children[i], comp, childVnodeConf);
-  }
-}
-function parseSingleNode(node, comp, vnodeConf$$1) {
-  switch (node.type) {
-    case TAG:
-      if (parseTagNode(node, comp, vnodeConf$$1) === false) return false;
-      break;
-    case STATICTAG:
-      parseStaticNode(node, comp, vnodeConf$$1);
-      break;
-  }
-  if (!node.for) {
-    if (vnodeConf$$1.type === TAG && isReservedTag(vnodeConf$$1.tagName)) {
-      modifyOrdinayAttrAsLibAttr(vnodeConf$$1);
-    }
-    complierChildrenNode(node, comp, vnodeConf$$1);
-  }
-}
-function parseTagNode(node, comp, vnodeConf$$1) {
-  if (node.hasBindings()) {
-    return complierDirect(node, comp, vnodeConf$$1);
-  }
-}
-function complierDirect(node, comp, vnodeConf$$1) {
-  var directs = node.direction;
-  var nomalDirects = [];
-  var customDirects = {};
-  var transtionHookFuns = {};
-  var currentWeight = null;
-  var currentCustomDirect = null;
-
-  var _loop = function _loop(i) {
-    var direct = directs[i];
-    var key = Object.keys(direct)[0];
-    if (isTransitionHook(key)) {
-      transtionHookFuns[key] = direct[key];
-      return 'continue';
-    }
-    if (!isReservedDirect(key)) {
-      if (!haveRegisteredCustomDirect(key) || key === currentCustomDirect) {
-        return 'continue';
-      }
-      currentCustomDirect = key;
-      customDirects[key] = function delay() {
-        customDirects[key] = runCustomDirect(key, vnodeConf$$1.tagName, direct[key], comp, vnodeConf$$1);
-      };
-      return 'continue';
-    }
-    var weight = getWeight(key);
-    if (isSameDirect(weight)) return 'continue';
-    currentWeight = weight;
-    if (isMultipleDirect(weight)) {
-      addMultipleDirect(direct, weight, key);
-      return 'continue';
-    }
-    nomalDirects[weight] = direct[key];
-  };
-
-  for (var i = 0; i < directs.length; i++) {
-    var _ret = _loop(i);
-
-    if (_ret === 'continue') continue;
-  }
-  vnodeConf$$1.customDirection = customDirects;
-  for (var w = DIRECTLENGTH - 1; w > -1; w--) {
-    if (!nomalDirects[w]) continue;
-    var directValue = nomalDirects[w];
-    var execResult = executSingleDirect(w, directValue, node, comp, vnodeConf$$1, transtionHookFuns);
-    if (node.for) return;
-    if (execResult === false) {
-      return false;
-    }
-  }
-  each(customDirects, function (val) {
-    return val();
-  });
-  function addMultipleDirect(direct, weight, key) {
-    var detail = {
-      attrName: key.split(':')[1].trim(),
-      value: direct[key]
-    };
-    !nomalDirects[weight] ? nomalDirects[weight] = [detail] : nomalDirects[weight].push(detail);
-  }
-  function isSameDirect(weight) {
-    return weight !== BIND && weight !== ON && weight === currentWeight;
-  }
-  function isMultipleDirect(weight) {
-    return weight === BIND || weight === ON;
-  }
-}
-function parseStaticNode(node, comp, vnodeConf$$1) {
-  var code = '\n    with ($obj_) {\n      function _s (_val_) { return _val_ };\n      return ' + node.expression + ';\n    }\n  ';
-  vnodeConf$$1.content = runExecuteContext(code, '{{ }}', vnodeConf$$1.parent.tagName, comp);
-}
-function executSingleDirect(weight, val, node, comp, vnodeConf$$1, transtionHookFuns) {
-  switch (weight) {
-    case SHOW:
-      show(val, comp, vnodeConf$$1);
-      break;
-    case FOR:
-      vfor(node, comp, vnodeConf$$1);
-      break;
-    case ON:
-      vevent(val, comp, vnodeConf$$1);
-      break;
-    case TEXT$1:
-      text(val, comp, vnodeConf$$1);
-      break;
-    case BIND:
-      bind(val, comp, vnodeConf$$1);
-      break;
-    case IF:
-      return vif(node, val, comp, vnodeConf$$1);
-    case TRANSITION:
-      return transition(val, comp, vnodeConf$$1, transtionHookFuns, true);
-    case ANIMATION:
-      return transition(val, comp, vnodeConf$$1, transtionHookFuns, false);
-    default:
-      customDirect(val, comp, vnodeConf$$1);
-  }
-}
 
 var version = '2';
 
@@ -1618,8 +1210,8 @@ var autoCssTransition = cached(function (name) {
     leaveActiveClass: name + '-leave-active'
   };
 });
-var TRANSITION$1 = 'transition';
-var ANIMATION$1 = 'animation';
+var TRANSITION = 'transition';
+var ANIMATION = 'animation';
 var hasTransition = inBrowser && !isIE9;
 var transitionProp = 'transition';
 var transitionEndEvent = 'transitionend';
@@ -1634,8 +1226,9 @@ if (hasTransition) {
   }
 }
 function enter(node, vnode, rm) {
-  var vTransitionType = vnode.vTransitionType,
-      vTransitionData = vnode.vTransitionData;
+  var _vnode$data = vnode.data,
+      vTransitionType = _vnode$data.vTransitionType,
+      vTransitionData = _vnode$data.vTransitionData;
 
   if (!vTransitionType) {
     rm();
@@ -1651,7 +1244,7 @@ function enter(node, vnode, rm) {
   var name = vTransitionData.name,
       hookFuns = vTransitionData.hookFuns;
 
-  var type = vTransitionType === 'transtion' ? TRANSITION$1 : ANIMATION$1;
+  var type = vTransitionType === 'transtion' ? TRANSITION : ANIMATION;
   if (typeof hookFuns['v-beforeEnter'] === 'function') {
     if (hookFuns['v-beforeEnter'](node) === false) {
       rm();
@@ -1682,8 +1275,9 @@ function enter(node, vnode, rm) {
   });
 }
 function leave(node, vnode, rm) {
-  var vTransitionType = vnode.vTransitionType,
-      vTransitionData = vnode.vTransitionData;
+  var _vnode$data2 = vnode.data,
+      vTransitionType = _vnode$data2.vTransitionType,
+      vTransitionData = _vnode$data2.vTransitionData;
 
   if (!vTransitionType) {
     rm();
@@ -1699,7 +1293,7 @@ function leave(node, vnode, rm) {
   var name = vTransitionData.name,
       hookFuns = vTransitionData.hookFuns;
 
-  var type = vTransitionType === 'transtion' ? TRANSITION$1 : ANIMATION$1;
+  var type = vTransitionType === 'transtion' ? TRANSITION : ANIMATION;
   if (typeof hookFuns['v-beforeLeave'] === 'function') {
     if (hookFuns['v-beforeLeave'](node) === false) {
       rm();
@@ -1760,7 +1354,7 @@ function whenTransitionEnds(node, type, cb) {
       propCount = _getTransitionInfo.propCount,
       timeout = _getTransitionInfo.timeout;
 
-  var event = type === TRANSITION$1 ? transitionEndEvent : animationEndEvent;
+  var event = type === TRANSITION ? transitionEndEvent : animationEndEvent;
   var end = function end() {
     node.removeEventListener(event, onEnd);
     cb();
@@ -1864,8 +1458,8 @@ function applyProperties(node, vnode, props, previous) {
     } else if (isObject$2(propValue)) {
       patchObject(node, propName, propValue, previous);
     } else {
-      if (propName === 'style' && vnode.haveShowTag) {
-        transition$1(node, vnode, propValue, function () {
+      if (propName === 'style' && vnode.data.haveShowTag) {
+        transition(node, vnode, propValue, function () {
           node[propName] = propValue;
         });
       } else if (propName === 'className') {
@@ -1923,7 +1517,7 @@ function patchObject(node, propName, propValue, previous) {
     node[propName][key] = value === undefined ? replacer : value;
   }
 }
-function transition$1(node, vnode, propValue, callback) {
+function transition(node, vnode, propValue, callback) {
   var isShow = !propValue;
   if (isShow) {
     applyPendingNode(node.parentNode);
@@ -1937,9 +1531,9 @@ function isObject$2(x) {
   return (typeof x === 'undefined' ? 'undefined' : _typeof(x)) === 'object' && x !== null;
 }
 
-function createElement(vnode, parentNode) {
+function createElement(vnode) {
   if (isWidget(vnode)) {
-    var _node = vnode.init(parentNode);
+    var _node = vnode.init();
     if (typeof vnode.elementCreated === 'function') {
       vnode.elementCreated(_node, vnode);
     }
@@ -1964,10 +1558,7 @@ function createElement(vnode, parentNode) {
   if (typeof vnode.elementCreated === 'function') {
     vnode.elementCreated(node, vnode);
   }
-  if (!vnode.haveShowTag) {
-    if (!node.parentNode && parentNode) {
-      node.parent = parentNode;
-    }
+  if (!vnode.data.haveShowTag) {
     enter(node, vnode, noop);
   }
   return node;
@@ -2068,19 +1659,19 @@ function removeNode(domNode, vNode) {
 }
 function insertNode(parentNode, vNode, renderOptions) {
   applyPendingNode(parentNode);
-  var newNode = renderOptions.render(vNode, parentNode);
+  var newNode = renderOptions.render(vNode);
   if (parentNode) {
     parentNode.appendChild(newNode);
   }
   return parentNode;
 }
-function stringPatch(domNode, vText$$1, renderOptions) {
+function stringPatch(domNode, vText, renderOptions) {
   if (domNode.nodeType === 3) {
-    domNode.replaceData(0, domNode.length, vText$$1.text);
+    domNode.replaceData(0, domNode.length, vText.text);
     return domNode;
   }
   var parentNode = domNode.parentNode;
-  var newNode = renderOptions.render(vText$$1);
+  var newNode = renderOptions.render(vText);
   if (parentNode && newNode !== domNode) {
     parentNode.replaceChild(newNode, domNode);
   }
@@ -2192,73 +1783,518 @@ var diff$1 = diff;
 var patch$1 = patch;
 var create$1 = createElement;
 
-function _h(vnodeConf$$1, children) {
-  var tagName = vnodeConf$$1.tagName,
-      attrs = vnodeConf$$1.attrs,
-      customDirection = vnodeConf$$1.customDirection;
+var Container = function () {
+  function Container(val) {
+    classCallCheck(this, Container);
+
+    this._value = val;
+  }
+
+  createClass(Container, [{
+    key: 'pipe',
+    value: function pipe(fun) {
+      return Container.of(fun(this._value));
+    }
+  }, {
+    key: 'safePipe',
+    value: function safePipe(fun) {
+      return isUndef(this._value) ? Container.of(null) : Container.of(fun(this._value));
+    }
+  }, {
+    key: 'maybe',
+    value: function maybe(fun) {
+      return fun ? fun(this._value) : this._value;
+    }
+  }], [{
+    key: 'of',
+    value: function of(val) {
+      return new Container(val);
+    }
+  }]);
+  return Container;
+}();
+
+var directContainer = Object.create(null);
+function customDirective(direct, callback) {
+  directContainer['v-' + direct] = Container.of(callback);
+  return this;
+}
+function haveRegisteredCustomDirect(key) {
+  return hasOwn(directContainer, key);
+}
+function elementCreated(dom, direaction) {
+  if (!direaction || isEmptyObj(direaction)) return;
+  var keys = Object.keys(direaction);
+
+  var _loop = function _loop(i, len) {
+    var key = keys[i];
+    var val = directContainer[key];
+    val.safePipe(function (callback) {
+      callback(dom, direaction[key]);
+    });
+  };
+
+  for (var i = 0, len = keys.length; i < len; i++) {
+    _loop(i, len);
+  }
+}
+
+function createVNode(vnodeConfig, children) {
+  var tagName = vnodeConfig.tagName,
+      attrs = vnodeConfig.attrs,
+      customDirection = vnodeConfig.customDirection;
 
   var vnode = h$1(tagName, attrs, children, function (dom, vnode) {
     elementCreated(dom, customDirection, vnode);
   });
-  if (vnodeConf$$1.vTransitionType) {
-    var vTransitionType = vnodeConf$$1.vTransitionType,
-        vTransitionData = vnodeConf$$1.vTransitionData;
+  vnode.data = Object.create(null);
+  if (vnodeConfig.vTransitionType) {
+    var vTransitionType = vnodeConfig.vTransitionType,
+        vTransitionData = vnodeConfig.vTransitionData;
 
-    vnode.vTransitionType = vTransitionType;
-    vnode.vTransitionData = vTransitionData;
+    vnode.data.vTransitionType = vTransitionType;
+    vnode.data.vTransitionData = vTransitionData;
   }
-  if (!isUndef(vnodeConf$$1.isShow)) {
-    vnode.haveShowTag = true;
+  if (!isUndef(vnodeConfig.isShow)) {
+    vnode.data.haveShowTag = true;
   }
   return vnode;
 }
 
-function addCache(parentComp, compName, comp, i) {
-  var childs = parentComp.$cacheState.childComponent[compName];
-  if (!childs) {
-    parentComp.$cacheState.childComponent[compName] = [];
-  }
-  parentComp.$cacheState.childComponent[compName][i] = comp;
+function migrateComponentStatus(outputNode, acceptNode) {
+  if (!outputNode || !acceptNode) return;
+  transitionDirect(outputNode, acceptNode);
+  transitionClass(outputNode, acceptNode);
 }
-function removeCache(parentComp, compName, comp) {
-  var childs = parentComp.$cacheState.childComponent[compName];
-  if (childs) {
-    for (var i = 0, len = childs.length; i < len; i++) {
-      var child = childs[i];
-      if (child === comp) {
-        childs[i] = null;
+function transitionDirect(O, A) {
+  if (hasOwn(O, 'vTextResult')) {
+    var res = O['vTextResult'];
+    A.children.unshift(vText(toString(res), A));
+  }
+  if (hasOwn(O, 'vShowResult')) {
+    var _res = O['vShowResult'];
+    A.isShow = _res;
+    bind(_res, null, A);
+  }
+  if (hasOwn(O, 'vTransitionType')) {
+    A['vTransitionType'] = O['vTransitionType'];
+    A['vTransitionData'] = O['vTransitionData'];
+  }
+}
+function transitionClass(O, A) {
+  if (hasOwn(O.attrs, 'className')) {
+    var outputClassName = O.attrs['className'];
+    var acceptClassName = A.attrs['className'];
+    if (acceptClassName) {
+      A.attrs['className'] = outputClassName + ' ' + acceptClassName;
+    } else {
+      A.attrs['className'] = outputClassName;
+    }
+  }
+  if (hasOwn(O.attrs, 'styleName')) {
+    var outputStyleName = O.attrs['styleName'];
+    var acceptStyleName = A.attrs['styleName'];
+    if (acceptStyleName) {
+      A.attrs['styleName'] = outputStyleName + ' ' + acceptStyleName;
+    } else {
+      A.attrs['styleName'] = outputStyleName;
+    }
+  }
+}
+
+var TRANSITION$1 = 0;
+var ANIMATION$1 = 1;
+var TEXT$1 = 2;
+var SHOW = 3;
+var ON = 4;
+var BIND = 5;
+var IF = 6;
+var FOR = 7;
+var directWeight = {
+  'v-show': SHOW,
+  'v-for': FOR,
+  'v-on': ON,
+  'v-text': TEXT$1,
+  'v-bind': BIND,
+  'v-if': IF,
+  'v-transition': TRANSITION$1,
+  'v-animation': ANIMATION$1
+};
+var TRANSITIONHOOK = ['v-beforeEnter', 'v-afterEnter', 'v-beforeLeave', 'v-afterLeave'];
+var DIRECTLENGTH = Object.keys(directWeight).length;
+function getWeight(direct) {
+  var wight = directWeight[direct];
+  if (direct.includes('v-bind')) wight = BIND;
+  if (direct.includes('v-on')) wight = ON;
+  return wight;
+}
+function isReservedDirect(direct) {
+  return direct.includes('v-') && getWeight(direct) !== undefined;
+}
+function isTransitionHook(direct) {
+  return TRANSITIONHOOK.includes(direct);
+}
+
+function vevent(events, comp, vnodeConf$$1) {
+  if (isReservedTag(vnodeConf$$1.tagName)) {
+    var _iteratorNormalCompletion = true;
+    var _didIteratorError = false;
+    var _iteratorError = undefined;
+
+    try {
+      for (var _iterator = events[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+        var event = _step.value;
+
+        var name = event.attrName;
+        var code = '\n        with ($obj_) {\n          return ' + event.value + ';\n        }\n      ';
+        vnodeConf$$1.attrs['on' + name] = runExecuteContext(code, 'on', vnodeConf$$1.tagName, comp);
+      }
+    } catch (err) {
+      _didIteratorError = true;
+      _iteratorError = err;
+    } finally {
+      try {
+        if (!_iteratorNormalCompletion && _iterator.return) {
+          _iterator.return();
+        }
+      } finally {
+        if (_didIteratorError) {
+          throw _iteratorError;
+        }
       }
     }
   }
 }
-function getCache(parentComp, compName, i) {
-  var childs = parentComp.$cacheState.childComponent[compName];
-  if (childs && childs[i]) {
-    return childs[i];
-  }
-  return null;
-}
 
-var capacity = 1024;
-function enqueueSetState(comp, partialState) {
-  if (!isPlainObject(partialState) && typeof partialState !== 'function') {
+function vfor(node, comp, vnodeConf$$1) {
+  if (!node.for || !node.forArgs) return;
+  if (!node.parent) {
+    sendDirectWarn('v-for', comp.name);
     return;
   }
-  if (!comp.$cacheState.stateQueue.length) {
-    updateQueue(comp);
+  var cloneNodes = [];
+  var _node$forArgs = node.forArgs,
+      keys = _node$forArgs.key,
+      data = _node$forArgs.data,
+      isMultiple = _node$forArgs.isMultiple;
+
+  var code = '\n    var $data;\n\n    with($obj_) { $data = ' + data + '; }\n\n    if ($data) {\n      $callback_($data);\n    }\n  ';
+  function loopData(data) {
+    each(data, function (val, key, i) {
+      if (isMultiple) {
+        scope$1.add(keys[0], val);
+        scope$1.add(keys[1], key);
+      } else {
+        scope$1.add(keys, val);
+      }
+      vforCallback(i);
+    });
   }
-  comp.$cacheState.stateQueue.push(partialState);
+  function vforCallback(i) {
+    var cloneNode = vnodeConf(node, vnodeConf$$1.parent);
+    var key = vnodeConf$$1.indexKey + '_' + i;
+    cloneNode.attrs['key'] = key;
+    cloneNode.indexKey = key;
+    node.for = false;
+    cloneNodes[i] = parseSingleNode(node, comp, cloneNode) === false ? null : cloneNode;
+  }
+  scope$1.create();
+  runExecuteContext(code, 'for', vnodeConf$$1.tagName, comp, loopData);
+  scope$1.destroy();
+  var index = serachIndex(vnodeConf$$1);
+  replaceWithLoopRes(vnodeConf$$1, cloneNodes, index);
+  node.for = true;
 }
-function updateQueue(comp) {
+function serachIndex(node) {
+  var children = node.parent.children;
+  var length = children.length;
+  for (var i = 0; i < length; i++) {
+    if (children[i] === node) {
+      return i;
+    }
+  }
+}
+function replaceWithLoopRes(node, res, i) {
+  var children = node.parent.children;
+  children.splice.apply(children, [i, 1].concat(toConsumableArray(res)));
+}
+
+function vif(node, val, comp, vnodeConf$$1) {
+  if (!node.parent) {
+    return sendDirectWarn('v-if', comp.name);
+  }
+  var res = runExecuteContext('\n    with($obj_) {\n      return !!(' + val + ');\n    }\n  ', 'if', vnodeConf$$1.tagName, comp);
+  if (!res) {
+    removeChild(vnodeConf$$1.parent, vnodeConf$$1);
+  }
+  return res;
+}
+
+function show(val, comp, vnodeConf$$1) {
+  var code = '\n    with($obj_) {\n      return !!(' + val + ');\n    }';
+  var isShow = !!runExecuteContext(code, 'show', vnodeConf$$1.tagName, comp);
+  var bindValue = {
+    attrName: 'style',
+    value: isShow ? '' : 'display: none'
+  };
+  vnodeConf$$1.isShow = isShow;
+  if (isReservedTag(vnodeConf$$1.tagName)) {
+    bind(bindValue, comp, vnodeConf$$1);
+    return;
+  }
+  vnodeConf$$1.vShowResult = bindValue;
+}
+
+function text(val, comp, vnodeConf$$1) {
+  var code = 'with($obj_) { return ' + val + '; }';
+  var content = runExecuteContext(code, 'text', vnodeConf$$1.tagName, comp);
+  if (isReservedTag(vnodeConf$$1.tagName)) {
+    vnodeConf$$1.children = [vText$1(content, vnodeConf$$1)];
+  } else {
+    vnodeConf$$1.vTextResult = content;
+  }
+}
+
+function transition$1(val, comp, vnodeConf$$1, transtionHookFuns, isTransition) {
+  var directName = isTransition ? 'transtion' : 'animation';
+  var transitonName = runExecuteContext('return ' + val, directName, vnodeConf$$1.tagName, comp);
+  var hookFuns = {};
+  for (var key in transtionHookFuns) {
+    var fun = runExecuteContext('return ' + transtionHookFuns[key], directName, vnodeConf$$1.tagName, comp);
+    hookFuns[key] = fun;
+  }
+  vnodeConf$$1.vTransitionType = directName;
+  vnodeConf$$1.vTransitionData = {
+    name: transitonName,
+    hookFuns: hookFuns
+  };
+}
+
+function runCustomDirect(key, tagName, val, comp) {
+  return runExecuteContext('\n    with ($obj_) {\n      return ' + val + ';\n    }', key.slice(2, key.length), tagName, comp);
+}
+
+function complierDirectFromAst(ast, comp) {
+  if (!comp.noStateComp) {
+    var state = comp.state;
+    if (isFunction(state)) {
+      var res = state();
+      isPlainObject(res) ? comp.state = res : grassWarn('Component "state" must be a "Object"', comp.name);
+    }
+  }
+  var vnodeConf$$1 = vnodeConf(ast);
+  vnodeConf$$1.props = Object.create(null);
+  parseSingleNode(ast, comp, vnodeConf$$1);
+  scope$1.resetScope();
+  return vnodeConf$$1;
+}
+function complierChildrenNode(node, comp, vnodeConf$$1) {
+  var children = node.children;
+  if (!children || !children.length) return;
+  for (var i = 0; i < children.length; i++) {
+    var childVnodeConf = vnodeConf(children[i], vnodeConf$$1);
+    vnodeConf$$1.children.push(childVnodeConf);
+    parseSingleNode(children[i], comp, childVnodeConf);
+  }
+}
+function parseSingleNode(node, comp, vnodeConf$$1) {
+  switch (node.type) {
+    case TAG:
+      if (parseTagNode(node, comp, vnodeConf$$1) === false) return false;
+      break;
+    case STATICTAG:
+      parseStaticNode(node, comp, vnodeConf$$1);
+      break;
+  }
+  if (!node.for) {
+    if (vnodeConf$$1.type === TAG && isReservedTag(vnodeConf$$1.tagName)) {
+      modifyOrdinayAttrAsLibAttr(vnodeConf$$1);
+    }
+    complierChildrenNode(node, comp, vnodeConf$$1);
+  }
+}
+function parseTagNode(node, comp, vnodeConf$$1) {
+  if (node.hasBindings()) {
+    return complierDirect(node, comp, vnodeConf$$1);
+  }
+}
+function complierDirect(node, comp, vnodeConf$$1) {
+  var directs = node.direction;
+  var nomalDirects = [];
+  var customDirects = {};
+  var transtionHookFuns = {};
+  var currentWeight = null;
+  var currentCustomDirect = null;
+
+  var _loop = function _loop(i) {
+    var direct = directs[i];
+    var key = Object.keys(direct)[0];
+    if (isTransitionHook(key)) {
+      transtionHookFuns[key] = direct[key];
+      return 'continue';
+    }
+    if (!isReservedDirect(key)) {
+      if (!haveRegisteredCustomDirect(key) || key === currentCustomDirect) {
+        return 'continue';
+      }
+      currentCustomDirect = key;
+      customDirects[key] = function delay() {
+        customDirects[key] = runCustomDirect(key, vnodeConf$$1.tagName, direct[key], comp, vnodeConf$$1);
+      };
+      return 'continue';
+    }
+    var weight = getWeight(key);
+    if (isSameDirect(weight)) return 'continue';
+    currentWeight = weight;
+    if (isMultipleDirect(weight)) {
+      addMultipleDirect(direct, weight, key);
+      return 'continue';
+    }
+    nomalDirects[weight] = direct[key];
+  };
+
+  for (var i = 0; i < directs.length; i++) {
+    var _ret = _loop(i);
+
+    if (_ret === 'continue') continue;
+  }
+  vnodeConf$$1.customDirection = customDirects;
+  for (var w = DIRECTLENGTH - 1; w > -1; w--) {
+    if (!nomalDirects[w]) continue;
+    var directValue = nomalDirects[w];
+    var execResult = executSingleDirect(w, directValue, node, comp, vnodeConf$$1, transtionHookFuns);
+    if (node.for) return;
+    if (execResult === false) {
+      return false;
+    }
+  }
+  each(customDirects, function (val) {
+    return val();
+  });
+  function addMultipleDirect(direct, weight, key) {
+    var detail = {
+      attrName: key.split(':')[1].trim(),
+      value: direct[key]
+    };
+    !nomalDirects[weight] ? nomalDirects[weight] = [detail] : nomalDirects[weight].push(detail);
+  }
+  function isSameDirect(weight) {
+    return weight !== BIND && weight !== ON && weight === currentWeight;
+  }
+  function isMultipleDirect(weight) {
+    return weight === BIND || weight === ON;
+  }
+}
+function parseStaticNode(node, comp, vnodeConf$$1) {
+  var code = '\n    with ($obj_) {\n      function _s (_val_) { return _val_ };\n      return ' + node.expression + ';\n    }\n  ';
+  vnodeConf$$1.content = runExecuteContext(code, '{{ }}', vnodeConf$$1.parent.tagName, comp);
+}
+function executSingleDirect(weight, val, node, comp, vnodeConf$$1, transtionHookFuns) {
+  switch (weight) {
+    case SHOW:
+      show(val, comp, vnodeConf$$1);
+      break;
+    case FOR:
+      vfor(node, comp, vnodeConf$$1);
+      break;
+    case ON:
+      vevent(val, comp, vnodeConf$$1);
+      break;
+    case TEXT$1:
+      text(val, comp, vnodeConf$$1);
+      break;
+    case BIND:
+      bind(val, comp, vnodeConf$$1);
+      break;
+    case IF:
+      return vif(node, val, comp, vnodeConf$$1);
+    case TRANSITION$1:
+      return transition$1(val, comp, vnodeConf$$1, transtionHookFuns, true);
+    case ANIMATION$1:
+      return transition$1(val, comp, vnodeConf$$1, transtionHookFuns, false);
+    default:
+      customDirect(val, comp, vnodeConf$$1);
+  }
+}
+
+function render(widgetVNode, ast) {
+  var component = widgetVNode.component,
+      data = widgetVNode.data,
+      componentClass = widgetVNode.componentClass;
+
+  var vnodeConfig = complierDirectFromAst(ast, component);
+  if (!isEmptyObj(data.parentConfig)) {
+    migrateComponentStatus(data.parentConfig, vnodeConfig);
+  }
+  if (typeof componentClass.CSSModules === 'function') {
+    componentClass.CSSModules(vnodeConfig, component.name);
+  }
+  return createVNode(vnodeConfig, genChildren(vnodeConfig.children, component));
+}
+function genChildren(children, component) {
+  var vnodeChildren = [];
+  for (var i = 0, len = children.length; i < len; i++) {
+    var child = children[i];
+    if (child) {
+      if (child.type === TAG) {
+        if (isReservedTag(child.tagName)) {
+          var vnode = createVNode(child, genChildren(child.children, component));
+          vnodeChildren.push(vnode);
+        } else {
+          var childCompoentClass = getComponentClass(child, component);
+          var _vnode = new WidgetVNode(child, childCompoentClass);
+          vnodeChildren.push(_vnode);
+        }
+      } else {
+        var content = toString$1(child.content);
+        if (content.trim()) {
+          vnodeChildren.push(content);
+        }
+      }
+    }
+  }
+  return vnodeChildren;
+}
+function getComponentClass(vnodeConfig, parentCompnent) {
+  var childComponents = parentCompnent.component;
+  var tagName = vnodeConfig.tagName;
+
+  var warn$$1 = function warn$$1() {
+    grassWarn('Component [' + tagName + '] is not registered', parentCompnent.name);
+  };
+  if (!childComponents) {
+    warn$$1();
+    return null;
+  }
+  if (typeof childComponents === 'function') {
+    childComponents = childComponents();
+  }
+  if (isPlainObject(childComponents)) {
+    return childComponents[tagName];
+  }
+  warn$$1();
+}
+
+var CAPACITY = 1024;
+function enqueueSetState(component, partialState) {
+  if (isLegalState(partialState)) {
+    var data = component.$data;
+    if (!data.stateQueue.length) {
+      batchUpdateQueue(component);
+    }
+    data.stateQueue.push(partialState);
+  }
+}
+function batchUpdateQueue(component) {
   Promise.resolve().then(function () {
-    var queue = comp.$cacheState.stateQueue;
-    var state = Object.assign({}, comp.state);
+    var queue = component.$data.stateQueue;
+    var state = Object.assign({}, component.state);
     var index$$1 = 0;
     while (index$$1 < queue.length) {
       var currentIndex = index$$1;
       index$$1++;
       state = mergeState(state, queue[currentIndex]);
-      if (index$$1 > capacity) {
+      if (index$$1 > CAPACITY) {
         var newLength = queue.length - index$$1;
         for (var i = 0; i < newLength; i++) {
           queue[i] = queue[index$$1 + i];
@@ -2268,9 +2304,27 @@ function updateQueue(comp) {
       }
     }
     queue.length = 0;
-    comp.state = state;
-    updateDomTree(comp);
+    component.state = state;
+    updateDomTree(component);
   });
+}
+function updateDomTree(component) {
+  if (!component.noStateComp) {
+    component.willUpdate();
+  }
+  var vnode = component.$widgetVNode;
+  var _vnode$container = vnode.container,
+      dom = _vnode$container.dom,
+      vtree = _vnode$container.vtree;
+
+  var ast = component.constructor.$ast;
+  var newTree = render(vnode, ast);
+  var patchs = diff$1(vtree, newTree);
+  patch$1(dom, patchs);
+  if (!component.noStateComp) {
+    component.didUpdate(dom);
+  }
+  cacheComponentDomAndVTree(vnode, newTree, dom);
 }
 function mergeState(state, partialState) {
   if (typeof partialState === 'function') {
@@ -2279,91 +2333,50 @@ function mergeState(state, partialState) {
   }
   return isEmptyObj(partialState) ? state : Object.assign({}, state, partialState);
 }
-function updateDomTree(comp) {
-  var isNoStateComp = comp.noStateComp;
-  if (!isNoStateComp) {
-    comp.willUpdate();
-  }
-  var ast = comp.constructor.$ast;
-  var dom = comp.$cacheState.dom;
-  var oldTree = comp.$cacheState.vtree;
-  var newTree = render(comp.$parentConf, ast, comp);
-  var patchs = diff$1(oldTree, newTree);
-  patch$1(dom, patchs);
-  updateChildComp(comp);
-  if (!isNoStateComp) {
-    comp.didUpdate(dom);
-  }
-  comp.$cacheState.vtree = newTree;
-  comp.$parentConf = null;
-}
-function updateChildComp(comp) {
-  var cacheChild = comp.$cacheState.childComponent;
-  var keys = Object.keys(cacheChild);
-  for (var i = 0, len = keys.length; i < len; i++) {
-    var childs = cacheChild[keys[i]];
-    for (var j = 0, length = childs.length; j < length; j++) {
-      var child = childs[j];
-      if (child && child.$parentConf) {
-        var parentConf = child.$parentConf;
-        var newProps = getProps(parentConf.attrs);
-        if (child.noStateComp) {
-          child.props = newProps;
-          child.setState({});
-        } else {
-          var needUpdate = child.willReceiveProps(newProps);
-          if (needUpdate !== false) {
-            child.props = newProps;
-            child.setState({});
-          }
-        }
-      }
-    }
-  }
+function isLegalState(state) {
+  return isPlainObject(state) || typeof state === 'function';
 }
 
-function createCompInstance(comConstructor, parentConf, parentComp) {
-  var isClass$$1 = isClass(comConstructor);
-  var comp = void 0;
+function getComponentInstance(widgetVNode) {
+  var componentClass = widgetVNode.componentClass,
+      data = widgetVNode.data;
+
+  var isClass$$1 = isClass(componentClass);
+  var instance = void 0;
   if (isClass$$1) {
-    comp = new comConstructor(parentConf.attrs);
+    instance = new componentClass(data.parentConfig.attrs);
   } else {
-    var props = getProps(parentConf.attrs);
-    var template = comConstructor(props);
-    comp = {
-      constructor: comConstructor,
-      name: comConstructor.name,
-      noStateComp: !isClass$$1,
-      template: template,
-      props: props,
-      $cacheState: {
-        stateQueue: [],
-        childComponent: {},
-        componentElement: null,
-        dom: null,
-        vtree: null
-      },
-      setState: function setState(partialState) {
-        enqueueSetState(this, partialState);
-      }
-    };
+    var props = getProps(data.parentConfig.attrs);
+    var template = componentClass(props);
+    instance = createNoStateComponent(props, template, componentClass);
   }
-  if (isClass$$1 && comp.prototype === Object.getPrototypeOf(parentComp)) {
-    grassWarn('Component can not refer to themselves', parentComp.name);
-    return;
+  if (!componentClass.$ast) {
+    componentClass.$ast = genAstCode(instance);
   }
-  if (!comConstructor.$ast) {
-    comConstructor.$ast = createAst(comp);
-  }
-  return comp;
+  return instance;
 }
-function createAst(comp) {
-  var ast = void 0;
-  var template = comp.template,
-      name = comp.name;
+function createNoStateComponent(props, template, componentClass) {
+  return {
+    constructor: componentClass,
+    name: componentClass.name,
+    noStateComp: true,
+    template: template,
+    props: props,
+    $data: {
+      stateQueue: []
+    },
+    setState: function setState(partialState) {
+      enqueueSetState(this, partialState);
+    }
+  };
+}
+function genAstCode(component) {
+  var template = component.template,
+      name = component.name;
 
+  var ast = void 0;
   if (typeof template === 'function') {
-    template = template.call(comp);
+    template = template.call(component);
   }
   if (!isString(template)) {
     grassWarn('Component template must a "string" or "function", But now is "' + (typeof template === 'undefined' ? 'undefined' : _typeof(template)) + '"', name);
@@ -2375,139 +2388,120 @@ function createAst(comp) {
   }
   return ast;
 }
-function setCompId(parentComp, comp, index) {
-  var preId = parentComp.$id;
-  var currentId = preId + '_' + index;
-  comp.$id = currentId;
-}
 
-function render(parentConf, ast, comp) {
-  var vnodeConf$$1 = complierAst(ast, comp);
-  migrateCompStatus(parentConf, vnodeConf$$1);
-  if (typeof comp.constructor.CSSModules === 'function') {
-    comp.constructor.CSSModules(vnodeConf$$1, comp.name);
+var WidgetVNode = function () {
+  function WidgetVNode(parentConfig, componentClass) {
+    classCallCheck(this, WidgetVNode);
+    var haveShowTag = parentConfig.haveShowTag,
+        vTransitionType = parentConfig.vTransitionType,
+        vTransitionData = parentConfig.vTransitionData,
+        customDirection = parentConfig.customDirection;
+
+    this.type = 'Widget';
+    this.count = 0;
+    this.name = componentClass.name;
+    this.id = parentConfig.indexKey || 'Root';
+    this.componentClass = componentClass;
+    this.component = null;
+    this.data = {
+      haveShowTag: haveShowTag,
+      vTransitionType: vTransitionType,
+      vTransitionData: vTransitionData,
+      customDirection: customDirection,
+      parentConfig: parentConfig
+    };
+    this.container = {
+      vtree: null,
+      dom: null
+    };
   }
-  return _h(vnodeConf$$1, generatorChildren(vnodeConf$$1.children, comp));
-}
-function generatorChildren(children, comp) {
-  var vnodeTree = [];
-  for (var i = 0; i < children.length; i++) {
-    if (!children[i]) {
-      continue;
+
+  createClass(WidgetVNode, [{
+    key: 'init',
+    value: function init() {
+      var component = getComponentInstance(this);
+      component.$widgetVNode = this;
+      this.component = component;
+
+      var _renderingRealDom = renderingRealDom(this),
+          dom = _renderingRealDom.dom,
+          vtree = _renderingRealDom.vtree;
+
+      cacheComponentDomAndVTree(this, vtree, dom);
+      return dom;
     }
-    var conf = children[i];
-    if (conf.type === TAG) {
-      if (!isReservedTag(conf.tagName)) {
-        vnodeTree.push(createCustomComp(conf, comp, i));
-        continue;
+  }, {
+    key: 'update',
+    value: function update(previousVnode, dom) {
+      transferData(this, previousVnode);
+      _update(this);
+      return dom;
+    }
+  }, {
+    key: 'destroy',
+    value: function destroy(dom) {
+      if (typeof this.component.destroy === 'function') {
+        this.component.destroy(dom);
       }
-      vnodeTree.push(_h(conf, generatorChildren(conf.children, comp)));
-      continue;
     }
-    var content = toString(conf.content);
-    if (content.trim()) {
-      vnodeTree.push(content);
+  }, {
+    key: 'elementCreated',
+    value: function elementCreated$$1(dom, node) {
+      elementCreated(dom, this.data.customDirection);
     }
-  }
-  return vnodeTree;
-}
-function createCustomComp(parentConf, comp, i) {
-  var cacheInstance = getCache(comp, parentConf.tagName, i);
-  var tagName = parentConf.tagName;
-  if (cacheInstance) {
-    cacheInstance.$parentConf = parentConf;
-    return createCompVnode(parentConf, comp, cacheInstance);
-  }
-  var childComp = getChildComp(comp, tagName);
-  if (typeof childComp !== 'function') {
-    grassWarn('Component [' + tagName + '] is not registered', comp.name);
-    return;
-  }
-  var childCompInstance = createCompInstance(childComp, parentConf, comp);
-  setCompId(comp, childCompInstance, i);
-  addCache(comp, tagName, childCompInstance, i);
-  return createCompVnode(parentConf, comp, childCompInstance);
-}
-function getChildComp(parentComp, tagName) {
-  if (!parentComp.component) return null;
-  var childComps = parentComp.component;
-  if (typeof childComps === 'function') {
-    childComps = childComps();
-  }
-  if (isPlainObject(childComps)) {
-    return childComps[tagName];
-  }
-  return null;
-}
+  }]);
+  return WidgetVNode;
+}();
+function renderingRealDom(widgetVNode) {
+  var component = widgetVNode.component,
+      componentClass = widgetVNode.componentClass;
 
-function createCompVnode(parentConf, parentComp, comp) {
-  var $cacheState = comp.$cacheState;
-  if ($cacheState.componentElement) {
-    return $cacheState.componentElement;
-  }
-  var vnode = createWidgetVnode(parentConf, parentComp, comp);
-  $cacheState.componentElement = vnode;
-  return vnode;
-}
-function createWidgetVnode(parentConf, parentComp, comp) {
-  function WidgetElement() {
-    this.$name = comp.name;
-    this.vTransitionType = parentConf.vTransitionType;
-    this.vTransitionData = parentConf.vTransitionData;
-    this.haveShowTag = parentConf.haveShowTag;
-  }
-  WidgetElement.prototype.type = 'Widget';
-  WidgetElement.prototype.count = 0;
-  WidgetElement.prototype.customDirection = parentConf.customDirection || null;
-  WidgetElement.prototype.init = function (parentNode) {
-    return createDomNode(parentConf, comp);
-  };
-  WidgetElement.prototype.update = function (previous, domNode) {
-    console.info('component update', comp.name);
-  };
-  WidgetElement.prototype.destroy = function (dom) {
-    removeCache(parentComp, parentConf.tagName, comp);
-    if (!comp.noStateComp) {
-      comp.destroy(dom);
-    }
-  };
-  WidgetElement.prototype.elementCreated = function (dom, node) {
-    elementCreated(dom, parentConf.customDirection);
-  };
-  return new WidgetElement();
-}
-function createDomNode(parentConf, comp) {
-  var ast = comp.constructor.$ast;
-  if (comp.noStateComp) {
-    var _vtree = render(parentConf, ast, comp);
+  var ast = componentClass.$ast;
+  if (component.noStateComp) {
+    var vtree = render(widgetVNode, ast);
+    var dom = create$1(vtree);
+    return { dom: dom, vtree: vtree };
+  } else {
+    component.createBefore();
+    var _vtree = render(widgetVNode, ast);
     var _dom = create$1(_vtree);
-    comp.$cacheState.dom = _dom;
-    comp.$cacheState.vtree = _vtree;
-    return _dom;
+    component.create(_dom);
+    return { dom: _dom, vtree: _vtree };
   }
-  comp.createBefore();
-  var vtree = render(parentConf, ast, comp);
-  var dom = create$1(vtree);
-  comp.$cacheState.dom = dom;
-  comp.$cacheState.vtree = vtree;
-  comp.create(dom);
-  return dom;
+}
+function cacheComponentDomAndVTree(widgetVNode, vtree, dom) {
+  widgetVNode.container.vtree = vtree;
+  widgetVNode.container.dom = dom;
+}
+function _update(_ref) {
+  var component = _ref.component,
+      parentConfig = _ref.data.parentConfig;
+
+  if (component && parentConfig) {
+    var newProps = getProps(parentConfig.attrs);
+    if (!component.noStateComp && component.willReceiveProps(newProps) === false) {
+      return;
+    }
+    component.props = newProps;
+    component.setState({});
+  }
+}
+function transferData(nv, ov) {
+  nv.component = ov.component;
+  nv.componentClass = ov.componentClass;
+  nv.container = ov.container;
+  nv.component.$widgetVNode = nv;
 }
 
 var Component = function () {
   function Component(attrs, requireList) {
     classCallCheck(this, Component);
 
+    this.name = this.constructor.name;
     this.state = Object.create(null);
     this.props = getProps(attrs, requireList, this.name);
-    this.$parentConf = null;
-    this.$cacheState = {
-      stateQueue: [],
-      childComponent: {},
-      componentElement: null,
-      dom: null,
-      vtree: null,
-      id: null
+    this.$data = {
+      stateQueue: []
     };
   }
 
@@ -2516,19 +2510,19 @@ var Component = function () {
     value: function createBefore() {}
   }, {
     key: 'create',
-    value: function create() {}
+    value: function create(dom) {}
   }, {
     key: 'willUpdate',
-    value: function willUpdate() {}
+    value: function willUpdate(dom) {}
   }, {
     key: 'willReceiveProps',
-    value: function willReceiveProps() {}
+    value: function willReceiveProps(newProps) {}
   }, {
     key: 'didUpdate',
-    value: function didUpdate() {}
+    value: function didUpdate(dom) {}
   }, {
     key: 'destroy',
-    value: function destroy() {}
+    value: function destroy(dom) {}
   }, {
     key: 'setState',
     value: function setState(partialState) {
@@ -2541,21 +2535,13 @@ var Component = function () {
         this.state = Object.setPrototypeOf(data, null);
       }
     }
-  }, {
-    key: 'name',
-    get: function get$$1() {
-      return this.constructor.name;
-    }
   }]);
   return Component;
 }();
-function mount(rootDOM, compClass) {
-  var index = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : '0';
-
+function mount(rootDOM, componentClass) {
   return new Promise(function (resolve) {
-    var comp = createCompInstance(compClass, {}, {});
-    comp.$id = toString(index);
-    var dom = createDomNode(null, comp);
+    var vnode = new WidgetVNode({}, componentClass);
+    var dom = create$1(vnode);
     rootDOM.appendChild(dom);
     resolve(dom);
   });

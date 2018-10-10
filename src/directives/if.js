@@ -1,4 +1,5 @@
 import * as _ from '../utils/index'
+import { removeChild } from './util'
 import runExecuteContext from './execution-env'
 
 export default function vif (node, val, comp, vnodeConf) {
@@ -13,7 +14,7 @@ export default function vif (node, val, comp, vnodeConf) {
   `, 'if', vnodeConf.tagName, comp)
 
   if (!res) {
-    _.removeChild(vnodeConf.parent, vnodeConf)
+    removeChild(vnodeConf.parent, vnodeConf)
   }
 
   return res

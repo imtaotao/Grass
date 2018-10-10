@@ -1,5 +1,6 @@
 import * as _ from '../utils'
-import { enqueueSetState } from './setState'
+import { getProps } from './index'
+import { enqueueSetState } from './update-state'
 import { parseTemplate } from '../ast/parse-template'
 
 export function getComponentInstance (widgetVNode) {
@@ -8,9 +9,9 @@ export function getComponentInstance (widgetVNode) {
   let instance
 
   if (isClass) {
-    instance = new componentClass(data.parentConf.attrs)
+    instance = new componentClass(data.parentConfig.attrs)
   } else {
-    const props = _.getProps(data.parentConf.attrs)
+    const props = getProps(data.parentConfig.attrs)
     const template = componentClass(props)
 
     instance = createNoStateComponent(props, template, componentClass)
@@ -31,7 +32,9 @@ function createNoStateComponent (props, template, componentClass) {
     noStateComp: true,
     template,
     props,
-    $cacheState: {},
+    $data: {
+      stateQueue: []
+    },
     setState (partialState) {
       enqueueSetState(this, partialState)
     }
@@ -39,7 +42,7 @@ function createNoStateComponent (props, template, componentClass) {
 }
 
 function genAstCode (component) {
-  const { template, name } = component
+  let { template, name } = component
   let ast
 
   // 'template' attribute maybe a function

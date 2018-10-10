@@ -1,10 +1,12 @@
 import * as _ from '../utils'
-import render from './render'
+import { getProps } from './index'
+import { render } from './render'
 import { create } from '../virtual-dom'
 import { elementCreated } from '../global-api/constom-directive'
+import { getComponentInstance } from './component-instance'
 
 export class WidgetVNode {
-  constructor (parentConfig, conponentClass) {
+  constructor (parentConfig, componentClass) {
     const {
       haveShowTag,
       vTransitionType,
@@ -14,9 +16,9 @@ export class WidgetVNode {
 
     this.type = 'Widget'
     this.count = 0
-    this.name = compnent.name
-    this.id = parentConfig.indexKey
-    this.conponentClass = conponentClass
+    this.name = componentClass.name
+    this.id = parentConfig.indexKey || 'Root'
+    this.componentClass = componentClass
     this.component = null
 
     this.data = {
@@ -35,15 +37,20 @@ export class WidgetVNode {
 
   init () {
     // Now, we can get component instance, chonse this time, Because we can improve efficiency
-    this.component = getComponentInstance(this)
-    const data = renderingRealDom(this)
-    cacheComponentDomAndVTree(this, data)
+    const component = getComponentInstance(this)
+    component.$widgetVNode = this
+    this.component = component
 
-    return data.dom
+    const { dom, vtree } = renderingRealDom(this)
+
+    cacheComponentDomAndVTree(this, vtree, dom)
+
+    return dom
   }
 
   update (previousVnode, dom) {
     // We need update old component state, so, make new vnode state transfer to old vnode
+    transferData(this, previousVnode)
     update(this)
     return dom
   }
@@ -60,8 +67,8 @@ export class WidgetVNode {
 }
 
 export function renderingRealDom (widgetVNode) {
-  const { component, compnentClass } = widgetVNode
-  const ast = compnentClass.$ast
+  const { component, componentClass } = widgetVNode
+  const ast = componentClass.$ast
 
   if (component.noStateComp) {
     const vtree = render(widgetVNode, ast)
@@ -78,14 +85,14 @@ export function renderingRealDom (widgetVNode) {
   }
 }
 
-export function cacheComponentDomAndVTree (widgetVNode, { vtree, dom }) {
+export function cacheComponentDomAndVTree (widgetVNode, vtree, dom) {
   widgetVNode.container.vtree = vtree
   widgetVNode.container.dom = dom 
 }
 
 function update ({ component, data: { parentConfig } }) {
   if (component && parentConfig) {
-    const newProps = _.getProps(parentConf.attrs)
+    const newProps = getProps(parentConfig.attrs)
 
     if (!component.noStateComp &&
         component.willReceiveProps(newProps) === false) {
@@ -95,4 +102,16 @@ function update ({ component, data: { parentConfig } }) {
     component.props = newProps
     component.setState({})
   }
+}
+
+ /**
+  * We need transfer component、componentClass、container,
+  * And need let widgetVNode of component change to new widgetVNode
+  **/
+function transferData (nv, ov) {
+  nv.component = ov.component
+  nv.componentClass = ov.componentClass
+  nv.container = ov.container
+
+  nv.component.$widgetVNode = nv
 }
