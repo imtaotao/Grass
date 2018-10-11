@@ -7,6 +7,7 @@ export class Component {
   constructor (attrs, requireList) {
     this.name = this.constructor.name
     this.state = Object.create(null)
+    this.propsRequireList = requireList
     this.props = getProps(attrs, requireList, this.name)
     this.$data = {
       stateQueue: []
@@ -76,12 +77,11 @@ export function getProps (attrs, requireList, name) {
   }
 
   if (requireList && requireList.length) {
-    for (let j = 0; j < requireList.length; j++) {
-      _.warn(
-        `Parent component does not pass "${requireList[j]}" attribute  \n\n    --->  ${name}\n`,
-        true,
-      )
-    }
+    const attrs = requireList.join('", "')
+    _.warn(
+      `Parent component does not pass "${attrs}" attributes  \n\n    --->  ${name}\n`,
+      true,
+    )
   }
 
   return props

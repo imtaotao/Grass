@@ -2,10 +2,11 @@
   <div>
     <div @click="this.callback.bind(this)">点击</div>
     <div>
-      <bb v-show="show"/>
+      <bb v-show="show" v-tt="api"/>
     </div>
 
-    <div v-for="val of arr"  v-transition="'slide-fade'" v-if="show">fsda</div>
+    <Child test1="api" :test2="api" :show="show"/>
+    <div v-for="val of arr"  v-transition="'slide-fade'" v-show="show">fsda</div>
   </div>
 </template>
 

@@ -92,7 +92,8 @@ export function cacheComponentDomAndVTree (widgetVNode, vtree, dom) {
 
 function update ({ component, data: { parentConfig } }) {
   if (component && parentConfig) {
-    const newProps = getProps(parentConfig.attrs)
+    const { propsRequireList, name } = component
+    const newProps = getProps(parentConfig.attrs, propsRequireList, name)
 
     if (!component.noStateComp &&
         component.willReceiveProps(newProps) === false) {
