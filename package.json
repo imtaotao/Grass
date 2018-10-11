@@ -1,6 +1,6 @@
 {
   "name": "tt-grass",
-  "version": "0.0.0-beta.4",
+  "version": "0.0.0-beta.5",
   "description": "",
   "main": "dist/grass.common.js",
   "module": "dist/grass.esm.js",
