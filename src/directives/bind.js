@@ -4,18 +4,18 @@ import * as _ from '../utils/index'
 const objectFormat = /\{[^\}]*\}/
 const stringFormat = /.+\s*:\s*.+\s*;?/
 
-export default function bind (props, comp, vnodeConf) {
+export default function bind (props, component, vnodeConf) {
   if (!Array.isArray(props)) {
-    dealSingleBindAttr(props, comp, vnodeConf)
+    dealSingleBindAttr(props, component, vnodeConf)
     return
   }
 
   for (const prop of props) {
-    dealSingleBindAttr(prop, comp, vnodeConf)
+    dealSingleBindAttr(prop, component, vnodeConf)
   }
 }
 
-function dealSingleBindAttr ({attrName, value}, comp, vnodeConf) {
+function dealSingleBindAttr ({attrName, value}, component, vnodeConf) {
   if (attrName === 'style') {
     if (
         !value ||
@@ -33,13 +33,13 @@ function dealSingleBindAttr ({attrName, value}, comp, vnodeConf) {
   }
 
   // 其他所有的属性都直接添加到 vnodeConf 的 attrs 中
-  vnodeConf.attrs[attrName] = comp
+  vnodeConf.attrs[attrName] = component
     ? getValue()
     : value
 
   // 计算模板表达式
   function getValue () {
-    return runExecuteContext(`with($obj_) { return ${value}; }`, 'bind', vnodeConf.tagName, comp)
+    return runExecuteContext(`with($obj_) { return ${value}; }`, 'bind', vnodeConf.tagName, component)
   }
 }
 

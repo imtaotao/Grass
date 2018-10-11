@@ -1,7 +1,7 @@
 import runExecuteContext from './execution-env'
 import * as _ from '../utils/index'
 
-export default function vevent (events, comp, vnodeConf) {
+export default function vevent (events, component, vnodeConf) {
   if (_.isReservedTag(vnodeConf.tagName)) {
     for (const event of events) {
       const name = event.attrName
@@ -11,7 +11,7 @@ export default function vevent (events, comp, vnodeConf) {
         }
       `
 
-      vnodeConf.attrs['on' + name] = runExecuteContext(code, 'on', vnodeConf.tagName, comp)
+      vnodeConf.attrs['on' + name] = runExecuteContext(code, 'on', vnodeConf.tagName, component)
     }
   }
 }

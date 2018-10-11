@@ -100,9 +100,6 @@ function isString(str) {
 function isPlainObject(obj) {
   return typeOf(obj) === '[object Object]';
 }
-function isFunction(fun) {
-  return typeOf(fun) === '[object Function]';
-}
 function isPrimitive(value) {
   return typeof value === 'string' || typeof value === 'number' || (typeof value === 'undefined' ? 'undefined' : _typeof(value)) === 'symbol' || typeof value === 'boolean';
 }
@@ -182,179 +179,6 @@ function warn(msg, noError) {
 function grassWarn(msg, compName) {
   var errorInfor = '[Grass tip]: ' + msg + '  \n\n    --->  ' + (compName || 'unknow') + '\n';
   throw Error(errorInfor);
-}
-
-var scope = null;
-var chain = [scope];
-function create(s) {
-  if (s) {
-    Object.setPrototypeOf(s, scope);
-    chain.push(s);
-    return s;
-  }
-  scope = Object.create(scope);
-  chain.push(scope);
-  return scope;
-}
-function add(key, val) {
-  if (typeof key !== 'string') {
-    warn('The variable name of the "for" scope must be a "string"');
-    return;
-  }
-  scope[key] = val;
-}
-function destroy() {
-  if (scope === null) {
-    return scope;
-  }
-  chain.pop();
-  scope = chain[chain.length - 1];
-  return scope;
-}
-function getScope() {
-  return scope;
-}
-function insertChain(obj) {
-  if (!isLegScope(obj)) {
-    warn('Insert "scope" must be a "object"');
-    return;
-  }
-  if (scope === null) return obj;
-  var ancestor = chain[1];
-  if (obj !== ancestor) {
-    Object.setPrototypeOf(ancestor, obj);
-    chain.splice(1, 0, obj);
-  }
-  return scope;
-}
-function resetScope() {
-  scope = null;
-  chain = [scope];
-}
-function isLegScope(obj) {
-  if (isPlainObject(obj)) {
-    var prototype = Object.getPrototypeOf(obj);
-    return prototype === null || prototype === Object.prototype;
-  }
-  return false;
-}
-var scope$1 = {
-  add: add,
-  create: create,
-  destroy: destroy,
-  getScope: getScope,
-  resetScope: resetScope,
-  insertChain: insertChain
-};
-
-function runExecuteContext(runCode, directName, tagName, comp, callback) {
-  var noStateComp = comp.noStateComp,
-      state = comp.state,
-      props = comp.props;
-
-  var insertScope = noStateComp ? props : state;
-  var realData = scope$1.insertChain(insertScope || {});
-  if (directName !== '{{ }}') {
-    directName = 'v-' + directName;
-  }
-  return run(runCode, directName, tagName, comp, callback, realData);
-}
-function run(runCode, directName, tagName, comp, callback, state) {
-  try {
-    var fun = new Function('$obj_', '$callback_', runCode);
-    return fun.call(comp, state, callback);
-  } catch (error) {
-    warn('Component directive compilation error  \n\n  "' + directName + '":  ' + error + '\n\n\n    --->  ' + comp.name + ': <' + (tagName || '') + '/>\n');
-  }
-}
-
-var objectFormat = /\{[^\}]*\}/;
-var stringFormat = /.+\s*:\s*.+\s*;?/;
-function bind(props, comp, vnodeConf$$1) {
-  if (!Array.isArray(props)) {
-    dealSingleBindAttr(props, comp, vnodeConf$$1);
-    return;
-  }
-  var _iteratorNormalCompletion = true;
-  var _didIteratorError = false;
-  var _iteratorError = undefined;
-
-  try {
-    for (var _iterator = props[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-      var prop = _step.value;
-
-      dealSingleBindAttr(prop, comp, vnodeConf$$1);
-    }
-  } catch (err) {
-    _didIteratorError = true;
-    _iteratorError = err;
-  } finally {
-    try {
-      if (!_iteratorNormalCompletion && _iterator.return) {
-        _iterator.return();
-      }
-    } finally {
-      if (_didIteratorError) {
-        throw _iteratorError;
-      }
-    }
-  }
-}
-function dealSingleBindAttr(_ref, comp, vnodeConf$$1) {
-  var attrName = _ref.attrName,
-      value = _ref.value;
-
-  if (attrName === 'style') {
-    if (!value || stringFormat.test(value) && !objectFormat.test(value)) {
-      vnodeConf$$1.attrs.style = spliceStyleStr(vnodeConf$$1.attrs[attrName], value);
-      return;
-    }
-    vnodeConf$$1.attrs.style = spliceStyleStr(vnodeConf$$1.attrs[attrName], getFormatStyle(getValue()));
-    return;
-  }
-  vnodeConf$$1.attrs[attrName] = comp ? getValue() : value;
-  function getValue() {
-    return runExecuteContext('with($obj_) { return ' + value + '; }', 'bind', vnodeConf$$1.tagName, comp);
-  }
-}
-function getNormalStyleKey(key) {
-  return key.replace(/[A-Z]/g, function (k1) {
-    return '-' + k1.toLocaleLowerCase();
-  });
-}
-function getFormatStyle(v) {
-  var result = '';
-  var _iteratorNormalCompletion2 = true;
-  var _didIteratorError2 = false;
-  var _iteratorError2 = undefined;
-
-  try {
-    for (var _iterator2 = Object.keys(v)[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
-      var key = _step2.value;
-
-      result += getNormalStyleKey(key) + ': ' + v[key] + ';';
-    }
-  } catch (err) {
-    _didIteratorError2 = true;
-    _iteratorError2 = err;
-  } finally {
-    try {
-      if (!_iteratorNormalCompletion2 && _iterator2.return) {
-        _iterator2.return();
-      }
-    } finally {
-      if (_didIteratorError2) {
-        throw _iteratorError2;
-      }
-    }
-  }
-
-  return result;
-}
-function spliceStyleStr(o, n) {
-  if (!o) return n;
-  if (o[o.length - 1] === ';') return o + n;
-  return o + ';' + n;
 }
 
 var attribute = /^\s*([^\s"'<>\/=]+)(?:\s*(=)\s*(?:"([^"]*)"+|'([^']*)'+|([^\s"'=<>`]+)))?/;
@@ -640,105 +464,6 @@ function deepClone(obj, similarArr) {
   }
   return obj;
 }
-function vnodeConf(astNode, parent) {
-  if (astNode.type === TAG) {
-    var tagName = astNode.tagName,
-        attrs = astNode.attrs,
-        indexKey = astNode.indexKey,
-        direction = astNode.direction;
-
-    var _attrs = deepClone(attrs);
-    var _direction = deepClone(direction);
-    var _children = [];
-    return vTag(tagName, _attrs, indexKey, _direction, _children, parent);
-  }
-  return vText$1(astNode.content, parent);
-}
-function vTag(tagName, attrs, indexKey, direction, children, parent) {
-  var node = Object.create(null);
-  node.type = TAG;
-  node.attrs = attrs;
-  node.parent = parent;
-  node.tagName = tagName;
-  node.indexKey = indexKey;
-  node.children = children;
-  node.direction = direction;
-  return node;
-}
-function vText$1(content, parent) {
-  var node = Object.create(null);
-  node.type = TEXT;
-  node.parent = parent;
-  node.content = content;
-  return node;
-}
-function removeChild(parent, child) {
-  var children = parent.children;
-  for (var i = 0; i < children.length; i++) {
-    if (children[i] === child) {
-      children[i] = null;
-    }
-  }
-}
-var filterAttr = {
-  'namespace': 1,
-  'className': 1,
-  'styleName': 1,
-  'style': 1,
-  'class': 1,
-  'key': 1,
-  'id': 1
-};
-function isFilter(key) {
-  return filterAttr[key] || key.slice(0, 2) === 'on';
-}
-function modifyOrdinayAttrAsLibAttr(node) {
-  if (!node.attrs) return;
-  var keyWord = 'attributes';
-  var attrs = node.attrs;
-  var originAttr = attrs[keyWord];
-  var keys = Object.keys(attrs);
-  attrs[keyWord] = Object.create(null);
-  for (var i = 0, len = keys.length; i < len; i++) {
-    var key = keys[i];
-    if (isFilter(key)) continue;
-    attrs[keyWord][key] = attrs[key];
-    if (key !== keyWord) {
-      attrs[key] = undefined;
-    }
-  }
-  if (originAttr) {
-    attrs[keyWord][keyWord] = originAttr;
-  }
-}
-var filterPropsList = {
-  'key': 1,
-  'styleName': 1,
-  'className': 1
-};
-function getProps(attrs, requireList, compName) {
-  var props = Object.create(null);
-  if (!attrs) return props;
-  var keys = Object.keys(attrs);
-  var index = null;
-  for (var i = 0; i < keys.length; i++) {
-    if (filterPropsList[keys[i]]) continue;
-    var key = keys[i];
-    var val = attrs[key];
-    if (!requireList) {
-      props[key] = val;
-    } else if (requireList && ~(index = requireList.indexOf(key))) {
-      props[key] = val;
-      requireList.splice(index, 1);
-    }
-  }
-  if (requireList && requireList.length) {
-    for (var j = 0; j < requireList.length; j++) {
-      warn('Parent component does not pass "' + requireList[j] + '" attribute  \n\n    --->  ' + compName + '\n', true);
-    }
-  }
-  return props;
-}
 function isClass(fun) {
   var proto = fun.prototype;
   if (!proto || isGeneratorFunction(fun)) {
@@ -773,13 +498,13 @@ function noop() {}
 var version = '2';
 
 function isVNode(x) {
-  return x && x.type === "VirtualNode" && x.version === version;
+  return x && x.type === 'VirtualNode' && x.version === version;
 }
 function isVText(x) {
-  return x && x.type === "VirtualText" && x.version === version;
+  return x && x.type === 'VirtualText' && x.version === version;
 }
 function isWidget(w) {
-  return w && w.type === "Widget";
+  return w && w.type === 'Widget';
 }
 
 var noProperties = {};
@@ -813,7 +538,7 @@ function isUndef$1(v) {
   return v === undefined || v === null;
 }
 VirtualNode.prototype.version = version;
-VirtualNode.prototype.type = "VirtualNode";
+VirtualNode.prototype.type = 'VirtualNode';
 
 function VirtualText(text) {
   this.text = String(text);
@@ -903,7 +628,7 @@ function VirtualPatch(type, vNode, patch) {
     this.patch = patch;
 }
 VirtualPatch.prototype.version = version;
-VirtualPatch.prototype.type = "VirtualPatch";
+VirtualPatch.prototype.type = 'VirtualPatch';
 
 function diffProps(a, b) {
   var diff = void 0;
@@ -1062,8 +787,8 @@ function reorder(aChildren, bChildren) {
 function remove$1(arr, index, key) {
   arr.splice(index, 1);
   return {
-    from: index,
-    key: key
+    key: key,
+    from: index
   };
 }
 function keyIndex(children) {
@@ -1078,10 +803,7 @@ function keyIndex(children) {
       free.push(i);
     }
   }
-  return {
-    keys: keys,
-    free: free
-  };
+  return { keys: keys, free: free };
 }
 
 function diff(a, b) {
@@ -1777,7 +1499,7 @@ function patchIndices(patches) {
 var h$1 = h;
 var diff$1 = diff;
 var patch$1 = patch;
-var create$1 = createElement;
+var create = createElement;
 
 var Container = function () {
   function Container(val) {
@@ -1857,6 +1579,179 @@ function createVNode(vnodeConfig, children) {
   return vnode;
 }
 
+var scope = null;
+var chain = [scope];
+function create$1(s) {
+  if (s) {
+    Object.setPrototypeOf(s, scope);
+    chain.push(s);
+    return s;
+  }
+  scope = Object.create(scope);
+  chain.push(scope);
+  return scope;
+}
+function add(key, val) {
+  if (typeof key !== 'string') {
+    warn('The variable name of the "for" scope must be a "string"');
+    return;
+  }
+  scope[key] = val;
+}
+function destroy() {
+  if (scope === null) {
+    return scope;
+  }
+  chain.pop();
+  scope = chain[chain.length - 1];
+  return scope;
+}
+function getScope() {
+  return scope;
+}
+function insertChain(obj) {
+  if (!isLegScope(obj)) {
+    warn('Insert "scope" must be a "object"');
+    return;
+  }
+  if (scope === null) return obj;
+  var ancestor = chain[1];
+  if (obj !== ancestor) {
+    Object.setPrototypeOf(ancestor, obj);
+    chain.splice(1, 0, obj);
+  }
+  return scope;
+}
+function resetScope() {
+  scope = null;
+  chain = [scope];
+}
+function isLegScope(obj) {
+  if (isPlainObject(obj)) {
+    var prototype = Object.getPrototypeOf(obj);
+    return prototype === null || prototype === Object.prototype;
+  }
+  return false;
+}
+var scope$1 = {
+  add: add,
+  create: create$1,
+  destroy: destroy,
+  getScope: getScope,
+  resetScope: resetScope,
+  insertChain: insertChain
+};
+
+function runExecuteContext(runCode, directName, tagName, component, callback) {
+  var noStatecomp = component.noStatecomp,
+      state = component.state,
+      props = component.props;
+
+  var insertScope = noStatecomp ? props : state;
+  var realData = scope$1.insertChain(insertScope || {});
+  if (directName !== '{{ }}') {
+    directName = 'v-' + directName;
+  }
+  return run(runCode, directName, tagName, component, callback, realData);
+}
+function run(runCode, directName, tagName, component, callback, state) {
+  try {
+    var fun = new Function('$obj_', '$callback_', runCode);
+    return fun.call(component, state, callback);
+  } catch (error) {
+    warn('Component directive compilation error  \n\n  "' + directName + '":  ' + error + '\n\n\n    --->  ' + component.name + ': <' + (tagName || '') + '/>\n');
+  }
+}
+
+var objectFormat = /\{[^\}]*\}/;
+var stringFormat = /.+\s*:\s*.+\s*;?/;
+function bind(props, component, vnodeConf) {
+  if (!Array.isArray(props)) {
+    dealSingleBindAttr(props, component, vnodeConf);
+    return;
+  }
+  var _iteratorNormalCompletion = true;
+  var _didIteratorError = false;
+  var _iteratorError = undefined;
+
+  try {
+    for (var _iterator = props[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+      var prop = _step.value;
+
+      dealSingleBindAttr(prop, component, vnodeConf);
+    }
+  } catch (err) {
+    _didIteratorError = true;
+    _iteratorError = err;
+  } finally {
+    try {
+      if (!_iteratorNormalCompletion && _iterator.return) {
+        _iterator.return();
+      }
+    } finally {
+      if (_didIteratorError) {
+        throw _iteratorError;
+      }
+    }
+  }
+}
+function dealSingleBindAttr(_ref, component, vnodeConf) {
+  var attrName = _ref.attrName,
+      value = _ref.value;
+
+  if (attrName === 'style') {
+    if (!value || stringFormat.test(value) && !objectFormat.test(value)) {
+      vnodeConf.attrs.style = spliceStyleStr(vnodeConf.attrs[attrName], value);
+      return;
+    }
+    vnodeConf.attrs.style = spliceStyleStr(vnodeConf.attrs[attrName], getFormatStyle(getValue()));
+    return;
+  }
+  vnodeConf.attrs[attrName] = component ? getValue() : value;
+  function getValue() {
+    return runExecuteContext('with($obj_) { return ' + value + '; }', 'bind', vnodeConf.tagName, component);
+  }
+}
+function getNormalStyleKey(key) {
+  return key.replace(/[A-Z]/g, function (k1) {
+    return '-' + k1.toLocaleLowerCase();
+  });
+}
+function getFormatStyle(v) {
+  var result = '';
+  var _iteratorNormalCompletion2 = true;
+  var _didIteratorError2 = false;
+  var _iteratorError2 = undefined;
+
+  try {
+    for (var _iterator2 = Object.keys(v)[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+      var key = _step2.value;
+
+      result += getNormalStyleKey(key) + ': ' + v[key] + ';';
+    }
+  } catch (err) {
+    _didIteratorError2 = true;
+    _iteratorError2 = err;
+  } finally {
+    try {
+      if (!_iteratorNormalCompletion2 && _iterator2.return) {
+        _iterator2.return();
+      }
+    } finally {
+      if (_didIteratorError2) {
+        throw _iteratorError2;
+      }
+    }
+  }
+
+  return result;
+}
+function spliceStyleStr(o, n) {
+  if (!o) return n;
+  if (o[o.length - 1] === ';') return o + n;
+  return o + ';' + n;
+}
+
 function migrateComponentStatus(outputNode, acceptNode) {
   if (!outputNode || !acceptNode) return;
   transitionDirect(outputNode, acceptNode);
@@ -1931,8 +1826,8 @@ function isTransitionHook(direct) {
   return TRANSITIONHOOK.includes(direct);
 }
 
-function vevent(events, comp, vnodeConf$$1) {
-  if (isReservedTag(vnodeConf$$1.tagName)) {
+function vevent(events, component, vnodeConf) {
+  if (isReservedTag(vnodeConf.tagName)) {
     var _iteratorNormalCompletion = true;
     var _didIteratorError = false;
     var _iteratorError = undefined;
@@ -1943,7 +1838,7 @@ function vevent(events, comp, vnodeConf$$1) {
 
         var name = event.attrName;
         var code = '\n        with ($obj_) {\n          return ' + event.value + ';\n        }\n      ';
-        vnodeConf$$1.attrs['on' + name] = runExecuteContext(code, 'on', vnodeConf$$1.tagName, comp);
+        vnodeConf.attrs['on' + name] = runExecuteContext(code, 'on', vnodeConf.tagName, component);
       }
     } catch (err) {
       _didIteratorError = true;
@@ -1962,10 +1857,51 @@ function vevent(events, comp, vnodeConf$$1) {
   }
 }
 
-function vfor(node, comp, vnodeConf$$1) {
+function createVnodeConf(astNode, parent) {
+  if (astNode.type === TAG) {
+    var tagName = astNode.tagName,
+        attrs = astNode.attrs,
+        indexKey = astNode.indexKey,
+        direction = astNode.direction;
+
+    var _attrs = deepClone(attrs);
+    var _direction = deepClone(direction);
+    var _children = [];
+    return vTag(tagName, _attrs, indexKey, _direction, _children, parent);
+  }
+  return vText$2(astNode.content, parent);
+}
+function vTag(tagName, attrs, indexKey, direction, children, parent) {
+  var node = Object.create(null);
+  node.type = TAG;
+  node.attrs = attrs;
+  node.parent = parent;
+  node.tagName = tagName;
+  node.indexKey = indexKey;
+  node.children = children;
+  node.direction = direction;
+  return node;
+}
+function vText$2(content, parent) {
+  var node = Object.create(null);
+  node.type = TEXT;
+  node.parent = parent;
+  node.content = content;
+  return node;
+}
+function removeChild(parent, child) {
+  var children = parent.children;
+  for (var i = 0; i < children.length; i++) {
+    if (children[i] === child) {
+      children[i] = null;
+    }
+  }
+}
+
+function vfor(node, component, vnodeConf) {
   if (!node.for || !node.forArgs) return;
   if (!node.parent) {
-    sendDirectWarn('v-for', comp.name);
+    sendDirectWarn('v-for', component.name);
     return;
   }
   var cloneNodes = [];
@@ -1987,18 +1923,18 @@ function vfor(node, comp, vnodeConf$$1) {
     });
   }
   function vforCallback(i) {
-    var cloneNode = vnodeConf(node, vnodeConf$$1.parent);
-    var key = vnodeConf$$1.indexKey + '_' + i;
+    var cloneNode = createVnodeConf(node, vnodeConf.parent);
+    var key = vnodeConf.indexKey + '_' + i;
     cloneNode.attrs['key'] = key;
     cloneNode.indexKey = key;
     node.for = false;
-    cloneNodes[i] = parseSingleNode(node, comp, cloneNode) === false ? null : cloneNode;
+    cloneNodes[i] = parseSingleNode(node, component, cloneNode) === false ? null : cloneNode;
   }
   scope$1.create();
-  runExecuteContext(code, 'for', vnodeConf$$1.tagName, comp, loopData);
+  runExecuteContext(code, 'for', vnodeConf.tagName, component, loopData);
   scope$1.destroy();
-  var index = serachIndex(vnodeConf$$1);
-  replaceWithLoopRes(vnodeConf$$1, cloneNodes, index);
+  var index = serachIndex(vnodeConf);
+  replaceWithLoopRes(vnodeConf, cloneNodes, index);
   node.for = true;
 }
 function serachIndex(node) {
@@ -2015,106 +1951,101 @@ function replaceWithLoopRes(node, res, i) {
   children.splice.apply(children, [i, 1].concat(toConsumableArray(res)));
 }
 
-function vif(node, val, comp, vnodeConf$$1) {
+function vif(node, val, component, vnodeConf) {
   if (!node.parent) {
-    return sendDirectWarn('v-if', comp.name);
+    return sendDirectWarn('v-if', component.name);
   }
-  var res = runExecuteContext('\n    with($obj_) {\n      return !!(' + val + ');\n    }\n  ', 'if', vnodeConf$$1.tagName, comp);
+  var res = runExecuteContext('\n    with($obj_) {\n      return !!(' + val + ');\n    }\n  ', 'if', vnodeConf.tagName, component);
   if (!res) {
-    removeChild(vnodeConf$$1.parent, vnodeConf$$1);
+    removeChild(vnodeConf.parent, vnodeConf);
   }
   return res;
 }
 
-function show(val, comp, vnodeConf$$1) {
+function show(val, component, vnodeConf) {
   var code = '\n    with($obj_) {\n      return !!(' + val + ');\n    }';
-  var isShow = !!runExecuteContext(code, 'show', vnodeConf$$1.tagName, comp);
+  var isShow = !!runExecuteContext(code, 'show', vnodeConf.tagName, component);
   var bindValue = {
     attrName: 'style',
     value: isShow ? '' : 'display: none'
   };
-  vnodeConf$$1.isShow = isShow;
-  if (isReservedTag(vnodeConf$$1.tagName)) {
-    bind(bindValue, comp, vnodeConf$$1);
+  vnodeConf.isShow = isShow;
+  if (isReservedTag(vnodeConf.tagName)) {
+    bind(bindValue, component, vnodeConf);
     return;
   }
-  vnodeConf$$1.vShowResult = bindValue;
+  vnodeConf.vShowResult = bindValue;
 }
 
-function text(val, comp, vnodeConf$$1) {
+function text(val, component, vnodeConf) {
   var code = 'with($obj_) { return ' + val + '; }';
-  var content = runExecuteContext(code, 'text', vnodeConf$$1.tagName, comp);
-  if (isReservedTag(vnodeConf$$1.tagName)) {
-    vnodeConf$$1.children = [vText$1(content, vnodeConf$$1)];
+  var content = runExecuteContext(code, 'text', vnodeConf.tagName, component);
+  if (isReservedTag(vnodeConf.tagName)) {
+    vnodeConf.children = [vText$2(content, vnodeConf)];
   } else {
-    vnodeConf$$1.vTextResult = content;
+    vnodeConf.vTextResult = content;
   }
 }
 
-function transition$1(val, comp, vnodeConf$$1, transtionHookFuns, isTransition) {
+function transition$1(val, component, vnodeConf, transtionHookFuns, isTransition) {
   var directName = isTransition ? 'transtion' : 'animation';
-  var transitonName = runExecuteContext('return ' + val, directName, vnodeConf$$1.tagName, comp);
+  var transitonName = runExecuteContext('return ' + val, directName, vnodeConf.tagName, component);
   var hookFuns = {};
   for (var key in transtionHookFuns) {
-    var fun = runExecuteContext('return ' + transtionHookFuns[key], directName, vnodeConf$$1.tagName, comp);
+    var fun = runExecuteContext('return ' + transtionHookFuns[key], directName, vnodeConf.tagName, component);
     hookFuns[key] = fun;
   }
-  vnodeConf$$1.vTransitionType = directName;
-  vnodeConf$$1.vTransitionData = {
+  vnodeConf.vTransitionType = directName;
+  vnodeConf.vTransitionData = {
     name: transitonName,
     hookFuns: hookFuns
   };
 }
 
-function runCustomDirect(key, tagName, val, comp) {
-  return runExecuteContext('\n    with ($obj_) {\n      return ' + val + ';\n    }', key.slice(2, key.length), tagName, comp);
+function runCustomDirect(key, tagName, val, component) {
+  return runExecuteContext('\n    with ($obj_) {\n      return ' + val + ';\n    }', key.slice(2, key.length), tagName, component);
 }
 
-function complierDirectFromAst(ast, comp) {
-  if (!comp.noStateComp) {
-    var state = comp.state;
-    if (isFunction(state)) {
-      var res = state();
-      isPlainObject(res) ? comp.state = res : grassWarn('Component "state" must be a "Object"', comp.name);
-    }
-  }
-  var vnodeConf$$1 = vnodeConf(ast);
-  vnodeConf$$1.props = Object.create(null);
-  parseSingleNode(ast, comp, vnodeConf$$1);
+function complierDirectFromAst(ast, component) {
+  var vnodeConf = createVnodeConf(ast);
+  vnodeConf.props = Object.create(null);
+  parseSingleNode(ast, component, vnodeConf);
   scope$1.resetScope();
-  return vnodeConf$$1;
+  return vnodeConf;
 }
-function complierChildrenNode(node, comp, vnodeConf$$1) {
+function complierChildrenNode(node, component, vnodeConf) {
   var children = node.children;
   if (!children || !children.length) return;
   for (var i = 0; i < children.length; i++) {
-    var childVnodeConf = vnodeConf(children[i], vnodeConf$$1);
-    vnodeConf$$1.children.push(childVnodeConf);
-    parseSingleNode(children[i], comp, childVnodeConf);
+    var childVnodeConf = createVnodeConf(children[i], vnodeConf);
+    vnodeConf.children.push(childVnodeConf);
+    parseSingleNode(children[i], component, childVnodeConf);
   }
 }
-function parseSingleNode(node, comp, vnodeConf$$1) {
+function parseSingleNode(node, component, vnodeConf) {
   switch (node.type) {
     case TAG:
-      if (parseTagNode(node, comp, vnodeConf$$1) === false) return false;
+      if (parseTagNode(node, component, vnodeConf) === false) {
+        return false;
+      }
       break;
     case STATICTAG:
-      parseStaticNode(node, comp, vnodeConf$$1);
+      parseStaticNode(node, component, vnodeConf);
       break;
   }
   if (!node.for) {
-    if (vnodeConf$$1.type === TAG && isReservedTag(vnodeConf$$1.tagName)) {
-      modifyOrdinayAttrAsLibAttr(vnodeConf$$1);
+    if (vnodeConf.type === TAG && isReservedTag(vnodeConf.tagName)) {
+      modifyOrdinayAttrAsLibAttr(vnodeConf);
     }
-    complierChildrenNode(node, comp, vnodeConf$$1);
+    complierChildrenNode(node, component, vnodeConf);
   }
 }
-function parseTagNode(node, comp, vnodeConf$$1) {
+function parseTagNode(node, component, vnodeConf) {
   if (node.hasBindings()) {
-    return complierDirect(node, comp, vnodeConf$$1);
+    return complierDirect(node, component, vnodeConf);
   }
 }
-function complierDirect(node, comp, vnodeConf$$1) {
+function complierDirect(node, component, vnodeConf) {
   var directs = node.direction;
   var nomalDirects = [];
   var customDirects = {};
@@ -2135,7 +2066,7 @@ function complierDirect(node, comp, vnodeConf$$1) {
       }
       currentCustomDirect = key;
       customDirects[key] = function delay() {
-        customDirects[key] = runCustomDirect(key, vnodeConf$$1.tagName, direct[key], comp, vnodeConf$$1);
+        customDirects[key] = runCustomDirect(key, vnodeConf.tagName, direct[key], component, vnodeConf);
       };
       return 'continue';
     }
@@ -2154,11 +2085,11 @@ function complierDirect(node, comp, vnodeConf$$1) {
 
     if (_ret === 'continue') continue;
   }
-  vnodeConf$$1.customDirection = customDirects;
+  vnodeConf.customDirection = customDirects;
   for (var w = DIRECTLENGTH - 1; w > -1; w--) {
     if (!nomalDirects[w]) continue;
     var directValue = nomalDirects[w];
-    var execResult = executSingleDirect(w, directValue, node, comp, vnodeConf$$1, transtionHookFuns);
+    var execResult = executSingleDirect(w, directValue, node, component, vnodeConf, transtionHookFuns);
     if (node.for) return;
     if (execResult === false) {
       return false;
@@ -2181,35 +2112,66 @@ function complierDirect(node, comp, vnodeConf$$1) {
     return weight === BIND || weight === ON;
   }
 }
-function parseStaticNode(node, comp, vnodeConf$$1) {
+function parseStaticNode(node, component, vnodeConf) {
   var code = '\n    with ($obj_) {\n      function _s (_val_) { return _val_ };\n      return ' + node.expression + ';\n    }\n  ';
-  vnodeConf$$1.content = runExecuteContext(code, '{{ }}', vnodeConf$$1.parent.tagName, comp);
+  vnodeConf.content = runExecuteContext(code, '{{ }}', vnodeConf.parent.tagName, component);
 }
-function executSingleDirect(weight, val, node, comp, vnodeConf$$1, transtionHookFuns) {
+function executSingleDirect(weight, val, node, component, vnodeConf, transtionHookFuns) {
   switch (weight) {
     case SHOW:
-      show(val, comp, vnodeConf$$1);
+      show(val, component, vnodeConf);
       break;
     case FOR:
-      vfor(node, comp, vnodeConf$$1);
+      vfor(node, component, vnodeConf);
       break;
     case ON:
-      vevent(val, comp, vnodeConf$$1);
+      vevent(val, component, vnodeConf);
       break;
     case TEXT$1:
-      text(val, comp, vnodeConf$$1);
+      text(val, component, vnodeConf);
       break;
     case BIND:
-      bind(val, comp, vnodeConf$$1);
+      bind(val, component, vnodeConf);
       break;
     case IF:
-      return vif(node, val, comp, vnodeConf$$1);
+      return vif(node, val, component, vnodeConf);
     case TRANSITION$1:
-      return transition$1(val, comp, vnodeConf$$1, transtionHookFuns, true);
+      return transition$1(val, component, vnodeConf, transtionHookFuns, true);
     case ANIMATION$1:
-      return transition$1(val, comp, vnodeConf$$1, transtionHookFuns, false);
+      return transition$1(val, component, vnodeConf, transtionHookFuns, false);
     default:
-      customDirect(val, comp, vnodeConf$$1);
+      customDirect(val, component, vnodeConf);
+  }
+}
+var filterAttr = {
+  'namespace': 1,
+  'className': 1,
+  'styleName': 1,
+  'style': 1,
+  'class': 1,
+  'key': 1,
+  'id': 1
+};
+var isFilter = function isFilter(key) {
+  return filterAttr[key] || key.slice(0, 2) === 'on';
+};
+function modifyOrdinayAttrAsLibAttr(node) {
+  if (!node.attrs) return;
+  var keyWord = 'attributes';
+  var attrs = node.attrs;
+  var originAttr = attrs[keyWord];
+  var keys = Object.keys(attrs);
+  attrs[keyWord] = Object.create(null);
+  for (var i = 0, len = keys.length; i < len; i++) {
+    var _key = keys[i];
+    if (isFilter(_key)) continue;
+    attrs[keyWord][_key] = attrs[_key];
+    if (_key !== keyWord) {
+      attrs[_key] = undefined;
+    }
+  }
+  if (originAttr) {
+    attrs[keyWord][keyWord] = originAttr;
   }
 }
 
@@ -2341,6 +2303,10 @@ function getComponentInstance(widgetVNode) {
   var instance = void 0;
   if (isClass$$1) {
     instance = new componentClass(data.parentConfig.attrs);
+    if (typeof instance.state === 'function') {
+      var res = instance.state();
+      isPlainObject(res) ? instance.state = res : grassWarn('Component "state" must be a "Object"', instance.name);
+    }
   } else {
     var props = getProps(data.parentConfig.attrs);
     var template = componentClass(props);
@@ -2455,12 +2421,12 @@ function renderingRealDom(widgetVNode) {
   var ast = componentClass.$ast;
   if (component.noStateComp) {
     var vtree = render(widgetVNode, ast);
-    var dom = create$1(vtree);
+    var dom = create(vtree);
     return { dom: dom, vtree: vtree };
   } else {
     component.createBefore();
     var _vtree = render(widgetVNode, ast);
-    var _dom = create$1(_vtree);
+    var _dom = create(_vtree);
     component.create(_dom);
     return { dom: _dom, vtree: _vtree };
   }
@@ -2506,7 +2472,7 @@ var Component = function () {
     value: function createBefore() {}
   }, {
     key: 'create',
-    value: function create(dom) {}
+    value: function create$$1(dom) {}
   }, {
     key: 'willUpdate',
     value: function willUpdate(dom) {}
@@ -2537,10 +2503,42 @@ var Component = function () {
 function mount(rootDOM, componentClass) {
   return new Promise(function (resolve) {
     var vnode = new WidgetVNode({}, componentClass);
-    var dom = create$1(vnode);
+    var dom = create(vnode);
     rootDOM.appendChild(dom);
     resolve(dom);
   });
+}
+var filterPropsList = {
+  'key': 1,
+  'styleName': 1,
+  'className': 1
+};
+function getProps(attrs, requireList, name) {
+  var props = Object.create(null);
+  if (!attrs) {
+    return props;
+  }
+  var keys = Object.keys(attrs);
+  var index$$1 = null;
+  for (var i = 0; i < keys.length; i++) {
+    var key = keys[i];
+    if (filterPropsList[key]) {
+      continue;
+    }
+    var val = attrs[key];
+    if (!requireList) {
+      props[key] = val;
+    } else if (requireList && ~(index$$1 = requireList.indexOf(key))) {
+      props[key] = val;
+      requireList.splice(index$$1, 1);
+    }
+  }
+  if (requireList && requireList.length) {
+    for (var j = 0; j < requireList.length; j++) {
+      warn('Parent component does not pass "' + requireList[j] + '" attribute  \n\n    --->  ' + name + '\n', true);
+    }
+  }
+  return props;
 }
 
 var BaseObserver = function () {
@@ -2696,12 +2694,12 @@ function CSSModules(style) {
     if (!component || isEmptyObj(style)) {
       return component;
     }
-    component.CSSModules = function (vnodeConf$$1, _compName) {
+    component.CSSModules = function (vnodeConf, _compName) {
       compName = _compName;
-      if (haveStyleName(vnodeConf$$1)) {
-        replaceStyleName(vnodeConf$$1.attrs, style, vnodeConf$$1.tagName);
+      if (haveStyleName(vnodeConf)) {
+        replaceStyleName(vnodeConf.attrs, style, vnodeConf.tagName);
       }
-      applyChildren(vnodeConf$$1, style);
+      applyChildren(vnodeConf, style);
     };
     return component;
   };

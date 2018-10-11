@@ -2,13 +2,13 @@ import bind from './bind'
 import runExecuteContext from './execution-env'
 import * as _ from '../utils/index'
 
-export default function show (val, comp, vnodeConf) {
+export default function show (val, component, vnodeConf) {
   const code = `
     with($obj_) {
       return !!(${val});
     }`
 
-  const isShow = !!runExecuteContext(code, 'show', vnodeConf.tagName, comp)
+  const isShow = !!runExecuteContext(code, 'show', vnodeConf.tagName, component)
 
   const bindValue = {
     attrName: 'style',
@@ -20,7 +20,7 @@ export default function show (val, comp, vnodeConf) {
   vnodeConf.isShow = isShow
 
   if (_.isReservedTag(vnodeConf.tagName)) {
-    bind(bindValue, comp, vnodeConf)
+    bind(bindValue, component, vnodeConf)
     return
   }
 
