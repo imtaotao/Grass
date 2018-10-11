@@ -1,13 +1,14 @@
 import * as _ from '../utils/index'
 import scope from './scope'
+import { createVnodeConf } from './util'
 import { parseSingleNode } from './index'
 import runExecuteContext from './execution-env'
 
-export default function vfor (node, comp, vnodeConf) {
+export default function vfor (node, component, vnodeConf) {
   if (!node.for || !node.forArgs) return
 
   if (!node.parent) {
-    _.sendDirectWarn('v-for', comp.name)
+    _.sendDirectWarn('v-for', component.name)
     return
   }
 
@@ -38,21 +39,22 @@ export default function vfor (node, comp, vnodeConf) {
   }
 
   function vforCallback (i) {
-    const cloneNode = _.vnodeConf(node, vnodeConf.parent)
-    const key = vnodeConf.attrs.indexKey + '_' + i
+    const cloneNode = createVnodeConf(node, vnodeConf.parent)
+    const key = vnodeConf.indexKey + '_' + i
 
     cloneNode.attrs['key'] = key
+    cloneNode.indexKey = key
 
     // 我们要避免无限递归的进入 for 指令
     node.for = false
 
-    cloneNodes[i] = parseSingleNode(node, comp, cloneNode) === false
+    cloneNodes[i] = parseSingleNode(node, component, cloneNode) === false
       ? null
       : cloneNode
   }
 
   scope.create()
-  runExecuteContext(code, 'for', vnodeConf.tagName, comp, loopData)
+  runExecuteContext(code, 'for', vnodeConf.tagName, component, loopData)
   scope.destroy()
 
   const index = serachIndex(vnodeConf)

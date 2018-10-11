@@ -48,4 +48,4 @@ function isUndef (v) {
 }
 
 VirtualNode.prototype.version = version
-VirtualNode.prototype.type = "VirtualNode"
+VirtualNode.prototype.type = 'VirtualNode'

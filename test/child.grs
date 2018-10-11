@@ -1,5 +1,23 @@
 <template name="Child" styleSrc="./style.css">
-  <p styleName="test-block" v-show="this.props.show">
+  <p styleName="test-block" v-show="this.props.show" style="color:#fff;"  v-tt="this.props" v-ttt="this">
     121
   </p>
 </template>
+
+<script>
+  import Grass, { CSSModules } from '../src'
+
+  @CSSModules(require('./style.css'))
+  export default class Child extends Grass.Component {
+    constructor (props) {
+      super(props, ['test1'])
+
+      console.log(this.props);
+    }
+  }
+
+  console.log(Grass);
+  Grass.directive('ttt', (...args) => {
+    console.log(...args);
+  })
+</script>

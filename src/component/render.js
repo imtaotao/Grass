@@ -1,92 +1,81 @@
 import * as _ from '../utils/index'
-import complierAst from '../directives/index'
-import createCompVnode from './widget-vnode'
-import { _h } from './overrides'
 import { TAG } from '../ast/parse-template'
-import { addCache, getCache } from './cache'
-import { createCompInstance, setCompId } from './instance'
+import { WidgetVNode } from './component-vnode'
+import { createVNode } from './create-vnode'
+import { migrateComponentStatus } from './component-transfer'
+import complierDirectFromAst from '../directives/index'
 
-export default function render (parentConf, ast, comp) {
-  const vnodeConf = complierAst(ast, comp)
+export function render (widgetVNode, ast) {
+  const { component, data, componentClass } = widgetVNode
+  const vnodeConfig = complierDirectFromAst(ast, component)
 
-  _.migrateCompStatus(parentConf, vnodeConf)
-
-  if (typeof comp.constructor.CSSModules === 'function') {
-    comp.constructor.CSSModules(vnodeConf, comp.name)
+  /**
+   * We need transfer some data to child component from parent component
+   * example: props
+  */
+  if (!_.isEmptyObj(data.parentConfig)) {
+    migrateComponentStatus(data.parentConfig, vnodeConfig)
   }
-
-  return _h(vnodeConf, generatorChildren(vnodeConf.children, comp))
-}
-
-function generatorChildren (children, comp) {
-  const vnodeTree = []
-  for (let i = 0; i < children.length; i++) {
-    if (!children[i]) {
-      continue
-    }
-
-    const conf = children[i]
-    if (conf.type === TAG) {
-      if (!_.isReservedTag(conf.tagName)) {
-        // 自定义组件
-        vnodeTree.push(createCustomComp(conf, comp, i))
-        continue
-      }
-
-      // 递归创建 vnode
-      vnodeTree.push(_h(conf, generatorChildren(conf.children, comp)))
-      continue
-    }
-
-    // 文本节点直接添加文件就好了，过滤掉换行空格
-    const content = _.toString(conf.content)
-    if (content.trim()) {
-      vnodeTree.push(content)
-    }
-  }
-
-  return vnodeTree
-}
-
-function createCustomComp (parentConf, comp, i) {
-  const cacheInstance = getCache(comp, parentConf.tagName, i)
-  const tagName = parentConf.tagName
-
-  if (cacheInstance) {
-    // 如果有缓存的组件，我们就使用缓存
-    // 同时需要改变对子组件的 props 以及 指令，进行重新 diff
-    cacheInstance.$parentConf = parentConf
-    return createCompVnode(parentConf, comp, cacheInstance)
-  }
-
-  const childComp = getChildComp(comp, tagName)
-
-  if (typeof childComp !== 'function') {
-    _.grassWarn(`Component [${tagName}] is not registered`, comp.name)
-    return
-  }
-
-  const childCompInstance = createCompInstance(childComp, parentConf, comp)
   
-  setCompId(comp, childCompInstance, i)
-  addCache(comp, tagName, childCompInstance, i)
 
-  return createCompVnode(parentConf, comp, childCompInstance)
+  // deal with css modules hook function
+  if (typeof componentClass.CSSModules === 'function') {
+    componentClass.CSSModules(vnodeConfig, component.name)
+  }
+
+  return createVNode(vnodeConfig, genChildren(vnodeConfig.children, component))
 }
 
-// 拿到子组件
-function getChildComp (parentComp, tagName) {
-  if (!parentComp.component) return null
+export function genChildren (children, component) {
+  const vnodeChildren = []
 
-  let childComps = parentComp.component
-
-  if (typeof childComps === 'function') {
-    childComps = childComps()
+  for (let i = 0, len = children.length; i < len; i++) {
+    const child = children[i]
+    if (child) {
+      if (child.type === TAG) {
+        // If is a reserved tag
+        if (_.isReservedTag(child.tagName)) {
+          const vnode = createVNode(child, genChildren(child.children, component))
+          vnodeChildren.push(vnode)
+        } else {
+          // If a component tag
+          const childCompoentClass = getComponentClass(child, component)
+          const vnode = new WidgetVNode(child, childCompoentClass)
+          vnodeChildren.push(vnode)
+        }
+      } else {
+        const content = _.toString(child.content)
+        if (content.trim()) {
+          vnodeChildren.push(content)
+        }
+      }
+    }
   }
 
-  if (_.isPlainObject(childComps)) {
-    return childComps[tagName]
+  return vnodeChildren
+}
+
+
+function getComponentClass (vnodeConfig, parentCompnent) {
+  let childComponents = parentCompnent.component
+  const { tagName } = vnodeConfig
+  const warn = () => {
+    _.grassWarn(`Component [${tagName}] is not registered`, parentCompnent.name)
   }
 
-  return null
+  if (!childComponents) {
+    warn()
+    return null
+  }
+
+  // 'components' attribute of component is function or object, so, we need judgment
+  if (typeof childComponents === 'function') {
+    childComponents = childComponents()
+  }
+
+  if (_.isPlainObject(childComponents)) {
+    return childComponents[tagName]
+  }
+
+  warn()
 }

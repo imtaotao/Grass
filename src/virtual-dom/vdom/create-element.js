@@ -3,9 +3,9 @@ import applyProperties from './apply-properties'
 import { enter } from './transition'
 import { isVNode, isVText, isWidget } from '../vnode/typeof-vnode'
 
-export default function createElement (vnode, parentNode) {
+export default function createElement (vnode) {
   if (isWidget(vnode)) {
-    const node = vnode.init(parentNode)
+    const node = vnode.init()
 
     if (typeof vnode.elementCreated === 'function') {
       vnode.elementCreated(node, vnode)
@@ -39,11 +39,7 @@ export default function createElement (vnode, parentNode) {
     vnode.elementCreated(node, vnode)
   }
 
-  if (!vnode.haveShowTag) {
-    if (!node.parentNode && parentNode) {
-      node.parent = parentNode
-    }
-
+  if (!vnode.data.haveShowTag) {
     enter(node, vnode, _.noop)
   }
 

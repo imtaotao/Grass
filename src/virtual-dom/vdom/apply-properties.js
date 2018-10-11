@@ -10,7 +10,7 @@ export default function applyProperties(node, vnode, props, previous) {
     } else if (isObject(propValue)) {
       patchObject(node, propName, propValue, previous)
     } else {
-      if (propName === 'style' && vnode.haveShowTag) {
+      if (propName === 'style' && vnode.data.haveShowTag) {
         transition(node, vnode, propValue, () => {
           node[propName] = propValue
         })

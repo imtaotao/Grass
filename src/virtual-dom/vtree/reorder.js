@@ -185,27 +185,24 @@ function remove(arr, index, key) {
   arr.splice(index, 1)
 
   return {
-      from: index,
-      key: key
+    key,
+    from: index,
   }
 }
 
 function keyIndex(children) {
-  var keys = {}
-  var free = []
-  var length = children.length
+  const keys = {}
+  const free = []
+  const length = children.length
 
-  for (var i = 0; i < length; i++) {
-      var child = children[i]
-      if (child.key) {
-          keys[child.key] = i
-      } else {
-          free.push(i)
-      }
+  for (let i = 0; i < length; i++) {
+    const child = children[i]
+    if (child.key) {
+      keys[child.key] = i
+    } else {
+      free.push(i)
+    }
   }
 
-  return {
-      keys: keys,
-      free: free,
-  }
+  return { keys, free }
 }

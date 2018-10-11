@@ -1,24 +1,24 @@
 import scope from './scope'
 import * as _ from '../utils/index'
 
-export default function runExecuteContext (runCode, directName, tagName, comp, callback) {
-  const { noStateComp, state, props } = comp
-  const insertScope = noStateComp ? props : state
+export default function runExecuteContext (runCode, directName, tagName, component, callback) {
+  const { noStatecomp, state, props } = component
+  const insertScope = noStatecomp ? props : state
   const realData = scope.insertChain(insertScope || {})
 
   if (directName !== '{{ }}') {
     directName = 'v-' + directName
   }
 
-  return run(runCode, directName, tagName, comp, callback, realData)
+  return run(runCode, directName, tagName, component, callback, realData)
 }
 
-function run (runCode, directName, tagName, comp, callback, state) {
+function run (runCode, directName, tagName, component, callback, state) {
   try {
     const fun = new Function('$obj_', '$callback_', runCode)
-    return fun.call(comp, state, callback)
+    return fun.call(component, state, callback)
   } catch (error) {
     _.warn(`Component directive compilation error  \n\n  "${directName}":  ${error}\n\n
-    --->  ${comp.name}: <${tagName || ''}/>\n`)
+    --->  ${component.name}: <${tagName || ''}/>\n`)
   }
 }

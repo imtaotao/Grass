@@ -60,7 +60,7 @@ if (hasTransition) {
 }
 
 export function enter (node, vnode, rm) {
-  const { vTransitionType, vTransitionData } = vnode
+  const { vTransitionType, vTransitionData } = vnode.data
 
   if (!vTransitionType) {
     rm()
@@ -112,7 +112,7 @@ export function enter (node, vnode, rm) {
 }
 
 export function leave (node, vnode, rm) {
-    const { vTransitionType, vTransitionData } = vnode
+    const { vTransitionType, vTransitionData } = vnode.data
 
     if (!vTransitionType) {
       rm()
@@ -156,7 +156,7 @@ export function leave (node, vnode, rm) {
 
     const cb = node._leaveCb = _.once((noRemove) => {
       if (!noRemove && node.parentNode && node.parentNode._pending) {
-        node.parentNode._pending.splice(node._index, 1)
+        node.parentNode._pending[node._index] = null
       }
 
       removeTransitionClass(node, leaveToClass)
@@ -254,7 +254,7 @@ export function applyPendingNode(parentNode) {
   if (pendingNode && pendingNode.length) {
     for (let i = 0, len = pendingNode.length; i < len; i++) {
       const node = pendingNode[i]
-      node._leaveCb && node._leaveCb(true)
+      node && node._leaveCb && node._leaveCb(true)
     }
 
     parentNode._pending = []

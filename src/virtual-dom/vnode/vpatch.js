@@ -21,4 +21,4 @@ export default function VirtualPatch(type, vNode, patch) {
 }
 
 VirtualPatch.prototype.version = version
-VirtualPatch.prototype.type = "VirtualPatch"
+VirtualPatch.prototype.type = 'VirtualPatch'

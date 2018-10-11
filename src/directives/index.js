@@ -12,6 +12,7 @@ import runCustomDirect from './custom-direct'
 import runExecuteContext from './execution-env'
 import { TAG, STATICTAG } from '../ast/parse-template'
 import { haveRegisteredCustomDirect } from '../global-api/constom-directive'
+import { createVnodeConf } from './util'
 
 /**
  *  vnodeConf 作为一个创建 vnodeTree 的配置项
@@ -20,67 +21,57 @@ import { haveRegisteredCustomDirect } from '../global-api/constom-directive'
  *  所以我们只能尽量降低每次编译指令时的开销
  */
 
-export default function complierAst (ast, comp) {
-  if (!comp.noStateComp) {
-    const state = comp.state
-
-    if (_.isFunction(state)) {
-      const res = state()
-      _.isPlainObject(res)
-        ? comp.state = res
-        : _.grassWarn('Component "state" must be a "Object"', comp.name)
-    }
-  }
-
-  const vnodeConf = _.vnodeConf(ast)
+export default function complierDirectFromAst (ast, component) {
+  const vnodeConf = createVnodeConf(ast)
   vnodeConf.props = Object.create(null)
 
-  parseSingleNode(ast, comp, vnodeConf)
+  parseSingleNode(ast, component, vnodeConf)
 
   // 每个组件编译完成，都要 reset 作用域
   scope.resetScope()
   return vnodeConf
 }
 
-export function complierChildrenNode (node, comp, vnodeConf) {
+export function complierChildrenNode (node, component, vnodeConf) {
   const children = node.children
   if (!children || !children.length) return
 
   for (let i = 0; i < children.length; i++) {
-    const childVnodeConf = _.vnodeConf(children[i], vnodeConf)
+    const childVnodeConf = createVnodeConf(children[i], vnodeConf)
     vnodeConf.children.push(childVnodeConf)
-    parseSingleNode(children[i], comp, childVnodeConf)
+    parseSingleNode(children[i], component, childVnodeConf)
   }
 }
 
-export function parseSingleNode (node, comp, vnodeConf) {
+export function parseSingleNode (node, component, vnodeConf) {
   switch (node.type) {
     case TAG :
-      if (parseTagNode(node, comp, vnodeConf) === false)
+      if (parseTagNode(node, component, vnodeConf) === false) {
         return false
+      }
       break
     case STATICTAG :
-      parseStaticNode(node, comp, vnodeConf)
+      parseStaticNode(node, component, vnodeConf)
       break
   }
 
   if (!node.for) {
     if (vnodeConf.type === TAG && _.isReservedTag(vnodeConf.tagName)) {
-      _.modifyOrdinayAttrAsLibAttr(vnodeConf)
+      modifyOrdinayAttrAsLibAttr(vnodeConf)
     }
 
-    complierChildrenNode(node, comp, vnodeConf)
+    complierChildrenNode(node, component, vnodeConf)
   }
 }
 
-function parseTagNode (node, comp, vnodeConf) {
+function parseTagNode (node, component, vnodeConf) {
   // 处理有指令的情况，我们会在每个指令的执行过程中进行递归调用，编译其 children
   if (node.hasBindings()) {
-    return complierDirect(node, comp, vnodeConf)
+    return complierDirect(node, component, vnodeConf)
   }
 }
 
-function complierDirect (node, comp, vnodeConf) {
+function complierDirect (node, component, vnodeConf) {
   const directs = node.direction
   const nomalDirects = []
   const customDirects = {}
@@ -105,7 +96,7 @@ function complierDirect (node, comp, vnodeConf) {
       }
       currentCustomDirect = key
       customDirects[key] = function delay () {
-        customDirects[key] = runCustomDirect(key, vnodeConf.tagName, direct[key], comp, vnodeConf)
+        customDirects[key] = runCustomDirect(key, vnodeConf.tagName, direct[key], component, vnodeConf)
       }
       continue
     }
@@ -132,7 +123,7 @@ function complierDirect (node, comp, vnodeConf) {
   for (let w = W.DIRECTLENGTH - 1; w > -1; w--) {
     if (!nomalDirects[w]) continue
     const directValue = nomalDirects[w]
-    const execResult = executSingleDirect(w, directValue, node, comp, vnodeConf, transtionHookFuns)
+    const execResult = executSingleDirect(w, directValue, node, component, vnodeConf, transtionHookFuns)
 
     if (node.for) return
     if (execResult === false) {
@@ -168,40 +159,78 @@ function complierDirect (node, comp, vnodeConf) {
   }
 }
 
-function parseStaticNode (node, comp, vnodeConf) {
+function parseStaticNode (node, component, vnodeConf) {
   const code = `
     with ($obj_) {
       function _s (_val_) { return _val_ };
       return ${node.expression};
     }
   `
-  vnodeConf.content = runExecuteContext(code, '{{ }}', vnodeConf.parent.tagName, comp)
+  vnodeConf.content = runExecuteContext(code, '{{ }}', vnodeConf.parent.tagName, component)
 }
 
-function executSingleDirect (weight, val, node, comp, vnodeConf, transtionHookFuns) {
+function executSingleDirect (weight, val, node, component, vnodeConf, transtionHookFuns) {
   switch (weight) {
     case W.SHOW :
-      show(val, comp, vnodeConf)
+      show(val, component, vnodeConf)
       break
     case W.FOR :
-      vfor(node, comp, vnodeConf)
+      vfor(node, component, vnodeConf)
       break
     case W.ON :
-      vevent(val, comp, vnodeConf)
+      vevent(val, component, vnodeConf)
       break
     case W.TEXT :
-      text(val, comp, vnodeConf)
+      text(val, component, vnodeConf)
       break
     case W.BIND :
-      bind(val, comp, vnodeConf)
+      bind(val, component, vnodeConf)
       break
     case W.IF :
-      return vif(node, val, comp, vnodeConf)
+      return vif(node, val, component, vnodeConf)
     case W.TRANSITION :
-      return transition(val, comp, vnodeConf, transtionHookFuns, true)
+      return transition(val, component, vnodeConf, transtionHookFuns, true)
     case W.ANIMATION :
-      return transition(val, comp, vnodeConf, transtionHookFuns, false)
+      return transition(val, component, vnodeConf, transtionHookFuns, false)
     default :
-      customDirect(val, comp, vnodeConf)
+      customDirect(val, component, vnodeConf)
+  }
+}
+
+const filterAttr = {
+  'namespace': 1,
+  'className': 1,
+  'styleName': 1,
+  'style': 1,
+  'class': 1,
+  'key': 1,
+  'id': 1,
+}
+
+const isFilter = key => {
+  return filterAttr[key] || key.slice(0, 2) === 'on'
+}
+
+function modifyOrdinayAttrAsLibAttr (node) {
+  if (!node.attrs) return
+  const keyWord = 'attributes'
+  const attrs = node.attrs
+  const originAttr = attrs[keyWord]
+  const keys = Object.keys(attrs)
+
+  attrs[keyWord] = Object.create(null)
+
+  for (let i = 0, len = keys.length; i < len; i++) {
+    const key = keys[i]
+    if (isFilter(key)) continue
+    attrs[keyWord][key] = attrs[key]
+
+    if (key !== keyWord) {
+      attrs[key] = undefined
+    }
+  }
+
+  if (originAttr) {
+    attrs[keyWord][keyWord] = originAttr
   }
 }
