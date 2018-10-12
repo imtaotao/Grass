@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div @click.self.prevent="this.callback.bind(this)">
+    <div @click.self.stop.prevent="this.callback.bind(this)">
       <span>dsf</span>
       点击
     </div>

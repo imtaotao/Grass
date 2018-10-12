@@ -25,7 +25,7 @@ export default function vevent (events, component, vnodeConf) {
 }
 
 function createModifiersFun (modifiers, cb) {
-  return function (e) {
+  function eventCallback (e) {
     let haveSelf
     const isSelf = e.target === e.currentTarget
 
@@ -33,6 +33,7 @@ function createModifiersFun (modifiers, cb) {
       const val = modifiers[i]
       val === 'self' && (haveSelf = true)
 
+      // Modifier order is important
       haveSelf
         ? isSelf && dealWithModifier(val)
         : dealWithModifier(val)
@@ -43,6 +44,11 @@ function createModifiersFun (modifiers, cb) {
       : cb.call(this, e)
 
     function dealWithModifier (val) {
+      /**
+       * We can't achieve 'once' modifier, because, we need allow user use custom 'bind' function,
+       * this function return a new function, resulting in we can't get same value.
+       * Maybe we can help user bind 'bind' function
+       **/
       switch (val) {
         case 'prevent' :
           e.preventDefault()
@@ -53,4 +59,6 @@ function createModifiersFun (modifiers, cb) {
       }
     }
   }
+
+  return eventCallback
 }
