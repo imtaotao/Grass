@@ -1,12 +1,15 @@
 <template>
   <div>
-    <div @click="this.callback.bind(this)">点击</div>
+    <div @click.self.prevent="this.callback.bind(this)">
+      <span>dsf</span>
+      点击
+    </div>
     <div>
       <bb v-show="show" v-tt="api"/>
     </div>
 
     <Child test1="api" :test2="api" :show="show"/>
-    <div v-for="val of arr"  v-transition="'slide-fade'" v-show="show">fsda</div>
+    <div v-for="val of arr"  v-transition.animate="'slide-fade'" v-show="show">fsda</div>
   </div>
 </template>
 
@@ -32,6 +35,7 @@
 
     callback (api) {
       this.setState({show: !this.state.show, arr: [1, 2, 3, 4, 5]})
+      console.log(121);
     }
 
     beforeEnter (dom) {
