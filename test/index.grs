@@ -8,7 +8,11 @@
       <bb v-show="show" v-tt="api"/>
     </div>
 
-    <Child test1="api" :test2="api" :show="show"/>
+    <Child test1="api" :test2="api" :show="true" :api="api">
+      <div slot="tao">{{api}}</div>
+      tt
+      <bb slot='fangfang'></bb>
+    </Child>
     <div v-for="val of arr"  v-transition.animate="'slide-fade'" v-show="show">fsda</div>
   </div>
 </template>
@@ -34,7 +38,11 @@
     }
 
     callback (api) {
-      this.setState({show: !this.state.show, arr: [1, 2, 3, 4, 5]})
+      this.setState({
+        show: !this.state.show,
+        arr: [1, 2, 3, 4, 5],
+        api: 'taotao',
+      })
       console.log(121);
     }
 
@@ -67,7 +75,7 @@
 
 
   Grass.directive('tt', (dom, val) => {
-    console.log(dom, val);
+    // console.log(dom, val);
   })
   Grass.mount(document.getElementById('root'), Root) 
 </script>

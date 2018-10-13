@@ -2,6 +2,7 @@ import * as _ from '../utils/index'
 import { TAG } from '../ast/parse-template'
 import { WidgetVNode } from './component-vnode'
 import { createVNode } from './create-vnode'
+import { getSlotVnode, pushSlotVnode } from './component-slot'
 import { migrateComponentStatus } from './component-transfer'
 import complierDirectFromAst from '../directives/index'
 
@@ -11,7 +12,7 @@ export function render (widgetVNode, ast) {
 
   /**
    * We need transfer some data to child component from parent component
-   * example: props
+   * example: props, slot data
   */
   if (!_.isEmptyObj(data.parentConfig)) {
     migrateComponentStatus(data.parentConfig, vnodeConfig)
@@ -37,10 +38,21 @@ export function genChildren (children, component) {
         if (_.isReservedTag(child.tagName)) {
           const vnode = createVNode(child, genChildren(child.children, component))
           vnodeChildren.push(vnode)
+        } else if (_.isInternelTag(child.tagName)) {
+          // If a slot
+          if (child.tagName === 'slot') {
+            const vnode = getSlotVnode(child.attrs.name, component)
+
+            if (vnode) {
+              pushSlotVnode(vnodeChildren, vnode)
+            }
+          }
         } else {
           // If a component tag
           const childCompoentClass = getComponentClass(child, component)
-          const vnode = new WidgetVNode(child, childCompoentClass)
+          const slotVnode = genChildren(child.children, component)
+          const vnode = new WidgetVNode(child, slotVnode, childCompoentClass)
+
           vnodeChildren.push(vnode)
         }
       } else {

@@ -29,6 +29,7 @@ export default function complierDirectFromAst (ast, component) {
 
   // 每个组件编译完成，都要 reset 作用域
   scope.resetScope()
+
   return vnodeConf
 }
 
@@ -209,6 +210,7 @@ const filterAttr = {
   'styleName': 1,
   'style': 1,
   'class': 1,
+  'slot': 1,
   'key': 1,
   'id': 1,
 }

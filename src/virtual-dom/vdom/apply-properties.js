@@ -16,7 +16,7 @@ export default function applyProperties(node, vnode, props, previous) {
         })
       } else if (propName === 'className') {
         addClass(node, propValue)
-      } else {
+      } else if (isAllow(propName)) {
         node[propName] = propValue
       }
     }
@@ -101,4 +101,8 @@ function transition (node, vnode, propValue, callback) {
 
 function isObject(x) {
 	return typeof x === 'object' && x !== null
+}
+
+function isAllow (x) {
+  return x !== 'slot'
 }

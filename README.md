@@ -16,34 +16,22 @@
     }
 
     // dom 节点创建之前
-    createBefor () {
-      // ...
-    }
+    createBefor () {}
 
     // dom 节点创建之后
-    create (dom) {
-      // ...
-    }
+    create (dom) {}
 
     // 将要更新组件
-    willUpdate () {
-      // ...
-    }
+    willUpdate () {}
 
     // 父组件更新，当前子组件也要，接受父组件传递的 props，return false 可以阻止当前子组件更新
-    willReceiveProps (props) {
-
-    }
+    willReceiveProps (props) {}
 
     // 更新完成
-    didUpdate (dom) {
-      // ...
-    }
+    didUpdate (dom) {}
 
     // 当前组件销毁前
-    destroy (dom) {
-      // ...
-    }
+    destroy (dom) {}
 
     change () {
       // setState 也可以是一个函数，return 一个 state
@@ -88,8 +76,12 @@
   + `v-text`
   + `v-for`
   + `v-transition`
-  + `v-animation`
   + 还可以自定义指令
+
+`v-on` 和 `v-transition` 拥有修饰符的功能
++ `v-on` 拥有 prevet, self, stop 三个修饰符，他们的使用与 vue 的一样，顺序一样是很重要的。至于为什么缺少 once 修饰符，因为现在允许用户手动绑定 bind，导致我们每次得到的都是一个全新的函数，在 diff 的过程中，会重新给添加到 dom 的事件上。除非我们自动帮开发者绑定 this
+
++ `v-transition` 只有一个修饰符，animate, 这个修饰符用来告诉 Grass，当前动画是 transition 的方式还是 animation 的方式，这样才能保证我们的动画钩子正确的调用
 
 ```js
   // 自定义指令

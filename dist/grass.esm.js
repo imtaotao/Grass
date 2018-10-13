@@ -490,6 +490,10 @@ var isIOS = UA && /iphone|ipad|ipod|ios/.test(UA);
 var isChrome = UA && /chrome\/\d+/.test(UA) && !isEdge;
 var isHTMLTag = makeMap('html,body,base,head,link,meta,style,title,' + 'address,article,aside,footer,header,h1,h2,h3,h4,h5,h6,hgroup,nav,section,' + 'div,dd,dl,dt,figcaption,figure,picture,hr,img,li,main,ol,p,pre,ul,' + 'a,b,abbr,bdi,bdo,br,cite,code,data,dfn,em,i,kbd,mark,q,rp,rt,rtc,ruby,' + 's,samp,small,span,strong,sub,sup,time,u,var,wbr,area,audio,map,track,video,' + 'embed,object,param,source,canvas,script,noscript,del,ins,' + 'caption,col,colgroup,table,thead,tbody,td,th,tr,' + 'button,datalist,fieldset,form,input,label,legend,meter,optgroup,option,' + 'output,progress,select,textarea,' + 'details,dialog,menu,menuitem,summary,' + 'content,element,shadow,template,blockquote,iframe,tfoot');
 var isSVG = makeMap('svg,animate,circle,clippath,cursor,defs,desc,ellipse,filter,font-face,' + 'foreignObject,g,glyph,image,line,marker,mask,missing-glyph,path,pattern,' + 'polygon,polyline,rect,switch,symbol,text,textpath,tspan,use,view', true);
+var isinternel = makeMap('slot');
+function isInternelTag(tag) {
+  return isinternel(tag);
+}
 function isReservedTag(tag) {
   return isHTMLTag(tag) || isSVG(tag);
 }
@@ -1182,7 +1186,7 @@ function applyProperties(node, vnode, props, previous) {
         });
       } else if (propName === 'className') {
         addClass(node, propValue);
-      } else {
+      } else if (isAllow(propName)) {
         node[propName] = propValue;
       }
     }
@@ -1247,6 +1251,9 @@ function transition(node, vnode, propValue, callback) {
 }
 function isObject$2(x) {
   return (typeof x === 'undefined' ? 'undefined' : _typeof(x)) === 'object' && x !== null;
+}
+function isAllow(x) {
+  return x !== 'slot';
 }
 
 function createElement(vnode) {
@@ -1576,7 +1583,38 @@ function createVNode(vnodeConfig, children) {
   if (!isUndef(vnodeConfig.isShow)) {
     vnode.data.haveShowTag = true;
   }
+  if (attrs.slot) {
+    vnode.slot = attrs.slot;
+  }
   return vnode;
+}
+
+function getSlotVnode(name, component) {
+  var slot = component.$slot;
+  if (isUndef(name)) {
+    return slot;
+  }
+  if (slot && Array.isArray(slot) && slot.length) {
+    for (var i = 0, len = slot.length; i < len; i++) {
+      var vnode = slot[i];
+      if (isVnode(vnode)) {
+        if (name === vnode.slot) {
+          return vnode;
+        }
+      }
+    }
+  }
+  return null;
+}
+function pushSlotVnode(vnodeChildren, vnode) {
+  if (Array.isArray(vnode)) {
+    vnodeChildren.splice.apply(vnodeChildren, [vnodeChildren.length, 0].concat(toConsumableArray(vnode)));
+  } else {
+    vnodeChildren.push(vnode);
+  }
+}
+function isVnode(v) {
+  return isVNode(v) || isVText(v) || isWidget(v);
 }
 
 var scope = null;
@@ -1643,11 +1681,11 @@ var scope$1 = {
 };
 
 function runExecuteContext(runCode, directName, tagName, component, callback) {
-  var noStatecomp = component.noStatecomp,
+  var noStateComp = component.noStateComp,
       state = component.state,
       props = component.props;
 
-  var insertScope = noStatecomp ? props : state;
+  var insertScope = noStateComp ? props : state;
   var realData = scope$1.insertChain(insertScope || {});
   if (directName !== '{{ }}') {
     directName = 'v-' + directName;
@@ -1872,7 +1910,7 @@ function vevent(events, component, vnodeConf) {
   }
 }
 function createModifiersFun(modifiers, cb) {
-  return function (e) {
+  function eventCallback(e) {
     var haveSelf = void 0;
     var isSelf = e.target === e.currentTarget;
     for (var i = 0, len = modifiers.length; i < len; i++) {
@@ -1891,7 +1929,8 @@ function createModifiersFun(modifiers, cb) {
           break;
       }
     }
-  };
+  }
+  return eventCallback;
 }
 
 function createVnodeConf(astNode, parent) {
@@ -2204,6 +2243,7 @@ var filterAttr = {
   'styleName': 1,
   'style': 1,
   'class': 1,
+  'slot': 1,
   'key': 1,
   'id': 1
 };
@@ -2253,10 +2293,18 @@ function genChildren(children, component) {
         if (isReservedTag(child.tagName)) {
           var vnode = createVNode(child, genChildren(child.children, component));
           vnodeChildren.push(vnode);
+        } else if (isInternelTag(child.tagName)) {
+          if (child.tagName === 'slot') {
+            var _vnode = getSlotVnode(child.attrs.name, component);
+            if (_vnode) {
+              pushSlotVnode(vnodeChildren, _vnode);
+            }
+          }
         } else {
           var childCompoentClass = getComponentClass(child, component);
-          var _vnode = new WidgetVNode(child, childCompoentClass);
-          vnodeChildren.push(_vnode);
+          var slotVnode = genChildren(child.children, component);
+          var _vnode2 = new WidgetVNode(child, slotVnode, childCompoentClass);
+          vnodeChildren.push(_vnode2);
         }
       } else {
         var content = toString$1(child.content);
@@ -2379,6 +2427,7 @@ function createNoStateComponent(props, template, componentClass) {
     noStateComp: true,
     template: template,
     props: props,
+    $slot: null,
     $data: {
       stateQueue: []
     },
@@ -2407,9 +2456,11 @@ function genAstCode(component) {
 }
 
 var WidgetVNode = function () {
-  function WidgetVNode(parentConfig, componentClass) {
+  function WidgetVNode(parentConfig, slotVnode, componentClass) {
     classCallCheck(this, WidgetVNode);
-    var haveShowTag = parentConfig.haveShowTag,
+    var _parentConfig$attrs = parentConfig.attrs,
+        attrs = _parentConfig$attrs === undefined ? {} : _parentConfig$attrs,
+        haveShowTag = parentConfig.haveShowTag,
         vTransitionType = parentConfig.vTransitionType,
         vTransitionData = parentConfig.vTransitionData,
         customDirection = parentConfig.customDirection;
@@ -2420,12 +2471,14 @@ var WidgetVNode = function () {
     this.id = parentConfig.indexKey || 'Root';
     this.componentClass = componentClass;
     this.component = null;
+    this.slot = attrs.slot;
     this.data = {
       haveShowTag: haveShowTag,
       vTransitionType: vTransitionType,
       vTransitionData: vTransitionData,
       customDirection: customDirection,
-      parentConfig: parentConfig
+      parentConfig: parentConfig,
+      slotVnode: slotVnode
     };
     this.container = {
       vtree: null,
@@ -2437,6 +2490,7 @@ var WidgetVNode = function () {
     key: 'init',
     value: function init() {
       var component = getComponentInstance(this);
+      component.$slot = this.data.slotVnode;
       component.$widgetVNode = this;
       this.component = component;
 
@@ -2511,6 +2565,7 @@ function transferData(nv, ov) {
   nv.componentClass = ov.componentClass;
   nv.container = ov.container;
   nv.component.$widgetVNode = nv;
+  nv.component.$slot = nv.data.slotVnode;
 }
 
 var Component = function () {
@@ -2521,6 +2576,7 @@ var Component = function () {
     this.state = Object.create(null);
     this.propsRequireList = requireList;
     this.props = getProps(attrs, requireList, this.name);
+    this.$slot = null;
     this.$data = {
       stateQueue: []
     };
@@ -2561,7 +2617,7 @@ var Component = function () {
 }();
 function mount(rootDOM, componentClass) {
   return new Promise(function (resolve) {
-    var vnode = new WidgetVNode({}, componentClass);
+    var vnode = new WidgetVNode({}, null, componentClass);
     var dom = create(vnode);
     rootDOM.appendChild(dom);
     resolve(dom);

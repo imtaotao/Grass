@@ -1,7 +1,9 @@
 <template name="Child" styleSrc="./style.css">
-  <p styleName="test-block" v-show="this.props.show" style="color:#fff;"  v-tt="this.props" v-ttt="this">
-    121
-  </p>
+  <div styleName="test-block" v-show="this.props.show" style="color:#fff;"  v-tt="this.props" v-ttt="this">
+    12112
+    <slot name="tao"></slot>
+    <bbb :api="this.props.api"/>
+  </div>
 </template>
 
 <script>
@@ -10,14 +12,22 @@
   @CSSModules(require('./style.css'))
   export default class Child extends Grass.Component {
     constructor (props) {
-      super(props, ['test1'])
+      super(props)
 
-      console.log(this.props);
+      console.log(this)
+    }
+
+    component () {
+      return {
+        bbb: (props) => {
+          return '<div>bbb - {{api}}</div>'
+        }
+      }
     }
   }
 
   console.log(Grass);
   Grass.directive('ttt', (...args) => {
-    console.log(...args);
+    // console.log(...args);
   })
 </script>

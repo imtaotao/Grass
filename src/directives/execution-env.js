@@ -2,8 +2,8 @@ import scope from './scope'
 import * as _ from '../utils/index'
 
 export default function runExecuteContext (runCode, directName, tagName, component, callback) {
-  const { noStatecomp, state, props } = component
-  const insertScope = noStatecomp ? props : state
+  const { noStateComp, state, props } = component
+  const insertScope = noStateComp ? props : state
   const realData = scope.insertChain(insertScope || {})
 
   if (directName !== '{{ }}') {

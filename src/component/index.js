@@ -9,8 +9,9 @@ export class Component {
     this.state = Object.create(null)
     this.propsRequireList = requireList
     this.props = getProps(attrs, requireList, this.name)
+    this.$slot = null
     this.$data = {
-      stateQueue: []
+      stateQueue: [],
     }
   }
 
@@ -35,7 +36,7 @@ export class Component {
 
 export function mount (rootDOM, componentClass) {
   return new Promise(resolve => {
-    const vnode = new WidgetVNode({}, componentClass)
+    const vnode = new WidgetVNode({}, null, componentClass)
     const dom = create(vnode)
 
     rootDOM.appendChild(dom)
