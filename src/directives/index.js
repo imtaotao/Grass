@@ -27,7 +27,7 @@ export default function complierDirectFromAst (ast, component) {
 
   parseSingleNode(ast, component, vnodeConf)
 
-  // 每个组件编译完成，都要 reset 作用域
+  // Every component compiler complete, need to reset scope 
   scope.resetScope()
 
   return vnodeConf
@@ -79,8 +79,8 @@ function complierDirect (node, component, vnodeConf) {
   const nomalDirects = []
   const customDirects = {}
   const transtionHookFuns = {}
-  let currentWeight = null // 当前保留指令
-  let currentCustomDirect = null  // 当前自定义指令
+  let currentWeight = null // Current reserved direactive
+  let currentCustomDirect = null  // Current custom direactive
   
   for (let i = 0; i < directs.length; i++) {
     const direct = directs[i]
@@ -92,7 +92,7 @@ function complierDirect (node, component, vnodeConf) {
       continue
     }
 
-    // 添加自定义指令集合
+    // Add custom direactive collection
     if (!W.isReservedDirective(key)) {
       if (!haveRegisteredCustomDirect(key) || key === currentCustomDirect) {
         continue
@@ -156,7 +156,7 @@ function complierDirect (node, component, vnodeConf) {
     }
   }
 
-  // 清除重复的指令，但是需要排除 event 和 bind 指令
+  // Clear repeat directive, but need exclude 'event' and 'bind' direactive
   function isSameDirect (weight) {
     return (
       weight !== W.BIND &&
