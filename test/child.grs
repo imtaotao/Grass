@@ -1,8 +1,14 @@
 <template name="Child" styleSrc="./style.css">
   <div styleName="test-block" v-show="this.props.show" style="color:#fff;"  v-tt="this.props" v-ttt="this">
     12112
-    <slot name="tao"></slot>
+    <slot name="tao" v-text="this.props.show"/>
     <bbb :api="this.props.api"/>
+
+    ------------
+
+    <slot/>
+    <slot name="fangfang"/>
+    {{ excellent }}
   </div>
 </template>
 
@@ -14,7 +20,9 @@
     constructor (props) {
       super(props)
 
-      console.log(this)
+      this.createState({
+        excellent: '你妹的',
+      })
     }
 
     component () {

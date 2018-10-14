@@ -61,13 +61,15 @@ export function parseSingleNode (node, component, vnodeConf) {
       modifyOrdinayAttrAsLibAttr(vnodeConf)
     }
 
-    complierChildrenNode(node, component, vnodeConf)
+    if (!_.isInternelTag(vnodeConf.tagName)) {
+      complierChildrenNode(node, component, vnodeConf)
+    }
   }
 }
 
 function parseTagNode (node, component, vnodeConf) {
   // 处理有指令的情况，我们会在每个指令的执行过程中进行递归调用，编译其 children
-  if (node.hasBindings()) {
+  if (!_.isInternelTag(vnodeConf.tagName) && node.hasBindings()) {
     return complierDirect(node, component, vnodeConf)
   }
 }
@@ -175,7 +177,7 @@ function parseStaticNode (node, component, vnodeConf) {
       return ${node.expression};
     }
   `
-  vnodeConf.content = runExecuteContext(code, '{{ }}', vnodeConf.parent.tagName, component)
+  vnodeConf.content = runExecuteContext(code, `{{ ${node.expression} }}`, vnodeConf.parent.tagName, component)
 }
 
 function executSingleDirect (weight, key, val, node, component, vnodeConf, transtionHookFuns) {

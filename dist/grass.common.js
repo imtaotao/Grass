@@ -2124,11 +2124,13 @@ function parseSingleNode(node, component, vnodeConf) {
     if (vnodeConf.type === TAG && isReservedTag(vnodeConf.tagName)) {
       modifyOrdinayAttrAsLibAttr(vnodeConf);
     }
-    complierChildrenNode(node, component, vnodeConf);
+    if (!isInternelTag(vnodeConf.tagName)) {
+      complierChildrenNode(node, component, vnodeConf);
+    }
   }
 }
 function parseTagNode(node, component, vnodeConf) {
-  if (node.hasBindings()) {
+  if (!isInternelTag(vnodeConf.tagName) && node.hasBindings()) {
     return complierDirect(node, component, vnodeConf);
   }
 }
@@ -2214,7 +2216,7 @@ function complierDirect(node, component, vnodeConf) {
 }
 function parseStaticNode(node, component, vnodeConf) {
   var code = '\n    with ($obj_) {\n      function _s (_val_) { return _val_ };\n      return ' + node.expression + ';\n    }\n  ';
-  vnodeConf.content = runExecuteContext(code, '{{ }}', vnodeConf.parent.tagName, component);
+  vnodeConf.content = runExecuteContext(code, '{{ ' + node.expression + ' }}', vnodeConf.parent.tagName, component);
 }
 function executSingleDirect(weight, key, val, node, component, vnodeConf, transtionHookFuns) {
   switch (weight) {
