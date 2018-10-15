@@ -22,27 +22,27 @@ const TRANSITIONHOOK = ['v-beforeEnter', 'v-afterEnter', 'v-beforeLeave', 'v-aft
 
 export const DIRECTLENGTH = Object.keys(directWeight).length
 
-export function getWeight (directive) {
-  let wight = directWeight[directive]
-  if (directive.includes('v-bind')) wight = BIND
-  if (directive.includes('v-on')) wight = ON
-  if (directive.includes('v-transition')) wight = TRANSITION
+export function getWeight (direation) {
+  let wight = directWeight[direation]
+  if (direation.includes('v-bind')) wight = BIND
+  if (direation.includes('v-on')) wight = ON
+  if (direation.includes('v-transition')) wight = TRANSITION
 
   return wight
 }
 
-export function isReservedDirective (directive) {
-  return directive.includes('v-') && (getWeight(directive) !== undefined)
+export function isReserveddireation (direation) {
+  return direation.includes('v-') && (getWeight(direation) !== undefined)
 }
 
-export function isTransitionHook (directive) {
-  return TRANSITIONHOOK.includes(directive)
+export function isTransitionHook (direation) {
+  return TRANSITIONHOOK.includes(direation)
 }
 
-export function splitDirective (directiveKey) {
-  const args = directiveKey.split('.')
-  const directive = args[0]
+export function splitdireation (direationKey) {
+  const args = direationKey.split('.')
+  const direation = args[0]
   const modifiers = args.splice(1)
 
-  return { directive, modifiers }
+  return { direation, modifiers }
 }

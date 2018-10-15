@@ -86,7 +86,7 @@ function complierDirect (node, component, vnodeConf) {
     const direct = directs[i]
     const key = Object.keys(direct)[0]
 
-    // 收集动画钩子函数
+    // Collect animate hook function 
     if (W.isTransitionHook(key)) {
       transtionHookFuns[key] = direct[key]
       continue
@@ -122,6 +122,7 @@ function complierDirect (node, component, vnodeConf) {
 
 
   // 指定自定义指令
+  // Spe
   vnodeConf.customDirection = customDirects
 
   // 按照指令的权重进行指令的编译
@@ -156,7 +157,7 @@ function complierDirect (node, component, vnodeConf) {
     }
   }
 
-  // Clear repeat directive, but need exclude 'event' and 'bind' direactive
+  // Clear repeat direction, but need exclude 'event' and 'bind' direactive
   function isSameDirect (weight) {
     return (
       weight !== W.BIND &&
