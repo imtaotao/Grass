@@ -39,6 +39,7 @@ function createNoStateComponent (props, template, componentClass) {
     noStateComp: true,
     template,
     props,
+    $slot: null,
     $data: {
       stateQueue: []
     },

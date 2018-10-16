@@ -60,8 +60,3 @@ function transitionClass (O, A) {
     }
   }
 }
-
-// Maybe I'll achieve slot function
-function transferSlotData (O, A) {
-
-}

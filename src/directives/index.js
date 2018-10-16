@@ -27,8 +27,9 @@ export default function complierDirectFromAst (ast, component) {
 
   parseSingleNode(ast, component, vnodeConf)
 
-  // 每个组件编译完成，都要 reset 作用域
+  // Every component compiler complete, need to reset scope 
   scope.resetScope()
+
   return vnodeConf
 }
 
@@ -60,13 +61,15 @@ export function parseSingleNode (node, component, vnodeConf) {
       modifyOrdinayAttrAsLibAttr(vnodeConf)
     }
 
-    complierChildrenNode(node, component, vnodeConf)
+    if (!_.isInternelTag(vnodeConf.tagName)) {
+      complierChildrenNode(node, component, vnodeConf)
+    }
   }
 }
 
 function parseTagNode (node, component, vnodeConf) {
   // 处理有指令的情况，我们会在每个指令的执行过程中进行递归调用，编译其 children
-  if (node.hasBindings()) {
+  if (!_.isInternelTag(vnodeConf.tagName) && node.hasBindings()) {
     return complierDirect(node, component, vnodeConf)
   }
 }
@@ -76,21 +79,21 @@ function complierDirect (node, component, vnodeConf) {
   const nomalDirects = []
   const customDirects = {}
   const transtionHookFuns = {}
-  let currentWeight = null // 当前保留指令
-  let currentCustomDirect = null  // 当前自定义指令
-
+  let currentWeight = null // Current reserved direactive
+  let currentCustomDirect = null  // Current custom direactive
+  
   for (let i = 0; i < directs.length; i++) {
     const direct = directs[i]
     const key = Object.keys(direct)[0]
 
-    // 收集动画钩子函数
+    // Collect animate hook function 
     if (W.isTransitionHook(key)) {
       transtionHookFuns[key] = direct[key]
       continue
     }
 
-    // 添加自定义指令集合
-    if (!W.isReservedDirect(key)) {
+    // Add custom direactive collection
+    if (!W.isReservedDireation(key)) {
       if (!haveRegisteredCustomDirect(key) || key === currentCustomDirect) {
         continue
       }
@@ -111,19 +114,23 @@ function complierDirect (node, component, vnodeConf) {
       continue
     }
 
-    nomalDirects[weight] = direct[key]
+    nomalDirects[weight] = {
+      key,
+      val: direct[key],
+    }
   }
 
 
   // 指定自定义指令
+  // Spe
   vnodeConf.customDirection = customDirects
 
   // 按照指令的权重进行指令的编译
   // 我们只在 for 指令第一次进入的时候只执行 for 指令，后续复制的 vnodeconf 都需要全部执行
   for (let w = W.DIRECTLENGTH - 1; w > -1; w--) {
     if (!nomalDirects[w]) continue
-    const directValue = nomalDirects[w]
-    const execResult = executSingleDirect(w, directValue, node, component, vnodeConf, transtionHookFuns)
+    const { val, key } = nomalDirects[w]
+    const execResult = executSingleDirect(w, key, val, node, component, vnodeConf, transtionHookFuns)
 
     if (node.for) return
     if (execResult === false) {
@@ -140,12 +147,17 @@ function complierDirect (node, component, vnodeConf) {
       value: direct[key],
     }
 
-    !nomalDirects[weight]
-      ? nomalDirects[weight] = [detail]
-      : nomalDirects[weight].push(detail)
+    if (!nomalDirects[weight]) {
+      nomalDirects[weight] = {
+        key: '', /** The key are changing, so it's useless */
+        val: [detail],
+      }
+    } else {
+      nomalDirects[weight].val.push(detail)
+    }
   }
 
-  // 清除重复的指令，但是需要排除 event 和 bind 指令
+  // Clear repeat direction, but need exclude 'event' and 'bind' direactive
   function isSameDirect (weight) {
     return (
       weight !== W.BIND &&
@@ -166,10 +178,10 @@ function parseStaticNode (node, component, vnodeConf) {
       return ${node.expression};
     }
   `
-  vnodeConf.content = runExecuteContext(code, '{{ }}', vnodeConf.parent.tagName, component)
+  vnodeConf.content = runExecuteContext(code, `{{ ${node.expression} }}`, vnodeConf.parent.tagName, component)
 }
 
-function executSingleDirect (weight, val, node, component, vnodeConf, transtionHookFuns) {
+function executSingleDirect (weight, key, val, node, component, vnodeConf, transtionHookFuns) {
   switch (weight) {
     case W.SHOW :
       show(val, component, vnodeConf)
@@ -189,9 +201,7 @@ function executSingleDirect (weight, val, node, component, vnodeConf, transtionH
     case W.IF :
       return vif(node, val, component, vnodeConf)
     case W.TRANSITION :
-      return transition(val, component, vnodeConf, transtionHookFuns, true)
-    case W.ANIMATION :
-      return transition(val, component, vnodeConf, transtionHookFuns, false)
+      return transition(key, val, component, vnodeConf, transtionHookFuns)
     default :
       customDirect(val, component, vnodeConf)
   }
@@ -203,6 +213,7 @@ const filterAttr = {
   'styleName': 1,
   'style': 1,
   'class': 1,
+  'slot': 1,
   'key': 1,
   'id': 1,
 }

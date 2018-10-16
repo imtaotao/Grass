@@ -494,6 +494,10 @@ var isIOS = UA && /iphone|ipad|ipod|ios/.test(UA);
 var isChrome = UA && /chrome\/\d+/.test(UA) && !isEdge;
 var isHTMLTag = makeMap('html,body,base,head,link,meta,style,title,' + 'address,article,aside,footer,header,h1,h2,h3,h4,h5,h6,hgroup,nav,section,' + 'div,dd,dl,dt,figcaption,figure,picture,hr,img,li,main,ol,p,pre,ul,' + 'a,b,abbr,bdi,bdo,br,cite,code,data,dfn,em,i,kbd,mark,q,rp,rt,rtc,ruby,' + 's,samp,small,span,strong,sub,sup,time,u,var,wbr,area,audio,map,track,video,' + 'embed,object,param,source,canvas,script,noscript,del,ins,' + 'caption,col,colgroup,table,thead,tbody,td,th,tr,' + 'button,datalist,fieldset,form,input,label,legend,meter,optgroup,option,' + 'output,progress,select,textarea,' + 'details,dialog,menu,menuitem,summary,' + 'content,element,shadow,template,blockquote,iframe,tfoot');
 var isSVG = makeMap('svg,animate,circle,clippath,cursor,defs,desc,ellipse,filter,font-face,' + 'foreignObject,g,glyph,image,line,marker,mask,missing-glyph,path,pattern,' + 'polygon,polyline,rect,switch,symbol,text,textpath,tspan,use,view', true);
+var isinternel = makeMap('slot');
+function isInternelTag(tag) {
+  return isinternel(tag);
+}
 function isReservedTag(tag) {
   return isHTMLTag(tag) || isSVG(tag);
 }
@@ -812,7 +816,8 @@ function keyIndex(children) {
 
 function diff(a, b) {
   var patch = { a: a };
-  walk(a, b, patch, 0);
+  var index = 0;
+  walk(a, b, patch, index);
   return patch;
 }
 function walk(a, b, patch, index) {
@@ -1186,7 +1191,7 @@ function applyProperties(node, vnode, props, previous) {
         });
       } else if (propName === 'className') {
         addClass(node, propValue);
-      } else {
+      } else if (isAllow(propName)) {
         node[propName] = propValue;
       }
     }
@@ -1251,6 +1256,9 @@ function transition(node, vnode, propValue, callback) {
 }
 function isObject$2(x) {
   return (typeof x === 'undefined' ? 'undefined' : _typeof(x)) === 'object' && x !== null;
+}
+function isAllow(x) {
+  return x !== 'slot';
 }
 
 function createElement(vnode) {
@@ -1544,7 +1552,7 @@ function customDirective(direct, callback) {
 function haveRegisteredCustomDirect(key) {
   return hasOwn(directContainer, key);
 }
-function elementCreated(dom, direaction) {
+function elementCreated(dom, direaction, vnode) {
   if (!direaction || isEmptyObj(direaction)) return;
   var keys = Object.keys(direaction);
 
@@ -1552,7 +1560,7 @@ function elementCreated(dom, direaction) {
     var key = keys[i];
     var val = directContainer[key];
     val.safePipe(function (callback) {
-      callback(dom, direaction[key]);
+      callback(dom, direaction[key], vnode);
     });
   };
 
@@ -1580,7 +1588,38 @@ function createVNode(vnodeConfig, children) {
   if (!isUndef(vnodeConfig.isShow)) {
     vnode.data.haveShowTag = true;
   }
+  if (attrs.slot) {
+    vnode.slot = attrs.slot;
+  }
   return vnode;
+}
+
+function getSlotVnode(name, component) {
+  var slot = component.$slot;
+  if (isUndef(name)) {
+    return slot;
+  }
+  if (slot && Array.isArray(slot) && slot.length) {
+    for (var i = 0, len = slot.length; i < len; i++) {
+      var vnode = slot[i];
+      if (isVnode(vnode)) {
+        if (name === vnode.slot) {
+          return vnode;
+        }
+      }
+    }
+  }
+  return null;
+}
+function pushSlotVnode(vnodeChildren, vnode) {
+  if (Array.isArray(vnode)) {
+    vnodeChildren.splice.apply(vnodeChildren, [vnodeChildren.length, 0].concat(toConsumableArray(vnode)));
+  } else {
+    vnodeChildren.push(vnode);
+  }
+}
+function isVnode(v) {
+  return isVNode(v) || isVText(v) || isWidget(v);
 }
 
 var scope = null;
@@ -1647,11 +1686,11 @@ var scope$1 = {
 };
 
 function runExecuteContext(runCode, directName, tagName, component, callback) {
-  var noStatecomp = component.noStatecomp,
+  var noStateComp = component.noStateComp,
       state = component.state,
       props = component.props;
 
-  var insertScope = noStatecomp ? props : state;
+  var insertScope = noStateComp ? props : state;
   var realData = scope$1.insertChain(insertScope || {});
   if (directName !== '{{ }}') {
     directName = 'v-' + directName;
@@ -1798,13 +1837,12 @@ function transitionClass(O, A) {
 }
 
 var TRANSITION$1 = 0;
-var ANIMATION$1 = 1;
-var TEXT$1 = 2;
-var SHOW = 3;
-var ON = 4;
-var BIND = 5;
-var IF = 6;
-var FOR = 7;
+var TEXT$1 = 1;
+var SHOW = 2;
+var ON = 3;
+var BIND = 4;
+var IF = 5;
+var FOR = 6;
 var directWeight = {
   'v-show': SHOW,
   'v-for': FOR,
@@ -1812,22 +1850,28 @@ var directWeight = {
   'v-text': TEXT$1,
   'v-bind': BIND,
   'v-if': IF,
-  'v-transition': TRANSITION$1,
-  'v-animation': ANIMATION$1
+  'v-transition': TRANSITION$1
 };
 var TRANSITIONHOOK = ['v-beforeEnter', 'v-afterEnter', 'v-beforeLeave', 'v-afterLeave'];
 var DIRECTLENGTH = Object.keys(directWeight).length;
-function getWeight(direct) {
-  var wight = directWeight[direct];
-  if (direct.includes('v-bind')) wight = BIND;
-  if (direct.includes('v-on')) wight = ON;
+function getWeight(direation) {
+  var wight = directWeight[direation];
+  if (direation.includes('v-bind')) wight = BIND;
+  if (direation.includes('v-on')) wight = ON;
+  if (direation.includes('v-transition')) wight = TRANSITION$1;
   return wight;
 }
-function isReservedDirect(direct) {
-  return direct.includes('v-') && getWeight(direct) !== undefined;
+function isReservedDireation(direation) {
+  return direation.includes('v-') && getWeight(direation) !== undefined;
 }
-function isTransitionHook(direct) {
-  return TRANSITIONHOOK.includes(direct);
+function isTransitionHook(direation) {
+  return TRANSITIONHOOK.includes(direation);
+}
+function splitDireation(direationKey) {
+  var args = direationKey.split('.');
+  var direation = args[0];
+  var modifiers = args.splice(1);
+  return { direation: direation, modifiers: modifiers };
 }
 
 function vevent(events, component, vnodeConf) {
@@ -1840,9 +1884,19 @@ function vevent(events, component, vnodeConf) {
       for (var _iterator = events[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
         var event = _step.value;
 
-        var name = event.attrName;
+        var direactiveKey = event.attrName;
+
+        var _splitDireation = splitDireation(direactiveKey),
+            name = _splitDireation.direation,
+            modifiers = _splitDireation.modifiers;
+
         var code = '\n        with ($obj_) {\n          return ' + event.value + ';\n        }\n      ';
-        vnodeConf.attrs['on' + name] = runExecuteContext(code, 'on', vnodeConf.tagName, component);
+        var cb = runExecuteContext(code, 'on', vnodeConf.tagName, component);
+        if (modifiers.length) {
+          vnodeConf.attrs['on' + name] = createModifiersFun(modifiers, cb);
+        } else {
+          vnodeConf.attrs['on' + name] = cb;
+        }
       }
     } catch (err) {
       _didIteratorError = true;
@@ -1859,6 +1913,29 @@ function vevent(events, component, vnodeConf) {
       }
     }
   }
+}
+function createModifiersFun(modifiers, cb) {
+  function eventCallback(e) {
+    var haveSelf = void 0;
+    var isSelf = e.target === e.currentTarget;
+    for (var i = 0, len = modifiers.length; i < len; i++) {
+      var val = modifiers[i];
+      val === 'self' && (haveSelf = true);
+      haveSelf ? isSelf && dealWithModifier(val) : dealWithModifier(val);
+    }
+    haveSelf ? isSelf && cb.call(this, e) : cb.call(this, e);
+    function dealWithModifier(val) {
+      switch (val) {
+        case 'prevent':
+          e.preventDefault();
+          break;
+        case 'stop':
+          e.stopPropagation();
+          break;
+      }
+    }
+  }
+  return eventCallback;
 }
 
 function createVnodeConf(astNode, parent) {
@@ -1991,8 +2068,15 @@ function text(val, component, vnodeConf) {
   }
 }
 
-function transition$1(val, component, vnodeConf, transtionHookFuns, isTransition) {
-  var directName = isTransition ? 'transtion' : 'animation';
+function transition$1(direactiveKey, val, component, vnodeConf, transtionHookFuns) {
+  var _splitDireation = splitDireation(direactiveKey),
+      modifiers = _splitDireation.modifiers;
+
+  var type = modifiers[0];
+  var directName = 'transtion';
+  if (type === 'animate') {
+    directName = 'animation';
+  }
   var transitonName = runExecuteContext('return ' + val, directName, vnodeConf.tagName, component);
   var hookFuns = {};
   for (var key in transtionHookFuns) {
@@ -2041,11 +2125,13 @@ function parseSingleNode(node, component, vnodeConf) {
     if (vnodeConf.type === TAG && isReservedTag(vnodeConf.tagName)) {
       modifyOrdinayAttrAsLibAttr(vnodeConf);
     }
-    complierChildrenNode(node, component, vnodeConf);
+    if (!isInternelTag(vnodeConf.tagName)) {
+      complierChildrenNode(node, component, vnodeConf);
+    }
   }
 }
 function parseTagNode(node, component, vnodeConf) {
-  if (node.hasBindings()) {
+  if (!isInternelTag(vnodeConf.tagName) && node.hasBindings()) {
     return complierDirect(node, component, vnodeConf);
   }
 }
@@ -2064,7 +2150,7 @@ function complierDirect(node, component, vnodeConf) {
       transtionHookFuns[key] = direct[key];
       return 'continue';
     }
-    if (!isReservedDirect(key)) {
+    if (!isReservedDireation(key)) {
       if (!haveRegisteredCustomDirect(key) || key === currentCustomDirect) {
         return 'continue';
       }
@@ -2081,7 +2167,10 @@ function complierDirect(node, component, vnodeConf) {
       addMultipleDirect(direct, weight, key);
       return 'continue';
     }
-    nomalDirects[weight] = direct[key];
+    nomalDirects[weight] = {
+      key: key,
+      val: direct[key]
+    };
   };
 
   for (var i = 0; i < directs.length; i++) {
@@ -2092,8 +2181,11 @@ function complierDirect(node, component, vnodeConf) {
   vnodeConf.customDirection = customDirects;
   for (var w = DIRECTLENGTH - 1; w > -1; w--) {
     if (!nomalDirects[w]) continue;
-    var directValue = nomalDirects[w];
-    var execResult = executSingleDirect(w, directValue, node, component, vnodeConf, transtionHookFuns);
+    var _nomalDirects$w = nomalDirects[w],
+        val = _nomalDirects$w.val,
+        _key = _nomalDirects$w.key;
+
+    var execResult = executSingleDirect(w, _key, val, node, component, vnodeConf, transtionHookFuns);
     if (node.for) return;
     if (execResult === false) {
       return false;
@@ -2107,7 +2199,14 @@ function complierDirect(node, component, vnodeConf) {
       attrName: key.split(':')[1].trim(),
       value: direct[key]
     };
-    !nomalDirects[weight] ? nomalDirects[weight] = [detail] : nomalDirects[weight].push(detail);
+    if (!nomalDirects[weight]) {
+      nomalDirects[weight] = {
+        key: '',
+        val: [detail]
+      };
+    } else {
+      nomalDirects[weight].val.push(detail);
+    }
   }
   function isSameDirect(weight) {
     return weight !== BIND && weight !== ON && weight === currentWeight;
@@ -2118,9 +2217,9 @@ function complierDirect(node, component, vnodeConf) {
 }
 function parseStaticNode(node, component, vnodeConf) {
   var code = '\n    with ($obj_) {\n      function _s (_val_) { return _val_ };\n      return ' + node.expression + ';\n    }\n  ';
-  vnodeConf.content = runExecuteContext(code, '{{ }}', vnodeConf.parent.tagName, component);
+  vnodeConf.content = runExecuteContext(code, '{{ ' + node.expression + ' }}', vnodeConf.parent.tagName, component);
 }
-function executSingleDirect(weight, val, node, component, vnodeConf, transtionHookFuns) {
+function executSingleDirect(weight, key, val, node, component, vnodeConf, transtionHookFuns) {
   switch (weight) {
     case SHOW:
       show(val, component, vnodeConf);
@@ -2140,9 +2239,7 @@ function executSingleDirect(weight, val, node, component, vnodeConf, transtionHo
     case IF:
       return vif(node, val, component, vnodeConf);
     case TRANSITION$1:
-      return transition$1(val, component, vnodeConf, transtionHookFuns, true);
-    case ANIMATION$1:
-      return transition$1(val, component, vnodeConf, transtionHookFuns, false);
+      return transition$1(key, val, component, vnodeConf, transtionHookFuns);
     default:
       customDirect(val, component, vnodeConf);
   }
@@ -2153,6 +2250,7 @@ var filterAttr = {
   'styleName': 1,
   'style': 1,
   'class': 1,
+  'slot': 1,
   'key': 1,
   'id': 1
 };
@@ -2167,11 +2265,11 @@ function modifyOrdinayAttrAsLibAttr(node) {
   var keys = Object.keys(attrs);
   attrs[keyWord] = Object.create(null);
   for (var i = 0, len = keys.length; i < len; i++) {
-    var _key = keys[i];
-    if (isFilter(_key)) continue;
-    attrs[keyWord][_key] = attrs[_key];
-    if (_key !== keyWord) {
-      attrs[_key] = undefined;
+    var _key2 = keys[i];
+    if (isFilter(_key2)) continue;
+    attrs[keyWord][_key2] = attrs[_key2];
+    if (_key2 !== keyWord) {
+      attrs[_key2] = undefined;
     }
   }
   if (originAttr) {
@@ -2202,10 +2300,18 @@ function genChildren(children, component) {
         if (isReservedTag(child.tagName)) {
           var vnode = createVNode(child, genChildren(child.children, component));
           vnodeChildren.push(vnode);
+        } else if (isInternelTag(child.tagName)) {
+          if (child.tagName === 'slot') {
+            var _vnode = getSlotVnode(child.attrs.name, component);
+            if (_vnode) {
+              pushSlotVnode(vnodeChildren, _vnode);
+            }
+          }
         } else {
           var childCompoentClass = getComponentClass(child, component);
-          var _vnode = new WidgetVNode(child, childCompoentClass);
-          vnodeChildren.push(_vnode);
+          var slotVnode = genChildren(child.children, component);
+          var _vnode2 = new WidgetVNode(child, slotVnode, childCompoentClass);
+          vnodeChildren.push(_vnode2);
         }
       } else {
         var content = toString$1(child.content);
@@ -2328,6 +2434,7 @@ function createNoStateComponent(props, template, componentClass) {
     noStateComp: true,
     template: template,
     props: props,
+    $slot: null,
     $data: {
       stateQueue: []
     },
@@ -2356,9 +2463,11 @@ function genAstCode(component) {
 }
 
 var WidgetVNode = function () {
-  function WidgetVNode(parentConfig, componentClass) {
+  function WidgetVNode(parentConfig, slotVnode, componentClass) {
     classCallCheck(this, WidgetVNode);
-    var haveShowTag = parentConfig.haveShowTag,
+    var _parentConfig$attrs = parentConfig.attrs,
+        attrs = _parentConfig$attrs === undefined ? {} : _parentConfig$attrs,
+        haveShowTag = parentConfig.haveShowTag,
         vTransitionType = parentConfig.vTransitionType,
         vTransitionData = parentConfig.vTransitionData,
         customDirection = parentConfig.customDirection;
@@ -2369,12 +2478,14 @@ var WidgetVNode = function () {
     this.id = parentConfig.indexKey || 'Root';
     this.componentClass = componentClass;
     this.component = null;
+    this.slot = attrs.slot;
     this.data = {
       haveShowTag: haveShowTag,
       vTransitionType: vTransitionType,
       vTransitionData: vTransitionData,
       customDirection: customDirection,
-      parentConfig: parentConfig
+      parentConfig: parentConfig,
+      slotVnode: slotVnode
     };
     this.container = {
       vtree: null,
@@ -2386,6 +2497,7 @@ var WidgetVNode = function () {
     key: 'init',
     value: function init() {
       var component = getComponentInstance(this);
+      component.$slot = this.data.slotVnode;
       component.$widgetVNode = this;
       this.component = component;
 
@@ -2460,6 +2572,7 @@ function transferData(nv, ov) {
   nv.componentClass = ov.componentClass;
   nv.container = ov.container;
   nv.component.$widgetVNode = nv;
+  nv.component.$slot = nv.data.slotVnode;
 }
 
 var Component = function () {
@@ -2470,6 +2583,7 @@ var Component = function () {
     this.state = Object.create(null);
     this.propsRequireList = requireList;
     this.props = getProps(attrs, requireList, this.name);
+    this.$slot = null;
     this.$data = {
       stateQueue: []
     };
@@ -2510,7 +2624,7 @@ var Component = function () {
 }();
 function mount(rootDOM, componentClass) {
   return new Promise(function (resolve) {
-    var vnode = new WidgetVNode({}, componentClass);
+    var vnode = new WidgetVNode({}, null, componentClass);
     var dom = create(vnode);
     rootDOM.appendChild(dom);
     resolve(dom);
@@ -2626,61 +2740,90 @@ function extendEvent(compClass) {
   var nextOB = new BaseObserver();
   var doneOB = new BaseObserver();
   var errorOB = new BaseObserver();
-  compClass.on = function on(callback) {
+  function on(callback) {
     if (typeof callback === 'function') {
       nextOB.on(callback);
     }
     return compClass;
-  };
-  compClass.once = function once$$1(callback) {
+  }
+  function once$$1(callback) {
     if (typeof callback === 'function') {
       nextOB.once(callback);
     }
     return compClass;
-  };
-  compClass.done = function done(callback) {
+  }
+  function done(callback) {
     if (typeof callback === 'function') {
       doneOB.on(callback);
     }
     return compClass;
-  };
-  compClass.error = function error(callback) {
+  }
+  compClass.error = error;
+  function error(callback) {
     if (typeof callback === 'function') {
       errorOB.on(callback);
     }
     return compClass;
-  };
-  compClass.prototype.next = function _next(val) {
+  }
+  function listener(type, callback) {
+    if (typeof callback === 'function') {
+      var cb = function cb(val) {
+        if (val && !isPrimitive(val)) {
+          if (val.type === type) {
+            callback(val.data);
+          }
+        }
+      };
+      nextOB.on(cb);
+      callback._parentCb = cb;
+    }
+    return compClass;
+  }
+  function prototypeNext(val) {
     if (!isDone) {
       nextOB.emit(val);
     }
     return this;
-  };
-  compClass.prototype.done = function _done(val) {
+  }
+  function prototypeDone(val) {
     if (!isDone) {
       doneOB.emit(val);
       isDone = true;
       remove$$1();
     }
-  };
-  compClass.prototype.error = function _error(reason) {
+  }
+  function prototypeError(reason) {
     if (!isDone) {
       errorOB.emit(creataError(reason));
       isDone = true;
       remove$$1();
     }
-  };
-  compClass.remove = compClass.prototype.remove = remove$$1;
+  }
+  function prototypeNextHelp(type, data) {
+    this.next({ type: type, data: data });
+  }
   function remove$$1(fun) {
+    if (typeof fun._parentCb === 'function') {
+      fun = fun._parentCb;
+    }
     nextOB.remove(fun);
     doneOB.remove(fun);
     errorOB.remove(fun);
   }
+  compClass.on = on;
+  compClass.done = done;
+  compClass.once = once$$1;
+  compClass.listener = listener;
+  compClass.prototype.next = prototypeNext;
+  compClass.prototype.done = prototypeDone;
+  compClass.prototype.error = prototypeError;
+  compClass.prototype.tNext = prototypeNextHelp;
+  compClass.remove = compClass.prototype.remove = remove$$1;
   return compClass;
 }
 function hasExpanded(compClass) {
-  if (!compClass.$destroy) return false;
-  return compClass.$destroy === compClass.prototype.$destroy;
+  if (!compClass.remove) return false;
+  return compClass.remove === compClass.prototype.remove;
 }
 function creataError(reason) {
   try {

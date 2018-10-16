@@ -6,8 +6,9 @@ import { elementCreated } from '../global-api/constom-directive'
 import { getComponentInstance } from './component-instance'
 
 export class WidgetVNode {
-  constructor (parentConfig, componentClass) {
+  constructor (parentConfig, slotVnode, componentClass) {
     const {
+      attrs = {},
       haveShowTag,
       vTransitionType,
       vTransitionData,
@@ -20,13 +21,14 @@ export class WidgetVNode {
     this.id = parentConfig.indexKey || 'Root'
     this.componentClass = componentClass
     this.component = null
-
+    this.slot = attrs.slot
     this.data = {
       haveShowTag,
       vTransitionType,
       vTransitionData,
       customDirection,
       parentConfig,
+      slotVnode,
     }
 
     this.container = {
@@ -38,6 +40,8 @@ export class WidgetVNode {
   init () {
     // Now, we can get component instance, chonse this time, Because we can improve efficiency
     const component = getComponentInstance(this)
+    
+    component.$slot = this.data.slotVnode
     component.$widgetVNode = this
     this.component = component
 
@@ -52,6 +56,7 @@ export class WidgetVNode {
     // We need update old component state, so, make new vnode state transfer to old vnode
     transferData(this, previousVnode)
     update(this)
+    // console.log(this.data.slotVnode, this.component.slot);
     return dom
   }
 
@@ -115,4 +120,5 @@ function transferData (nv, ov) {
   nv.container = ov.container
 
   nv.component.$widgetVNode = nv
+  nv.component.$slot = nv.data.slotVnode
 }

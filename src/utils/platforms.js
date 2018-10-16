@@ -31,6 +31,12 @@ export const isSVG = makeMap(
   true
 )
 
+export const isinternel = makeMap('slot')
+
+export function isInternelTag (tag) {
+  return isinternel(tag)
+}
+
 export const isPreTag = tag => tag === 'pre'
 
 export function isReservedTag (tag) {

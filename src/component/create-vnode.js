@@ -10,7 +10,7 @@ export function createVNode (vnodeConfig, children) {
   })
 
   vnode.data = Object.create(null)
-  
+
   if (vnodeConfig.vTransitionType) {
     const { vTransitionType, vTransitionData } = vnodeConfig
 
@@ -21,6 +21,11 @@ export function createVNode (vnodeConfig, children) {
   // Add 'show' flag in vnode, when vnode patch, it's no vnode for currently, so, is only add flag
   if (!_.isUndef(vnodeConfig.isShow)) {
     vnode.data.haveShowTag = true
+  }
+
+  // We need record name of slot tag
+  if (attrs.slot) {
+    vnode.slot = attrs.slot
   }
 
   return vnode
