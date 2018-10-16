@@ -5,7 +5,9 @@ import { isVNode, isVText, isWidget } from '../vnode/typeof-vnode'
 
 export default function diff (a, b) {
   const patch = { a }
-  walk(a, b, patch, 0)
+  const index = 0
+
+  walk(a, b, patch, index)
 
   return patch
 }
