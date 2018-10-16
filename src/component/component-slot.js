@@ -25,7 +25,7 @@ export function getSlotVnode (name, component) {
 
 export function pushSlotVnode (vnodeChildren, vnode) {
   if (Array.isArray(vnode)) {
-    vnodeChildren.splice(vnodeChildren.length, 0, ...vnode)
+    vnodeChildren.push.apply(vnodeChildren, vnode)
   } else {
     vnodeChildren.push(vnode)
   }
