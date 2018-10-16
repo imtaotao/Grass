@@ -1,13 +1,13 @@
 import * as _ from '../utils/index'
 import runExecuteContext from './execution-env'
-import { splitDirective } from './weight'
+import { splitDireation } from './weight'
 
 export default function vevent (events, component, vnodeConf) {
   if (_.isReservedTag(vnodeConf.tagName)) {
     for (const event of events) {
       const direactiveKey = event.attrName
-      const { directive:name, modifiers } = splitDirective(direactiveKey)
-      
+      const { direation:name, modifiers } = splitDireation(direactiveKey)
+
       const code = `
         with ($obj_) {
           return ${event.value};

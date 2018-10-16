@@ -1,9 +1,9 @@
 import * as _ from '../utils/index'
-import { splitDirective } from './weight'
+import { splitDireation } from './weight'
 import runExecuteContext from './execution-env'
 
 export default function transition (direactiveKey, val, component, vnodeConf, transtionHookFuns) {
-  const { directive, modifiers } = splitDirective(direactiveKey)
+  const { direation, modifiers } = splitDireation(direactiveKey)
   const type = modifiers[0]
   let directName = 'transtion'
 

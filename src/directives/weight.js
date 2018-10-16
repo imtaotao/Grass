@@ -31,7 +31,7 @@ export function getWeight (direation) {
   return wight
 }
 
-export function isReserveddireation (direation) {
+export function isReservedDireation (direation) {
   return direation.includes('v-') && (getWeight(direation) !== undefined)
 }
 
@@ -39,7 +39,7 @@ export function isTransitionHook (direation) {
   return TRANSITIONHOOK.includes(direation)
 }
 
-export function splitdireation (direationKey) {
+export function splitDireation (direationKey) {
   const args = direationKey.split('.')
   const direation = args[0]
   const modifiers = args.splice(1)

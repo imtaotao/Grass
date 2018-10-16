@@ -37,13 +37,22 @@
       }
     }
 
+    create () {
+      Child.listener('tt', this.testListener)
+    }
+
     callback (api) {
       this.setState({
         show: !this.state.show,
         arr: [1, 2, 3, 4, 5],
         api: 'taotao',
       })
-      console.log(121);
+      
+      Child.remove(this.testListener)
+    }
+
+    testListener (data) {
+      console.log(data)
     }
 
     beforeEnter (dom) {

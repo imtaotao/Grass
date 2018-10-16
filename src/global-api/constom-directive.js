@@ -12,7 +12,7 @@ export function haveRegisteredCustomDirect (key) {
   return _.hasOwn(directContainer, key)
 }
 
-export function elementCreated (dom, direaction) {
+export function elementCreated (dom, direaction, vnode) {
   if (!direaction || _.isEmptyObj(direaction)) return
   const keys = Object.keys(direaction)
 
@@ -20,7 +20,7 @@ export function elementCreated (dom, direaction) {
     const key = keys[i]
     const val = directContainer[key]
     val.safePipe(callback => {
-      callback(dom, direaction[key])
+      callback(dom, direaction[key], vnode)
     })
   }
 }

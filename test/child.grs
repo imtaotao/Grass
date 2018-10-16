@@ -1,5 +1,5 @@
 <template name="Child" styleSrc="./style.css">
-  <div styleName="test-block" v-show="this.props.show" style="color:#fff;"  v-tt="this.props" v-ttt="this">
+  <div styleName="test-block" v-show="this.props.show" style="color:#fff;"  v-tt="this.props" v-ttt="this" @click="this.click.bind(this)">
     12112
     <slot name="tao" v-text="this.props.show"/>
     <bbb :api="this.props.api"/>
@@ -15,6 +15,7 @@
 <script>
   import Grass, { CSSModules } from '../src'
 
+  @Grass.event
   @CSSModules(require('./style.css'))
   export default class Child extends Grass.Component {
     constructor (props) {
@@ -23,6 +24,10 @@
       this.createState({
         excellent: '你妹的',
       })
+    }
+
+    click () {
+      this.tNext('tt', 1212121)
     }
 
     component () {

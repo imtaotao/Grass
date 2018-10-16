@@ -93,7 +93,7 @@ function complierDirect (node, component, vnodeConf) {
     }
 
     // Add custom direactive collection
-    if (!W.isReservedDirective(key)) {
+    if (!W.isReservedDireation(key)) {
       if (!haveRegisteredCustomDirect(key) || key === currentCustomDirect) {
         continue
       }
