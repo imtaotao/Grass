@@ -48,7 +48,7 @@ function batchUpdateQueue (component) {
   })
 }
 
-function updateDomTree (component) {
+export function updateDomTree (component) {
   if (!component.noStateComp) {
     component.willUpdate()
   }

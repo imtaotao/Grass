@@ -1,5 +1,4 @@
-import { isVNode, isVText, isWidget } from '../virtual-dom/vnode/typeof-vnode'
-import { isUndef } from '../utils'
+import { isUndef, isVNode } from '../utils'
 
 export function getSlotVnode (name, component) {
   const slot = component.$slot
@@ -12,7 +11,7 @@ export function getSlotVnode (name, component) {
     for (let i = 0, len = slot.length; i < len; i++) {
       const vnode = slot[i]
 
-      if (isVnode(vnode)) {
+      if (isVNode(vnode)) {
         if (name === vnode.slot) {
           return vnode
         }
@@ -29,8 +28,4 @@ export function pushSlotVnode (vnodeChildren, vnode) {
   } else {
     vnodeChildren.push(vnode)
   }
-}
-
-function isVnode (v) {
-  return isVNode(v) || isVText(v) || isWidget(v)
 }

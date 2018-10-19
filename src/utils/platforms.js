@@ -1,4 +1,5 @@
 import { makeMap } from './complier-util'
+import { isVNode as _isVNode, isVText, isWidget } from '../virtual-dom/vnode/typeof-vnode'
 
 export const inBrowser = typeof window !== 'undefined'
 export const UA = inBrowser && window.navigator.userAgent.toLowerCase()
@@ -46,3 +47,5 @@ export function isReservedTag (tag) {
 export function noop () {}
 
 export const no = () => false
+
+export const isVNode = v =>  _isVNode(v) || isVText(v) || isWidget(v)

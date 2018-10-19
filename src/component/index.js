@@ -1,7 +1,8 @@
 import * as _ from '../utils/index'
 import { WidgetVNode } from './component-vnode'
 import { create } from '../virtual-dom/index'
-import { enqueueSetState } from './update-state'
+import { enqueueSetState, updateDomTree } from './update-state'
+import { initWatchState } from '../observer'
 
 export class Component {
   constructor (attrs, requireList) {
@@ -10,6 +11,7 @@ export class Component {
     this.propsRequireList = requireList
     this.props = getProps(attrs, requireList, this.name)
     this.$slot = null
+    this.isWatch = false
     this.$data = {
       stateQueue: [],
     }
@@ -27,9 +29,26 @@ export class Component {
     enqueueSetState(this, partialState)
   }
 
+  forcedUpdate () {
+    Promise.resolve().then(() => {
+      updateDomTree(this)
+    })
+  }
+
   createState (data) {
+    data = Object.setPrototypeOf(data, null)
+
     if (_.isPlainObject(data)) {
-      this.state = Object.setPrototypeOf(data, null)
+      this.state = data
+    }
+  }
+
+  createWatchState (data) {
+    data = Object.setPrototypeOf(data, null)
+
+    if (_.isPlainObject(data)) {
+      this.state = initWatchState(data).value
+      this.isWatch = true
     }
   }
 }
