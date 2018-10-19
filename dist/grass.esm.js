@@ -97,6 +97,9 @@ function typeOf(val) {
 function isString(str) {
   return typeOf(str) === '[object String]';
 }
+function isObject(obj) {
+  return obj !== null && (typeof obj === 'undefined' ? 'undefined' : _typeof(obj)) === 'object';
+}
 function isPlainObject(obj) {
   return typeOf(obj) === '[object Object]';
 }
@@ -480,6 +483,18 @@ function isClass(fun) {
   return true;
 }
 
+var version = '2';
+
+function isVNode(x) {
+  return x && x.type === 'VirtualNode' && x.version === version;
+}
+function isVText(x) {
+  return x && x.type === 'VirtualText' && x.version === version;
+}
+function isWidget(w) {
+  return w && w.type === 'Widget';
+}
+
 var inBrowser = typeof window !== 'undefined';
 var UA = inBrowser && window.navigator.userAgent.toLowerCase();
 var isIE = UA && /msie|trident/.test(UA);
@@ -498,18 +513,9 @@ function isReservedTag(tag) {
   return isHTMLTag(tag) || isSVG(tag);
 }
 function noop() {}
-
-var version = '2';
-
-function isVNode(x) {
-  return x && x.type === 'VirtualNode' && x.version === version;
-}
-function isVText(x) {
-  return x && x.type === 'VirtualText' && x.version === version;
-}
-function isWidget(w) {
-  return w && w.type === 'Widget';
-}
+var isVNode$1 = function isVNode$$1(v) {
+  return isVNode(v) || isVText(v) || isWidget(v);
+};
 
 var noProperties = {};
 var noChildren = [];
@@ -1598,7 +1604,7 @@ function getSlotVnode(name, component) {
   if (slot && Array.isArray(slot) && slot.length) {
     for (var i = 0, len = slot.length; i < len; i++) {
       var vnode = slot[i];
-      if (isVnode(vnode)) {
+      if (isVNode$1(vnode)) {
         if (name === vnode.slot) {
           return vnode;
         }
@@ -1609,13 +1615,10 @@ function getSlotVnode(name, component) {
 }
 function pushSlotVnode(vnodeChildren, vnode) {
   if (Array.isArray(vnode)) {
-    vnodeChildren.splice.apply(vnodeChildren, [vnodeChildren.length, 0].concat(toConsumableArray(vnode)));
+    vnodeChildren.push.apply(vnodeChildren, vnode);
   } else {
     vnodeChildren.push(vnode);
   }
-}
-function isVnode(v) {
-  return isVNode(v) || isVText(v) || isWidget(v);
 }
 
 var scope = null;
@@ -2571,6 +2574,193 @@ function transferData(nv, ov) {
   nv.component.$slot = nv.data.slotVnode;
 }
 
+var uid = 0;
+
+var Dep = function () {
+  function Dep() {
+    classCallCheck(this, Dep);
+
+    this.id = uid++;
+    this.subs = [];
+  }
+
+  createClass(Dep, [{
+    key: "addSub",
+    value: function addSub(sub) {
+      this.subs.push(sub);
+    }
+  }, {
+    key: "removeSub",
+    value: function removeSub(sub) {
+      remove(this.subs, sub);
+    }
+  }, {
+    key: "depend",
+    value: function depend() {
+      if (Dep.target) {
+        Dep.target.addDep(this);
+      }
+    }
+  }, {
+    key: "notify",
+    value: function notify() {
+      var subs = this.subs.slice();
+      for (var i = 0, len = subs.length; i < len; i++) {
+        subs[i].update();
+      }
+    }
+  }]);
+  return Dep;
+}();
+
+Dep.target = null;
+function pushTarget(_target) {
+  Dep.target = _target;
+}
+function clearTarget() {
+  Dep.target = null;
+}
+
+var bailRE = /[^\w.$]/;
+function parsePath(path) {
+  if (bailRE.test(path)) {
+    return;
+  }
+  var segments = path.split('.');
+  return function (obj) {
+    for (var i = 0; i < segments.length; i++) {
+      if (!obj) return;
+      obj = obj[segments[i]];
+    }
+    return obj;
+  };
+}
+function def(obj, key, val, enumerable) {
+  Object.defineProperty(obj, key, {
+    value: val,
+    enumerable: !!enumerable,
+    writable: true,
+    configurable: true
+  });
+}
+
+var Watcher = function () {
+  function Watcher(compnent, expreOrFn, cb) {
+    classCallCheck(this, Watcher);
+
+    this.cb = cb;
+    this.compnent = compnent;
+    this.depIds = new Set();
+    if (typeof expreOrFn === 'function') {
+      this.getter = expreOrFn;
+    } else {
+      this.getter = parsePath(expreOrFn);
+    }
+    this.value = this.get();
+  }
+
+  createClass(Watcher, [{
+    key: 'get',
+    value: function get$$1() {
+      pushTarget(this);
+      var compnent = this.compnent;
+      var data = compnent.state;
+      var value = this.getter.call(compnent, data);
+      console.log(value);
+      clearTarget();
+      return value;
+    }
+  }, {
+    key: 'addDep',
+    value: function addDep(dep) {
+      var id = dep.id;
+      if (!this.depIds.has(id)) {
+        this.depIds.add(id);
+        dep.addSub(this);
+      }
+    }
+  }, {
+    key: 'update',
+    value: function update() {
+      this.cb();
+    }
+  }]);
+  return Watcher;
+}();
+
+window.ob = Watcher;
+
+var Observer = function () {
+  function Observer(value) {
+    classCallCheck(this, Observer);
+
+    this.value = value;
+    this.dep = new Dep();
+    def(value, '__ob__', this);
+    if (Array.isArray(value)) ; else {
+      this.walk(value);
+    }
+  }
+
+  createClass(Observer, [{
+    key: 'walk',
+    value: function walk(obj) {
+      var keys = Object.keys(obj);
+      for (var i = 0, len = keys.length; i < len; i++) {
+        defineReactive(obj, keys[i], obj[keys[i]]);
+      }
+    }
+  }]);
+  return Observer;
+}();
+function defineReactive(obj, key, val) {
+  var dep = new Dep();
+  var property = Object.getOwnPropertyDescriptor(obj, key);
+  if (property && property.configurable === false) {
+    return;
+  }
+  var getter = property && property.get;
+  var setter = property && property.set;
+  Object.defineProperty(obj, key, {
+    enumerable: true,
+    configurable: true,
+    get: function get$$1() {
+      var value = getter ? getter.call(obj) : val;
+      if (Dep.target) {
+        dep.depend();
+      }
+      return value;
+    },
+    set: function set$$1(newVal) {
+      var value = getter ? getter.call(obj) : val;
+      if (newVal === value || newVal !== newVal && value !== value) {
+        return;
+      }
+      if (setter) {
+        setter.call(obj, newVal);
+      } else {
+        val = newVal;
+      }
+      dep.notify();
+    }
+  });
+}
+function observe(value) {
+  if (!isObject(value) || isVNode$1(value)) {
+    return;
+  }
+  var ob = void 0;
+  if (hasOwn(value, '__ob__') && value.__ob__ instanceof Observer) {
+    ob = value.__ob__;
+  } else if ((Array.isArray(value) || isPlainObject(value)) && Object.isExtensible(value)) {
+    ob = new Observer(value);
+  }
+  return ob;
+}
+function initWatchState(data) {
+  return observe(data);
+}
+
 var Component = function () {
   function Component(attrs, requireList) {
     classCallCheck(this, Component);
@@ -2580,6 +2770,7 @@ var Component = function () {
     this.propsRequireList = requireList;
     this.props = getProps(attrs, requireList, this.name);
     this.$slot = null;
+    this.isWatch = false;
     this.$data = {
       stateQueue: []
     };
@@ -2609,10 +2800,29 @@ var Component = function () {
       enqueueSetState(this, partialState);
     }
   }, {
+    key: 'forcedUpdate',
+    value: function forcedUpdate() {
+      var _this = this;
+
+      Promise.resolve().then(function () {
+        updateDomTree(_this);
+      });
+    }
+  }, {
     key: 'createState',
     value: function createState(data) {
+      data = Object.setPrototypeOf(data, null);
       if (isPlainObject(data)) {
-        this.state = Object.setPrototypeOf(data, null);
+        this.state = data;
+      }
+    }
+  }, {
+    key: 'createWatchState',
+    value: function createWatchState(data) {
+      data = Object.setPrototypeOf(data, null);
+      if (isPlainObject(data)) {
+        this.state = initWatchState(data).value;
+        this.isWatch = true;
       }
     }
   }]);
