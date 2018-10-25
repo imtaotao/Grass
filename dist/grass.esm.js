@@ -1684,7 +1684,220 @@ var scope$1 = {
   insertChain: insertChain
 };
 
-function runExecuteContext(runCode, directName, tagName, component, callback) {
+var bailRE = /[^\w.$]/;
+function parsePath(path) {
+  if (bailRE.test(path)) {
+    return;
+  }
+  var segments = path.split('.');
+  return function (obj) {
+    for (var i = 0; i < segments.length; i++) {
+      if (!obj) return;
+      obj = obj[segments[i]];
+    }
+    return obj;
+  };
+}
+function def(obj, key, val, enumerable) {
+  Object.defineProperty(obj, key, {
+    value: val,
+    enumerable: !!enumerable,
+    writable: true,
+    configurable: true
+  });
+}
+function protoAugment(target, src, keys) {
+  target.__proto__ = src;
+}
+function copyAugment(target, src, keys) {
+  for (var i = 0, len = keys.length; i < len; i++) {
+    var key = keys[i];
+    def(target, key, src[key]);
+  }
+}
+
+var uid = 0;
+
+var Dep = function () {
+  function Dep() {
+    classCallCheck(this, Dep);
+
+    this.id = uid++;
+    this.subs = [];
+  }
+
+  createClass(Dep, [{
+    key: "addSub",
+    value: function addSub(sub) {
+      this.subs.push(sub);
+    }
+  }, {
+    key: "removeSub",
+    value: function removeSub(sub) {
+      remove(this.subs, sub);
+    }
+  }, {
+    key: "depend",
+    value: function depend() {
+      if (Dep.target) {
+        Dep.target.addDep(this);
+      }
+    }
+  }, {
+    key: "notify",
+    value: function notify(newValue, oldValue) {
+      var subs = this.subs.slice();
+      for (var i = 0, len = subs.length; i < len; i++) {
+        subs[i].update(newValue, oldValue);
+      }
+    }
+  }]);
+  return Dep;
+}();
+
+Dep.target = null;
+var targetStack = [];
+function pushTarget(_target) {
+  if (Dep.target) {
+    targetStack.push(_target);
+  }
+  Dep.target = _target;
+}
+function clearTarget() {
+  Dep.target = targetStack.pop();
+}
+
+var Watcher = function () {
+  function Watcher(compnent, expreOrFn, cb) {
+    classCallCheck(this, Watcher);
+
+    this.cb = cb;
+    this.compnent = compnent;
+    this.deps = [];
+    this.newDeps = [];
+    this.depIds = new Set();
+    this.newDepIds = new Set();
+    if (typeof expreOrFn === 'function') {
+      this.getter = expreOrFn;
+    } else {
+      this.getter = parsePath(expreOrFn);
+    }
+    this.get();
+  }
+
+  createClass(Watcher, [{
+    key: 'get',
+    value: function get$$1() {
+      pushTarget(this);
+      var compnent = this.compnent;
+      var data = compnent.state;
+      this.getter.call(compnent, data);
+      clearTarget();
+      this.cleanupDeps();
+    }
+  }, {
+    key: 'addDep',
+    value: function addDep(dep) {
+      var id = dep.id;
+      if (!this.newDepIds.has(id)) {
+        this.newDepIds.add(id);
+        this.newDeps.push(dep);
+        if (!this.depIds.has(id)) {
+          dep.addSub(this);
+        }
+      }
+    }
+  }, {
+    key: 'cleanupDeps',
+    value: function cleanupDeps() {
+      var i = this.deps.length;
+      while (i--) {
+        var dep = this.deps[i];
+        if (!this.newDepIds.has(dep.id)) {
+          dep.removeSub(this);
+        }
+      }
+      var tmp = this.depIds;
+      this.depIds = this.newDepIds;
+      this.newDepIds = tmp;
+      this.newDepIds.clear();
+      tmp = this.deps;
+      this.deps = this.newDeps;
+      this.newDeps = tmp;
+      this.newDeps.length = 0;
+    }
+  }, {
+    key: 'update',
+    value: function update(newValue, oldValue) {
+      this.cb(newValue, oldValue);
+    }
+  }]);
+  return Watcher;
+}();
+
+var CAPACITY = 1024;
+function enqueueSetState(component, partialState) {
+  if (isLegalState(partialState)) {
+    var data = component.$data;
+    if (!data.stateQueue.length) {
+      batchUpdateQueue(component);
+    }
+    data.stateQueue.push(partialState);
+  }
+}
+function batchUpdateQueue(component) {
+  Promise.resolve().then(function () {
+    var queue = component.$data.stateQueue;
+    var state = Object.assign({}, component.state);
+    var index$$1 = 0;
+    while (index$$1 < queue.length) {
+      var currentIndex = index$$1;
+      index$$1++;
+      state = mergeState(state, queue[currentIndex]);
+      if (index$$1 > CAPACITY) {
+        var newLength = queue.length - index$$1;
+        for (var i = 0; i < newLength; i++) {
+          queue[i] = queue[index$$1 + i];
+        }
+        queue.length -= index$$1;
+        index$$1 = 0;
+      }
+    }
+    queue.length = 0;
+    component.state = state;
+    updateDomTree(component);
+  });
+}
+function updateDomTree(component) {
+  if (!component.noStateComp) {
+    component.willUpdate();
+  }
+  var vnode = component.$widgetVNode;
+  var _vnode$container = vnode.container,
+      dom = _vnode$container.dom,
+      vtree = _vnode$container.vtree;
+
+  var ast = component.constructor.$ast;
+  var newTree = render(vnode, ast);
+  var patchs = diff$1(vtree, newTree);
+  patch$1(dom, patchs);
+  if (!component.noStateComp) {
+    component.didUpdate(dom);
+  }
+  cacheComponentDomAndVTree(vnode, newTree, dom);
+}
+function mergeState(state, partialState) {
+  if (typeof partialState === 'function') {
+    var newState = partialState(state);
+    return isPlainObject(newState) ? newState : state;
+  }
+  return isEmptyObj(partialState) ? state : Object.assign({}, state, partialState);
+}
+function isLegalState(state) {
+  return isPlainObject(state) || typeof state === 'function';
+}
+
+function runExecuteContext(code, directName, tagName, component, callback) {
   var noStateComp = component.noStateComp,
       state = component.state,
       props = component.props;
@@ -1694,12 +1907,51 @@ function runExecuteContext(runCode, directName, tagName, component, callback) {
   if (directName !== '{{ }}') {
     directName = 'v-' + directName;
   }
-  return run(runCode, directName, tagName, component, callback, realData);
+  var options = {
+    code: code,
+    tagName: tagName,
+    callback: callback,
+    component: component,
+    directName: directName,
+    state: realData
+  };
+  return run(options);
 }
-function run(runCode, directName, tagName, component, callback, state) {
-  try {
-    var fun = new Function('$obj_', '$callback_', runCode);
+function getStateResult(code, component, state, callback) {
+  var fun = new Function('$obj_', '$callback_', code);
+  if (component.$isWatch && component.$firstCompilation) {
+    var update = function update() {
+      var data = component.$data;
+      if (!data.stateQueue.length) {
+        Promise.resolve().then(function () {
+          updateDomTree(component);
+          data.stateQueue.length = 0;
+        });
+      }
+      data.stateQueue.push(null);
+    };
+
+    var value = void 0;
+
+    new Watcher(component, function () {
+      value = fun.call(component, state, callback);
+      return value;
+    }, update);
+    return value;
+  } else {
     return fun.call(component, state, callback);
+  }
+}
+function run(_ref) {
+  var code = _ref.code,
+      state = _ref.state,
+      tagName = _ref.tagName,
+      callback = _ref.callback,
+      component = _ref.component,
+      directName = _ref.directName;
+
+  try {
+    return getStateResult(code, component, state, callback);
   } catch (error) {
     warn('Component directive compilation error  \n\n  "' + directName + '":  ' + error + '\n\n\n    --->  ' + component.name + ': <' + (tagName || '') + '/>\n');
   }
@@ -1990,7 +2242,7 @@ function vfor(node, component, vnodeConf) {
       data = _node$forArgs.data,
       isMultiple = _node$forArgs.isMultiple;
 
-  var code = '\n    var $data;\n\n    with($obj_) { $data = ' + data + '; }\n\n    if ($data) {\n      $callback_($data);\n    }\n  ';
+  var code = '\n    var $data;\n\n    with($obj_) { $data = ' + data + '; }\n\n    if ($data) {\n      $callback_($data);\n    }\n\n    return $data;\n  ';
   function loopData(data) {
     each(data, function (val, key, i) {
       if (isMultiple) {
@@ -2288,6 +2540,9 @@ function render(widgetVNode, ast) {
   if (typeof componentClass.CSSModules === 'function') {
     componentClass.CSSModules(vnodeConfig, component.name);
   }
+  if (component.$firstCompilation) {
+    component.$firstCompilation = false;
+  }
   return createVNode(vnodeConfig, genChildren(vnodeConfig.children, component));
 }
 function genChildren(children, component) {
@@ -2309,7 +2564,7 @@ function genChildren(children, component) {
         } else {
           var childCompoentClass = getComponentClass(child, component);
           var slotVnode = genChildren(child.children, component);
-          var _vnode2 = new WidgetVNode(child, slotVnode, childCompoentClass);
+          var _vnode2 = new WidgetVNode(component, child, slotVnode, childCompoentClass);
           vnodeChildren.push(_vnode2);
         }
       } else {
@@ -2342,69 +2597,7 @@ function getComponentClass(vnodeConfig, parentCompnent) {
   warn$$1();
 }
 
-var CAPACITY = 1024;
-function enqueueSetState(component, partialState) {
-  if (isLegalState(partialState)) {
-    var data = component.$data;
-    if (!data.stateQueue.length) {
-      batchUpdateQueue(component);
-    }
-    data.stateQueue.push(partialState);
-  }
-}
-function batchUpdateQueue(component) {
-  Promise.resolve().then(function () {
-    var queue = component.$data.stateQueue;
-    var state = Object.assign({}, component.state);
-    var index$$1 = 0;
-    while (index$$1 < queue.length) {
-      var currentIndex = index$$1;
-      index$$1++;
-      state = mergeState(state, queue[currentIndex]);
-      if (index$$1 > CAPACITY) {
-        var newLength = queue.length - index$$1;
-        for (var i = 0; i < newLength; i++) {
-          queue[i] = queue[index$$1 + i];
-        }
-        queue.length -= index$$1;
-        index$$1 = 0;
-      }
-    }
-    queue.length = 0;
-    component.state = state;
-    updateDomTree(component);
-  });
-}
-function updateDomTree(component) {
-  if (!component.noStateComp) {
-    component.willUpdate();
-  }
-  var vnode = component.$widgetVNode;
-  var _vnode$container = vnode.container,
-      dom = _vnode$container.dom,
-      vtree = _vnode$container.vtree;
-
-  var ast = component.constructor.$ast;
-  var newTree = render(vnode, ast);
-  var patchs = diff$1(vtree, newTree);
-  patch$1(dom, patchs);
-  if (!component.noStateComp) {
-    component.didUpdate(dom);
-  }
-  cacheComponentDomAndVTree(vnode, newTree, dom);
-}
-function mergeState(state, partialState) {
-  if (typeof partialState === 'function') {
-    var newState = partialState(state);
-    return isPlainObject(newState) ? newState : state;
-  }
-  return isEmptyObj(partialState) ? state : Object.assign({}, state, partialState);
-}
-function isLegalState(state) {
-  return isPlainObject(state) || typeof state === 'function';
-}
-
-function getComponentInstance(widgetVNode) {
+function getComponentInstance(widgetVNode, parentComponent) {
   var componentClass = widgetVNode.componentClass,
       data = widgetVNode.data;
 
@@ -2418,11 +2611,14 @@ function getComponentInstance(widgetVNode) {
     }
   } else {
     var props = getProps(data.parentConfig.attrs);
-    var template = componentClass(props);
+    var template = componentClass(props, parentComponent);
     instance = createNoStateComponent(props, template, componentClass);
   }
   if (!componentClass.$ast) {
     componentClass.$ast = genAstCode(instance);
+  }
+  if (parentComponent) {
+    instance.$parent = parentComponent;
   }
   return instance;
 }
@@ -2434,6 +2630,8 @@ function createNoStateComponent(props, template, componentClass) {
     template: template,
     props: props,
     $slot: null,
+    $parent: null,
+    $firstCompilation: true,
     $data: {
       stateQueue: []
     },
@@ -2462,7 +2660,7 @@ function genAstCode(component) {
 }
 
 var WidgetVNode = function () {
-  function WidgetVNode(parentConfig, slotVnode, componentClass) {
+  function WidgetVNode(parentComponent, parentConfig, slotVnode, componentClass) {
     classCallCheck(this, WidgetVNode);
     var _parentConfig$attrs = parentConfig.attrs,
         attrs = _parentConfig$attrs === undefined ? {} : _parentConfig$attrs,
@@ -2475,6 +2673,7 @@ var WidgetVNode = function () {
     this.count = 0;
     this.name = componentClass.name;
     this.id = parentConfig.indexKey || 'Root';
+    this.parentComponent = parentComponent;
     this.componentClass = componentClass;
     this.component = null;
     this.slot = attrs.slot;
@@ -2495,7 +2694,7 @@ var WidgetVNode = function () {
   createClass(WidgetVNode, [{
     key: 'init',
     value: function init() {
-      var component = getComponentInstance(this);
+      var component = getComponentInstance(this, this.parentComponent);
       component.$slot = this.data.slotVnode;
       component.$widgetVNode = this;
       this.component = component;
@@ -2555,10 +2754,10 @@ function _update(_ref) {
       parentConfig = _ref.data.parentConfig;
 
   if (component && parentConfig) {
-    var propsRequireList = component.propsRequireList,
+    var $propsRequireList = component.$propsRequireList,
         name = component.name;
 
-    var newProps = getProps(parentConfig.attrs, propsRequireList, name);
+    var newProps = getProps(parentConfig.attrs, $propsRequireList, name);
     if (!component.noStateComp && component.willReceiveProps(newProps) === false) {
       return;
     }
@@ -2574,122 +2773,44 @@ function transferData(nv, ov) {
   nv.component.$slot = nv.data.slotVnode;
 }
 
-var uid = 0;
+var arrayProto = Array.prototype;
+var arrayMethods = Object.create(arrayProto);
+var methodsToPatch = ['push', 'pop', 'shift', 'unshift', 'splice', 'sort', 'reverse'];
 
-var Dep = function () {
-  function Dep() {
-    classCallCheck(this, Dep);
+var _loop = function _loop(i, len) {
+  var method = methodsToPatch[i];
+  var original = arrayProto[method];
+  def(arrayMethods, method, function mutator() {
+    for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+      args[_key] = arguments[_key];
+    }
 
-    this.id = uid++;
-    this.subs = [];
-  }
-
-  createClass(Dep, [{
-    key: "addSub",
-    value: function addSub(sub) {
-      this.subs.push(sub);
+    var result = original.apply(this, args);
+    var ob = this.__ob__;
+    var inserted = void 0;
+    switch (method) {
+      case 'push':
+      case 'unshift':
+        inserted = args;
+        break;
+      case 'splice':
+        inserted = args.slice(2);
+        break;
     }
-  }, {
-    key: "removeSub",
-    value: function removeSub(sub) {
-      remove(this.subs, sub);
+    if (inserted) {
+      ob.observeArray(inserted);
     }
-  }, {
-    key: "depend",
-    value: function depend() {
-      if (Dep.target) {
-        Dep.target.addDep(this);
-      }
-    }
-  }, {
-    key: "notify",
-    value: function notify() {
-      var subs = this.subs.slice();
-      for (var i = 0, len = subs.length; i < len; i++) {
-        subs[i].update();
-      }
-    }
-  }]);
-  return Dep;
-}();
-
-Dep.target = null;
-function pushTarget(_target) {
-  Dep.target = _target;
-}
-function clearTarget() {
-  Dep.target = null;
-}
-
-var bailRE = /[^\w.$]/;
-function parsePath(path) {
-  if (bailRE.test(path)) {
-    return;
-  }
-  var segments = path.split('.');
-  return function (obj) {
-    for (var i = 0; i < segments.length; i++) {
-      if (!obj) return;
-      obj = obj[segments[i]];
-    }
-    return obj;
-  };
-}
-function def(obj, key, val, enumerable) {
-  Object.defineProperty(obj, key, {
-    value: val,
-    enumerable: !!enumerable,
-    writable: true,
-    configurable: true
+    ob.dep.notify();
+    return result;
   });
+};
+
+for (var i = 0, len = methodsToPatch.length; i < len; i++) {
+  _loop(i, len);
 }
 
-var Watcher = function () {
-  function Watcher(compnent, expreOrFn, cb) {
-    classCallCheck(this, Watcher);
-
-    this.cb = cb;
-    this.compnent = compnent;
-    this.depIds = new Set();
-    if (typeof expreOrFn === 'function') {
-      this.getter = expreOrFn;
-    } else {
-      this.getter = parsePath(expreOrFn);
-    }
-    this.value = this.get();
-  }
-
-  createClass(Watcher, [{
-    key: 'get',
-    value: function get$$1() {
-      pushTarget(this);
-      var compnent = this.compnent;
-      var data = compnent.state;
-      var value = this.getter.call(compnent, data);
-      console.log(value);
-      clearTarget();
-      return value;
-    }
-  }, {
-    key: 'addDep',
-    value: function addDep(dep) {
-      var id = dep.id;
-      if (!this.depIds.has(id)) {
-        this.depIds.add(id);
-        dep.addSub(this);
-      }
-    }
-  }, {
-    key: 'update',
-    value: function update() {
-      this.cb();
-    }
-  }]);
-  return Watcher;
-}();
-
-window.ob = Watcher;
-
+var hasProto = '__proto__' in {};
+var arrayKeys = Object.getOwnPropertyNames(arrayMethods);
 var Observer = function () {
   function Observer(value) {
     classCallCheck(this, Observer);
@@ -2697,7 +2818,11 @@ var Observer = function () {
     this.value = value;
     this.dep = new Dep();
     def(value, '__ob__', this);
-    if (Array.isArray(value)) ; else {
+    if (Array.isArray(value)) {
+      var augment = hasProto ? protoAugment : copyAugment;
+      augment(value, arrayMethods, arrayKeys);
+      this.observeArray(value);
+    } else {
       this.walk(value);
     }
   }
@@ -2708,6 +2833,14 @@ var Observer = function () {
       var keys = Object.keys(obj);
       for (var i = 0, len = keys.length; i < len; i++) {
         defineReactive(obj, keys[i], obj[keys[i]]);
+      }
+    }
+  }, {
+    key: 'observeArray',
+    value: function observeArray(items) {
+      for (var i = 0, len = items.length; i < len; i++) {
+        var item = items[i];
+        isPrimitive(item) ? defineReactive(items, i, item) : observe(item);
       }
     }
   }]);
@@ -2721,6 +2854,7 @@ function defineReactive(obj, key, val) {
   }
   var getter = property && property.get;
   var setter = property && property.set;
+  var childOb = observe(val);
   Object.defineProperty(obj, key, {
     enumerable: true,
     configurable: true,
@@ -2728,11 +2862,18 @@ function defineReactive(obj, key, val) {
       var value = getter ? getter.call(obj) : val;
       if (Dep.target) {
         dep.depend();
+        if (childOb) {
+          childOb.dep.depend();
+          if (Array.isArray(value)) {
+            dependArray(value);
+          }
+        }
       }
       return value;
     },
     set: function set$$1(newVal) {
       var value = getter ? getter.call(obj) : val;
+      var oldValue = value;
       if (newVal === value || newVal !== newVal && value !== value) {
         return;
       }
@@ -2741,7 +2882,8 @@ function defineReactive(obj, key, val) {
       } else {
         val = newVal;
       }
-      dep.notify();
+      childOb = observe(newVal);
+      dep.notify(newVal, oldValue);
     }
   });
 }
@@ -2757,8 +2899,19 @@ function observe(value) {
   }
   return ob;
 }
+function dependArray(value) {
+  for (var i = 0, len = value.length; i < len; i++) {
+    var v = value[i];
+    if (v && v.__ob__) {
+      v.__ob__.dep.depend();
+    }
+    if (Array.isArray(v)) {
+      dependArray(v);
+    }
+  }
+}
 function initWatchState(data) {
-  return observe(data);
+  observe(data);
 }
 
 var Component = function () {
@@ -2767,10 +2920,12 @@ var Component = function () {
 
     this.name = this.constructor.name;
     this.state = Object.create(null);
-    this.propsRequireList = requireList;
     this.props = getProps(attrs, requireList, this.name);
+    this.$propsRequireList = requireList;
+    this.$isWatch = false;
+    this.$parent = null;
+    this.$firstCompilation = true;
     this.$slot = null;
-    this.isWatch = false;
     this.$data = {
       stateQueue: []
     };
@@ -2797,6 +2952,10 @@ var Component = function () {
   }, {
     key: 'setState',
     value: function setState(partialState) {
+      if (this.$isWatch) {
+        grassWarn('Current response data pattern.', this.name);
+        return;
+      }
       enqueueSetState(this, partialState);
     }
   }, {
@@ -2814,15 +2973,17 @@ var Component = function () {
       data = Object.setPrototypeOf(data, null);
       if (isPlainObject(data)) {
         this.state = data;
+        this.$isWatch = false;
       }
     }
   }, {
-    key: 'createWatchState',
-    value: function createWatchState(data) {
+    key: 'createResponseState',
+    value: function createResponseState(data) {
       data = Object.setPrototypeOf(data, null);
       if (isPlainObject(data)) {
-        this.state = initWatchState(data).value;
-        this.isWatch = true;
+        initWatchState(data);
+        this.state = data;
+        this.$isWatch = true;
       }
     }
   }]);
@@ -2830,7 +2991,7 @@ var Component = function () {
 }();
 function mount(rootDOM, componentClass) {
   return new Promise(function (resolve) {
-    var vnode = new WidgetVNode({}, null, componentClass);
+    var vnode = new WidgetVNode(null, {}, null, componentClass);
     var dom = create(vnode);
     rootDOM.appendChild(dom);
     resolve(dom);
@@ -2838,6 +2999,7 @@ function mount(rootDOM, componentClass) {
 }
 var filterPropsList = {
   'key': 1,
+  'slot': 1,
   'styleName': 1,
   'className': 1
 };

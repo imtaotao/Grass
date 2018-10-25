@@ -2,6 +2,7 @@
   <div styleName="test-block" v-show="this.props.show" style="color:#fff;"  v-tt="this.props" v-ttt="this" @click="this.click.bind(this)">
     12112
     <slot name="tao" v-text="this.props.show"/>
+    <div @click="this.testResponse.bind(this)">{{ excellent }}</div>
     <bbb :api="this.props.api"/>
 
     ------------
@@ -28,6 +29,10 @@
 
     click () {
       this.tNext('tt', 1212121)
+    }
+
+    testResponse () {
+      this.setState({excellent: 'haohao'})
     }
 
     component () {

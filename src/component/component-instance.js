@@ -3,7 +3,7 @@ import { getProps } from './index'
 import { enqueueSetState } from './update-state'
 import { parseTemplate } from '../ast/parse-template'
 
-export function getComponentInstance (widgetVNode) {
+export function getComponentInstance (widgetVNode, parentComponent) {
   const { componentClass, data } = widgetVNode
   const isClass = _.isClass(componentClass)
   let instance
@@ -19,7 +19,7 @@ export function getComponentInstance (widgetVNode) {
     }
   } else {
     const props = getProps(data.parentConfig.attrs)
-    const template = componentClass(props)
+    const template = componentClass(props, parentComponent)
 
     instance = createNoStateComponent(props, template, componentClass)
   }
@@ -27,6 +27,10 @@ export function getComponentInstance (widgetVNode) {
   // We saved ast in component constructor
   if (!componentClass.$ast) {
     componentClass.$ast = genAstCode(instance)
+  }
+
+  if (parentComponent) {
+    instance.$parent = parentComponent
   }
 
   return instance
@@ -40,6 +44,8 @@ function createNoStateComponent (props, template, componentClass) {
     template,
     props,
     $slot: null,
+    $parent: null,
+    $firstCompilation: true,
     $data: {
       stateQueue: []
     },

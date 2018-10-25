@@ -427,11 +427,56 @@ grass-loader 会预编译模板，所以你可以像 vue 一样使用单文件�
   </template>
 ```
 
-### 逻辑图
+### Slot
+我们可以使用 slot 内置组件来进行一些插槽行为
++ 父组件
 ```html
-
-
+<template>
+  <child>
+    <div slot="tao">{{api}}</div>
+    <bb slot='fang'></bb>
+  </child>
+</template>
 ```
+
++ 子组件
+```html
+<template>
+  <slot name="tao"></slot>
+  <slot name="fang"></slot>
+  <slot></slot>
+</template>
+```
+我们可以指定 name 属性来选取需要插入的插槽，当没有 name 属性的时候，会把所有内容都插入进来，而且我们还可在组件内通过 `$slot` 属性来拿到所有的插槽内容的 `vnode`，插槽的内容都是在所定义的组件之内编译的，这是需要注意的一点
+
+### 响应式数据
+Grass 实现了一个响应式数据系统，你可以通过 `createResponseState` 这个 api 来创建响应式数据，我们不必要在通过调用 `this.setState` 方法来通知 Grass 更新视图
+
+```html
+<template>
+  <div styleName="xx" @click="this.c.bind(this)">{{ tao }}</div>'
+</template>
+
+<script>
+  import { CSSModules } from 'grass'
+  import style from './style.css'
+
+  @CSSModules(style)
+  class C extends Grass.Component {
+    constructor () {
+      super()
+      this.createResponseState({
+        tao: 'taotao',
+      })
+    }
+
+    c () {
+      this.state.tao = 'tao'
+    }
+  }
+</script>
+```
+响应数据模式和普通模式，最好不要混用
 
 ### 注意事项
 报错信息显示的组件名称，是根据组件的声明名字进行关联的，所以注重的地方是组件创建时的 name。欢迎大家提 bug 啊，一起学习。前端小分队 qq 群：624921236

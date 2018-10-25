@@ -24,6 +24,10 @@ export function render (widgetVNode, ast) {
     componentClass.CSSModules(vnodeConfig, component.name)
   }
 
+  if (component.$firstCompilation) {
+    component.$firstCompilation = false
+  }
+
   return createVNode(vnodeConfig, genChildren(vnodeConfig.children, component))
 }
 
@@ -51,7 +55,7 @@ export function genChildren (children, component) {
           // If a component tag
           const childCompoentClass = getComponentClass(child, component)
           const slotVnode = genChildren(child.children, component)
-          const vnode = new WidgetVNode(child, slotVnode, childCompoentClass)
+          const vnode = new WidgetVNode(component, child, slotVnode, childCompoentClass)
 
           vnodeChildren.push(vnode)
         }

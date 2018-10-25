@@ -23,6 +23,8 @@ export default function vfor (node, component, vnodeConf) {
     if ($data) {
       $callback_($data);
     }
+
+    return $data;
   `
 
   function loopData (data) {

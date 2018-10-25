@@ -4,6 +4,7 @@
       <span>dsf</span>
       点击
     </div>
+    <span v-for="val of arr">{{ val }}</span>
     <div>
       <bb v-show="show" v-tt="api"/>
     </div>
@@ -35,13 +36,11 @@
     }
   })
 
-  // console.log(vm);
-
   @CSSModules(style)
   class Root extends Grass.Component {
     constructor () {
       super()
-      this.createWatchState({
+      this.createResponseState({
         api: 'index',
         arr: [1, 2],
         show: true,
@@ -59,11 +58,16 @@
     }
 
     callback (api) {
-      this.setState({
-        show: !this.state.show,
-        arr: [1, 2, 3, 4, 5],
-        api: 'taotao',
-      })
+      // this.setState({
+      //   show: !this.state.show,
+      //   arr: [1, 2, 3, 4, 5],
+      //   api: 'taotao',
+      // })
+
+      console.log(121);
+      this.state.show = !this.state.show
+      this.state.arr = [1, 2, 3, 4, 5]
+      this.state.api = 'taotao'
       
       Child.remove(this.testListener)
     }
@@ -92,7 +96,7 @@
     component () {
       return {
         Child,
-        bb: function bb () {
+        bb: function bb (props, parent) {
           return `<div>1</div>`
         }
       }

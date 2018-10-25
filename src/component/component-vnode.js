@@ -6,7 +6,7 @@ import { elementCreated } from '../global-api/constom-directive'
 import { getComponentInstance } from './component-instance'
 
 export class WidgetVNode {
-  constructor (parentConfig, slotVnode, componentClass) {
+  constructor (parentComponent, parentConfig, slotVnode, componentClass) {
     const {
       attrs = {},
       haveShowTag,
@@ -19,6 +19,7 @@ export class WidgetVNode {
     this.count = 0
     this.name = componentClass.name
     this.id = parentConfig.indexKey || 'Root'
+    this.parentComponent = parentComponent
     this.componentClass = componentClass
     this.component = null
     this.slot = attrs.slot
@@ -39,7 +40,7 @@ export class WidgetVNode {
 
   init () {
     // Now, we can get component instance, chonse this time, Because we can improve efficiency
-    const component = getComponentInstance(this)
+    const component = getComponentInstance(this, this.parentComponent)
     
     component.$slot = this.data.slotVnode
     component.$widgetVNode = this
@@ -97,8 +98,8 @@ export function cacheComponentDomAndVTree (widgetVNode, vtree, dom) {
 
 function update ({ component, data: { parentConfig } }) {
   if (component && parentConfig) {
-    const { propsRequireList, name } = component
-    const newProps = getProps(parentConfig.attrs, propsRequireList, name)
+    const { $propsRequireList, name } = component
+    const newProps = getProps(parentConfig.attrs, $propsRequireList, name)
 
     if (!component.noStateComp &&
         component.willReceiveProps(newProps) === false) {

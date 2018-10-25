@@ -22,20 +22,24 @@ export default class Dep {
     }
   }
 
-  notify () {
+  notify (newValue, oldValue) {
     const subs = this.subs.slice()
     for (let i = 0, len = subs.length; i < len; i++) {
-      subs[i].update()
+      subs[i].update(newValue, oldValue)
     }
   }
 }
 
 Dep.target = null
+const targetStack = []
 
 export function pushTarget (_target) {
+  if (Dep.target) {
+    targetStack.push(_target)
+  }
   Dep.target = _target
 }
 
 export function clearTarget () {
-  Dep.target = null
+  Dep.target = targetStack.pop()
 }

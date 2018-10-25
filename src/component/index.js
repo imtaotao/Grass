@@ -8,10 +8,12 @@ export class Component {
   constructor (attrs, requireList) {
     this.name = this.constructor.name
     this.state = Object.create(null)
-    this.propsRequireList = requireList
     this.props = getProps(attrs, requireList, this.name)
+    this.$propsRequireList = requireList
+    this.$isWatch = false
+    this.$parent = null
+    this.$firstCompilation = true
     this.$slot = null
-    this.isWatch = false
     this.$data = {
       stateQueue: [],
     }
@@ -26,6 +28,10 @@ export class Component {
   destroy (dom) {}
 
   setState (partialState) {
+    if (this.$isWatch) {
+      _.grassWarn('Current response data pattern.', this.name)
+      return
+    }
     enqueueSetState(this, partialState)
   }
 
@@ -40,22 +46,24 @@ export class Component {
 
     if (_.isPlainObject(data)) {
       this.state = data
+      this.$isWatch = false
     }
   }
 
-  createWatchState (data) {
+  createResponseState (data) {
     data = Object.setPrototypeOf(data, null)
 
     if (_.isPlainObject(data)) {
-      this.state = initWatchState(data).value
-      this.isWatch = true
+      initWatchState(data)
+      this.state = data
+      this.$isWatch = true
     }
   }
 }
 
 export function mount (rootDOM, componentClass) {
   return new Promise(resolve => {
-    const vnode = new WidgetVNode({}, null, componentClass)
+    const vnode = new WidgetVNode(null, {}, null, componentClass)
     const dom = create(vnode)
 
     rootDOM.appendChild(dom)
@@ -67,6 +75,7 @@ export function mount (rootDOM, componentClass) {
 // 而且我们需要过滤掉内部用到的属性，例如 "key"
 const filterPropsList = {
   'key': 1,
+  'slot': 1,
   'styleName': 1,
   'className': 1,
 }
