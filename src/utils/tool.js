@@ -122,6 +122,14 @@ export function isDef (val) {
   return val !== undefined && val !== null
 }
 
+export function isNative (Ctor) {
+  return typeof Ctor === 'function' && /native code/.test(Ctor.toString())
+}
+
+export const hasSymbol =
+  typeof Symbol !== 'undefined' && isNative(Symbol) &&
+  typeof Reflect !== 'undefined' && isNative(Reflect.ownKeys)
+
 export function once (fun) {
   let called = false
   return function () {

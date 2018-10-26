@@ -15,6 +15,8 @@
       <bb slot='fangfang'></bb>
     </Child>
     <div v-for="val of arr"  v-transition.animate="'slide-fade'" v-show="show">fsda</div>
+
+    <Child :show="true"/>
   </div>
 </template>
 
@@ -57,6 +59,10 @@
       Child.listener('tt', this.testListener)
     }
 
+    willUpdate () {
+      console.log(121);
+    }
+
     callback (api) {
       // this.setState({
       //   show: !this.state.show,
@@ -95,7 +101,14 @@
 
     component () {
       return {
-        Child,
+        Child: Grass.async((resolve, reject) => {
+          import('./child.grs').then((res) => {
+             setTimeout(() => {
+               resolve(res)
+             }, 3000)
+          })
+        }),
+        // Child,
         bb: function bb (props, parent) {
           return `<div>1</div>`
         }
@@ -107,5 +120,6 @@
   Grass.directive('tt', (dom, val) => {
     // console.log(dom, val);
   })
-   
+  
+  Grass.mount(document.getElementById('root'), Root)
 </script>

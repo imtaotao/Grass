@@ -28,24 +28,11 @@ function getStateResult (code, component, state, callback) {
 
   if (component.$isWatch && component.$firstCompilation) {
     let value
-    
-    function update () {
-      const data = component.$data
-
-      if (!data.stateQueue.length) {
-        Promise.resolve().then(() => {
-          updateDomTree(component)
-          data.stateQueue.length = 0
-        })
-      }
-
-      data.stateQueue.push(null)
-    }
 
     new Watcher(component, () => {
       value = fun.call(component, state, callback)
       return value
-    }, update)
+    }, component.forceUpdate)
 
     return value
   } else {

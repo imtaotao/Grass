@@ -36,10 +36,17 @@ export class Component {
     enqueueSetState(this, partialState)
   }
 
-  forcedUpdate () {
-    Promise.resolve().then(() => {
-      updateDomTree(this)
-    })
+  forceUpdate () {
+    const stateQueue = this.$data.stateQueue
+
+    if (!stateQueue.length) {
+      Promise.resolve().then(() => {
+        updateDomTree(this)
+        stateQueue.length = 0
+      })
+    }
+
+    stateQueue.push(null)
   }
 
   createState (data) {

@@ -23,5 +23,5 @@
   }
   
   console.log(12);
-  Grass.mount(document.getElementById('root'), Root)
+  // Grass.mount(document.getElementById('root'), Root)
 </script>

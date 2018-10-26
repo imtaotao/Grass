@@ -3,6 +3,7 @@ import { TAG } from '../ast/parse-template'
 import { WidgetVNode } from './component-vnode'
 import { createVNode } from './create-vnode'
 import { getSlotVnode, pushSlotVnode } from './component-slot'
+import { createAsyncComponent } from './component-async'
 import { migrateComponentStatus } from './component-transfer'
 import complierDirectFromAst from '../directives/index'
 
@@ -53,9 +54,21 @@ export function genChildren (children, component) {
           }
         } else {
           // If a component tag
-          const childCompoentClass = getComponentClass(child, component)
+          let childClass = getComponentClass(child, component)
+          
+          // If a async component
+          if (childClass.async) {
+            const factory = childClass.factory
+            childClass = createAsyncComponent(factory, component)
+            // If no childClass, represent no loading component or other component.
+            if (!childClass) {
+              // We don't need placeholder vnode, not render just fine.
+              continue
+            }
+          }
+
           const slotVnode = genChildren(child.children, component)
-          const vnode = new WidgetVNode(component, child, slotVnode, childCompoentClass)
+          const vnode = new WidgetVNode(component, child, slotVnode, childClass)
 
           vnodeChildren.push(vnode)
         }
@@ -86,11 +99,15 @@ function getComponentClass (vnodeConfig, parentCompnent) {
 
   // 'components' attribute of component is function or object, so, we need judgment
   if (typeof childComponents === 'function') {
-    childComponents = childComponents()
+    parentCompnent.component = childComponents = childComponents()
   }
 
   if (_.isPlainObject(childComponents)) {
-    return childComponents[tagName]
+    const res = childComponents[tagName]
+
+    if (res) {
+      return res
+    }
   }
 
   warn()

@@ -166,6 +166,10 @@ function isUndef(val) {
 function isDef(val) {
   return val !== undefined && val !== null;
 }
+function isNative(Ctor) {
+  return typeof Ctor === 'function' && /native code/.test(Ctor.toString());
+}
+var hasSymbol$1 = typeof Symbol !== 'undefined' && isNative(Symbol) && typeof Reflect !== 'undefined' && isNative(Reflect.ownKeys);
 function once(fun) {
   var called = false;
   return function () {
@@ -1625,6 +1629,59 @@ function pushSlotVnode(vnodeChildren, vnode) {
   }
 }
 
+function createAsyncComponent(factory, context) {
+  if (factory.error === true && factory.errorComp != null) {
+    return factory.errorComp;
+  }
+  if (factory.resolved != null) {
+    return factory.resolved;
+  }
+  if (factory.loading === true && factory.loadingComp != null) {
+    return factory.loadingComp;
+  }
+  if (factory.context != null) {
+    factory.context.push(context);
+  } else {
+    var contexts = factory.context = [context];
+    var sync = true;
+    var forceRender = function forceRender() {
+      for (var i = 0, len = contexts.length; i < len; i++) {
+        contexts[i].forceUpdate();
+      }
+    };
+    var resolve = once(function (res) {
+      factory.resolved = ensureCtor(res);
+      if (!sync) {
+        forceRender();
+      }
+    });
+    var reject = once(function (reason) {
+      if (factory.errorComp != null) {
+        factory.error = true;
+        forceRender();
+      }
+    });
+    var res = factory(resolve, reject);
+    dealWithResult(res, factory, resolve, reject);
+    sync = false;
+    return factory.loading ? factory.loadingComp : factory.resolved;
+  }
+}
+function dealWithResult(res, factory, resolve, reject) {
+  if (!isObject(res)) return;
+  if (typeof res.then === 'function') {
+    if (isUndef(factory.resolved)) {
+      res.then(resolve, reject);
+    }
+  }
+}
+function ensureCtor(component) {
+  if (component.__esModule || hasSymbol && component[Symbol.toStringTag] === 'Module') {
+    component = component.default;
+  }
+  return component;
+}
+
 var scope = null;
 var chain = [scope];
 function create$1(s) {
@@ -1833,7 +1890,7 @@ var Watcher = function () {
   }, {
     key: 'update',
     value: function update(newValue, oldValue) {
-      this.cb(newValue, oldValue);
+      this.cb.call(this.compnent, newValue, oldValue);
     }
   }]);
   return Watcher;
@@ -1924,23 +1981,11 @@ function runExecuteContext(code, directName, tagName, component, callback) {
 function getStateResult(code, component, state, callback) {
   var fun = new Function('$obj_', '$callback_', code);
   if (component.$isWatch && component.$firstCompilation) {
-    var update = function update() {
-      var data = component.$data;
-      if (!data.stateQueue.length) {
-        Promise.resolve().then(function () {
-          updateDomTree(component);
-          data.stateQueue.length = 0;
-        });
-      }
-      data.stateQueue.push(null);
-    };
-
     var value = void 0;
-
     new Watcher(component, function () {
       value = fun.call(component, state, callback);
       return value;
-    }, update);
+    }, component.forceUpdate);
     return value;
   } else {
     return fun.call(component, state, callback);
@@ -2566,9 +2611,16 @@ function genChildren(children, component) {
             }
           }
         } else {
-          var childCompoentClass = getComponentClass(child, component);
+          var childClass = getComponentClass(child, component);
+          if (childClass.async) {
+            var factory = childClass.factory;
+            childClass = createAsyncComponent(factory, component);
+            if (!childClass) {
+              continue;
+            }
+          }
           var slotVnode = genChildren(child.children, component);
-          var _vnode2 = new WidgetVNode(component, child, slotVnode, childCompoentClass);
+          var _vnode2 = new WidgetVNode(component, child, slotVnode, childClass);
           vnodeChildren.push(_vnode2);
         }
       } else {
@@ -2593,10 +2645,13 @@ function getComponentClass(vnodeConfig, parentCompnent) {
     return null;
   }
   if (typeof childComponents === 'function') {
-    childComponents = childComponents();
+    parentCompnent.component = childComponents = childComponents();
   }
   if (isPlainObject(childComponents)) {
-    return childComponents[tagName];
+    var res = childComponents[tagName];
+    if (res) {
+      return res;
+    }
   }
   warn$$1();
 }
@@ -2628,11 +2683,12 @@ function getComponentInstance(widgetVNode, parentComponent) {
 }
 function createNoStateComponent(props, template, componentClass) {
   return {
-    constructor: componentClass,
-    name: componentClass.name,
-    noStateComp: true,
-    template: template,
     props: props,
+    template: template,
+    noStateComp: true,
+    name: componentClass.name,
+    constructor: componentClass,
+    $el: null,
     $slot: null,
     $parent: null,
     $firstCompilation: true,
@@ -2707,6 +2763,7 @@ var WidgetVNode = function () {
           dom = _renderingRealDom.dom,
           vtree = _renderingRealDom.vtree;
 
+      component.$el = dom;
       cacheComponentDomAndVTree(this, vtree, dom);
       return dom;
     }
@@ -2925,11 +2982,12 @@ var Component = function () {
     this.name = this.constructor.name;
     this.state = Object.create(null);
     this.props = getProps(attrs, requireList, this.name);
-    this.$propsRequireList = requireList;
-    this.$isWatch = false;
-    this.$parent = null;
-    this.$firstCompilation = true;
+    this.$el = null;
     this.$slot = null;
+    this.$parent = null;
+    this.$isWatch = false;
+    this.$firstCompilation = true;
+    this.$propsRequireList = requireList;
     this.$data = {
       stateQueue: []
     };
@@ -2963,13 +3021,18 @@ var Component = function () {
       enqueueSetState(this, partialState);
     }
   }, {
-    key: 'forcedUpdate',
-    value: function forcedUpdate() {
+    key: 'forceUpdate',
+    value: function forceUpdate() {
       var _this = this;
 
-      Promise.resolve().then(function () {
-        updateDomTree(_this);
-      });
+      var stateQueue = this.$data.stateQueue;
+      if (!stateQueue.length) {
+        Promise.resolve().then(function () {
+          updateDomTree(_this);
+          stateQueue.length = 0;
+        });
+      }
+      stateQueue.push(null);
     }
   }, {
     key: 'createState',
@@ -3205,9 +3268,17 @@ function creataError(reason) {
   }
 }
 
+function async(factory) {
+  var options = Object.create(null);
+  options.factory = factory;
+  options.async = true;
+  return options;
+}
+
 function initGlobalAPI (Grass) {
   Grass.directive = customDirective;
   Grass.event = extendEvent;
+  Grass.async = async;
 }
 
 var compName = void 0;

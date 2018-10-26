@@ -80,6 +80,6 @@ export default class Watcher {
   }
 
   update (newValue, oldValue) {
-    this.cb(newValue, oldValue)
+    this.cb.call(this.compnent, newValue, oldValue)
   }
 }
