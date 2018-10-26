@@ -38,11 +38,12 @@ export function getComponentInstance (widgetVNode, parentComponent) {
 
 function createNoStateComponent (props, template, componentClass) {
   return {
-    constructor: componentClass,
-    name: componentClass.name,
-    noStateComp: true,
-    template,
     props,
+    template,
+    noStateComp: true,
+    name: componentClass.name,
+    constructor: componentClass,
+    $el: null,
     $slot: null,
     $parent: null,
     $firstCompilation: true,

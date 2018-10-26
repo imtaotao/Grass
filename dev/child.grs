@@ -44,7 +44,7 @@
     }
   }
 
-  console.log(Grass);
+  // console.log(Grass);
   Grass.directive('ttt', (...args) => {
     // console.log(...args);
   })

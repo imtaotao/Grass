@@ -9,11 +9,12 @@ export class Component {
     this.name = this.constructor.name
     this.state = Object.create(null)
     this.props = getProps(attrs, requireList, this.name)
-    this.$propsRequireList = requireList
-    this.$isWatch = false
-    this.$parent = null
-    this.$firstCompilation = true
+    this.$el = null
     this.$slot = null
+    this.$parent = null
+    this.$isWatch = false
+    this.$firstCompilation = true
+    this.$propsRequireList = requireList
     this.$data = {
       stateQueue: [],
     }

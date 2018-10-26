@@ -1,2 +1,2 @@
 // import './demo'
-import './test'
+import './dev'

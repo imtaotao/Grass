@@ -24,17 +24,17 @@
   import style from './style.css'
   import Vue from 'vue'
 
-  const vm = new Vue({
-    data: {
-      api: 'index',
-      arr: [1, 2],
-      show: true,
-      obj: {
-        tt: 'chentao',
-        ff: 'fangfang'
-      }
-    }
-  })
+  // const vm = new Vue({
+  //   data: {
+  //     api: 'index',
+  //     arr: [1, 2],
+  //     show: true,
+  //     obj: {
+  //       tt: 'chentao',
+  //       ff: 'fangfang'
+  //     }
+  //   }
+  // })
 
   @CSSModules(style)
   class Root extends Grass.Component {
@@ -107,5 +107,5 @@
   Grass.directive('tt', (dom, val) => {
     // console.log(dom, val);
   })
-  Grass.mount(document.getElementById('root'), Root) 
+   
 </script>

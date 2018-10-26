@@ -48,6 +48,7 @@ export class WidgetVNode {
 
     const { dom, vtree } = renderingRealDom(this)
 
+    component.$el = dom
     cacheComponentDomAndVTree(this, vtree, dom)
 
     return dom

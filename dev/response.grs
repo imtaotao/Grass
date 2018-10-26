@@ -1,0 +1,27 @@
+<template>
+  <div v-text="a"></div>
+</template>
+
+<script>
+  import Grass, { CSSModules } from '../src'
+  import style from './response'
+
+  @CSSModules(style)
+  class Root extends Grass.Component {
+    constructor (props) {
+      super(props)
+      this.createResponseState({
+        a: 1,
+      })
+
+      window.s = this.state
+    }
+
+    abc () {
+
+    }
+  }
+  
+  console.log(12);
+  Grass.mount(document.getElementById('root'), Root)
+</script>
