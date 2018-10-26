@@ -57,10 +57,10 @@
 
     create () {
       Child.listener('tt', this.testListener)
+      console.log(this.getComponent('Child'))
     }
 
     willUpdate () {
-      console.log(121);
     }
 
     callback (api) {
@@ -70,7 +70,8 @@
       //   api: 'taotao',
       // })
 
-      console.log(121);
+      // console.log(this.getComponent('Child'));
+
       this.state.show = !this.state.show
       this.state.arr = [1, 2, 3, 4, 5]
       this.state.api = 'taotao'

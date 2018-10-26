@@ -36,6 +36,31 @@ export class Component {
     enqueueSetState(this, partialState)
   }
 
+  // Get child component class.
+  getComponent (name) {
+    const component = this.component
+
+    if (component) {
+      if (typeof component === 'function') {
+        this.component = component = component.call(this)
+      }
+  
+      const res = component[name]
+
+      if (res) {
+        if (res.async === true) {
+          const factory = res.factory
+          if (!factory.loading && !factory.error) {
+            return factory.resolved || null
+          }
+        } else {
+          return res
+        }
+      }
+    }
+    return null
+  }
+
   forceUpdate () {
     const stateQueue = this.$data.stateQueue
 
