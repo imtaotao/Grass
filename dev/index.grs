@@ -24,7 +24,7 @@
   import Grass, { CSSModules } from '../src'
   import Child from './child'
   import style from './style.css'
-  import Vue from 'vue'
+  // import Vue from 'vue'
 
   // const vm = new Vue({
   //   data: {
@@ -57,7 +57,6 @@
 
     create () {
       Child.listener('tt', this.testListener)
-      console.log(this.getComponent('Child'))
     }
 
     willUpdate () {
@@ -103,11 +102,17 @@
     component () {
       return {
         Child: Grass.async((resolve, reject) => {
-          import('./child.grs').then((res) => {
-             setTimeout(() => {
-               resolve(res)
-             }, 3000)
-          })
+          return {
+            component: new Promise((re) => {
+              setTimeout(() => {
+                re(import('./child.grs'))
+              },1500)
+            }),
+            timeout: 3000,
+            error,
+            loading,
+            delay: 2000
+          }
         }),
         // Child,
         bb: function bb (props, parent) {
@@ -115,6 +120,14 @@
         }
       }
     }
+  }
+
+  function loading () {
+    return '<div> loading </div>'
+  }
+
+  function error () {
+    return '<div> error </div>'
   }
 
 

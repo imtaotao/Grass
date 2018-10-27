@@ -15,14 +15,14 @@ export class WidgetVNode {
       customDirection,
     } = parentConfig
 
-    this.type = 'Widget'
     this.count = 0
-    this.name = componentClass.name
-    this.id = parentConfig.indexKey || 'Root'
-    this.parentComponent = parentComponent
-    this.componentClass = componentClass
+    this.type = 'Widget'
     this.component = null
     this.slot = attrs.slot
+    this.name = componentClass.name
+    this.componentClass = componentClass
+    this.parentComponent = parentComponent
+    this.id = '_' + this.name + parentConfig.indexKey
     this.data = {
       haveShowTag,
       vTransitionType,

@@ -94,14 +94,14 @@ var toConsumableArray = function (arr) {
 function typeOf(val) {
   return Object.prototype.toString.call(val);
 }
-function isString(str) {
-  return typeOf(str) === '[object String]';
-}
 function isObject(obj) {
   return obj !== null && (typeof obj === 'undefined' ? 'undefined' : _typeof(obj)) === 'object';
 }
 function isPlainObject(obj) {
   return typeOf(obj) === '[object Object]';
+}
+function isNumber(num) {
+  return typeOf(num) === '[object Number]' && !isNaN(num);
 }
 function isPrimitive(value) {
   return typeof value === 'string' || typeof value === 'number' || (typeof value === 'undefined' ? 'undefined' : _typeof(value)) === 'symbol' || typeof value === 'boolean';
@@ -165,7 +165,7 @@ function isDef(val) {
 function isNative(Ctor) {
   return typeof Ctor === 'function' && /native code/.test(Ctor.toString());
 }
-var hasSymbol$1 = typeof Symbol !== 'undefined' && isNative(Symbol) && typeof Reflect !== 'undefined' && isNative(Reflect.ownKeys);
+var hasSymbol = typeof Symbol !== 'undefined' && isNative(Symbol) && typeof Reflect !== 'undefined' && isNative(Reflect.ownKeys);
 function once(fun) {
   var called = false;
   return function () {
@@ -1626,16 +1626,16 @@ function pushSlotVnode(vnodeChildren, vnode) {
 }
 
 function createAsyncComponent(factory, context) {
-  if (factory.error === true && factory.errorComp != null) {
+  if (factory.error === true && factory.errorComp) {
     return factory.errorComp;
   }
-  if (factory.resolved != null) {
+  if (factory.resolved) {
     return factory.resolved;
   }
-  if (factory.loading === true && factory.loadingComp != null) {
+  if (factory.loading === true && factory.loadingComp) {
     return factory.loadingComp;
   }
-  if (factory.context != null) {
+  if (Array.isArray(factory.context)) {
     factory.context.push(context);
   } else {
     var contexts = factory.context = [context];
@@ -1652,22 +1652,54 @@ function createAsyncComponent(factory, context) {
       }
     });
     var reject = once(function (reason) {
+      warn('Failed to resolve async component: ' + (reason ? reason : ''), true);
       if (factory.errorComp != null) {
         factory.error = true;
         forceRender();
       }
     });
     var res = factory(resolve, reject);
-    dealWithResult(res, factory, resolve, reject);
+    dealWithResult(res, factory, resolve, reject, forceRender);
     sync = false;
     return factory.loading ? factory.loadingComp : factory.resolved;
   }
 }
-function dealWithResult(res, factory, resolve, reject) {
+function dealWithResult(res, factory, resolve, reject, forceRender) {
   if (!isObject(res)) return;
   if (typeof res.then === 'function') {
     if (isUndef(factory.resolved)) {
       res.then(resolve, reject);
+    }
+  } else if (res.component && typeof res.component.then === 'function') {
+    var error = res.error,
+        delay = res.delay,
+        loading = res.loading,
+        timeout = res.timeout,
+        component = res.component;
+
+    component.then(resolve, reject);
+    if (error) {
+      factory.errorComp = ensureCtor(error);
+    }
+    if (loading) {
+      factory.loadingComp = ensureCtor(loading);
+      if (delay === 0) {
+        factory.loading = true;
+      } else {
+        setTimeout(function () {
+          if (isUndef(factory.resolve) && isUndef(factory.error)) {
+            factory.loading = true;
+            forceRender();
+          }
+        }, delay || 200);
+      }
+    }
+    if (isNumber(timeout)) {
+      setTimeout(function () {
+        if (isUndef(factory.resolved)) {
+          reject('timeout (' + res.timeout + 'ms)');
+        }
+      }, timeout);
     }
   }
 }
@@ -2704,7 +2736,7 @@ function genAstCode(component) {
   if (typeof template === 'function') {
     template = template.call(component);
   }
-  if (!isString(template)) {
+  if (typeof template !== 'string') {
     grassWarn('Component template must a "string" or "function", But now is "' + (typeof template === 'undefined' ? 'undefined' : _typeof(template)) + '"', name);
     return;
   }
@@ -2725,14 +2757,14 @@ var WidgetVNode = function () {
         vTransitionData = parentConfig.vTransitionData,
         customDirection = parentConfig.customDirection;
 
-    this.type = 'Widget';
     this.count = 0;
-    this.name = componentClass.name;
-    this.id = parentConfig.indexKey || 'Root';
-    this.parentComponent = parentComponent;
-    this.componentClass = componentClass;
+    this.type = 'Widget';
     this.component = null;
     this.slot = attrs.slot;
+    this.name = componentClass.name;
+    this.componentClass = componentClass;
+    this.parentComponent = parentComponent;
+    this.id = '_' + this.name + parentConfig.indexKey;
     this.data = {
       haveShowTag: haveShowTag,
       vTransitionType: vTransitionType,
@@ -3015,6 +3047,28 @@ var Component = function () {
         return;
       }
       enqueueSetState(this, partialState);
+    }
+  }, {
+    key: 'getComponent',
+    value: function getComponent(name) {
+      var component = this.component;
+      if (component) {
+        if (typeof component === 'function') {
+          this.component = component = component.call(this);
+        }
+        var res = component[name];
+        if (res) {
+          if (res.async === true) {
+            var factory = res.factory;
+            if (!factory.loading && !factory.error) {
+              return factory.resolved || null;
+            }
+          } else {
+            return res;
+          }
+        }
+      }
+      return null;
     }
   }, {
     key: 'forceUpdate',

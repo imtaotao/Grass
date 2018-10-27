@@ -38,7 +38,7 @@ export class Component {
 
   // Get child component class.
   getComponent (name) {
-    const component = this.component
+    let component = this.component
 
     if (component) {
       if (typeof component === 'function') {

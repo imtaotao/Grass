@@ -20,7 +20,7 @@ export function getComponentInstance (widgetVNode, parentComponent) {
   } else {
     const props = getProps(data.parentConfig.attrs)
     const template = componentClass(props, parentComponent)
-
+    
     instance = createNoStateComponent(props, template, componentClass)
   }
 
@@ -65,7 +65,7 @@ function genAstCode (component) {
     template = template.call(component)
   }
 
-  if (!_.isString(template)) {
+  if (typeof template !== 'string') {
     _.grassWarn(`Component template must a "string" or "function", But now is "${typeof template}"`, name)
     return
   }
