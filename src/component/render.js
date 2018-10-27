@@ -58,10 +58,10 @@ export function genChildren (children, component) {
           
           // If a async component
           if (childClass.async) {
-            const factory = childClass.factory
-            childClass = createAsyncComponent(factory, component)
+            const { factory, cb } = childClass
+            childClass = createAsyncComponent(factory, component, cb)
             // If no childClass, represent no loading component or other component.
-            if (!childClass) {
+            if (!childClass) { 
               // We don't need placeholder vnode, not render just fine.
               continue
             }

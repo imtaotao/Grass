@@ -1,5 +1,5 @@
 import * as _ from '../utils'
-import { getProps } from './index'
+import { getProps, forceUpdate } from './index'
 import { enqueueSetState } from './update-state'
 import { parseTemplate } from '../ast/parse-template'
 
@@ -49,6 +49,9 @@ function createNoStateComponent (props, template, componentClass) {
     $firstCompilation: true,
     $data: {
       stateQueue: []
+    },
+    forceUpdate () {
+      forceUpdate(this)
     },
     setState (partialState) {
       enqueueSetState(this, partialState)

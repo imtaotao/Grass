@@ -60,6 +60,7 @@
     }
 
     willUpdate () {
+      console.log(121);
     }
 
     callback (api) {
@@ -70,7 +71,7 @@
       // })
 
       // console.log(this.getComponent('Child'));
-
+      console.log(this);
       this.state.show = !this.state.show
       this.state.arr = [1, 2, 3, 4, 5]
       this.state.api = 'taotao'
@@ -106,13 +107,24 @@
             component: new Promise((re) => {
               setTimeout(() => {
                 re(import('./child.grs'))
-              },1500)
+              }, 5000)
             }),
-            timeout: 3000,
+            // error: Grass.async((resolve) => {
+            //   return {
+            //     component: new Promise(re => {
+            //       setTimeout(() => {
+            //         resolve(error)
+            //       }, 6000)
+            //     })
+            //   }
+            // }),
             error,
+            timeout: 3000,
             loading,
-            delay: 2000
+            // loading: Grass.async(() => import('./response.grs')),
           }
+        }, (err, cm) => {
+          console.log(err, cm);
         }),
         // Child,
         bb: function bb (props, parent) {

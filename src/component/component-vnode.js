@@ -108,7 +108,7 @@ function update ({ component, data: { parentConfig } }) {
     }
 
     component.props = newProps
-    component.setState({})
+    component.forceUpdate()
   }
 }
 

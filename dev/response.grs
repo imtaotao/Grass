@@ -1,5 +1,5 @@
 <template>
-  <div v-text="a"></div>
+  <div v-text="'loading'"></div>
 </template>
 
 <script>
@@ -7,7 +7,7 @@
   import style from './response'
 
   @CSSModules(style)
-  class Root extends Grass.Component {
+  export default class Res extends Grass.Component {
     constructor (props) {
       super(props)
       this.createResponseState({

@@ -36,6 +36,10 @@ export class Component {
     enqueueSetState(this, partialState)
   }
 
+  forceUpdate () {
+    forceUpdate(this)
+  }
+
   // Get child component class.
   getComponent (name) {
     let component = this.component
@@ -59,19 +63,6 @@ export class Component {
       }
     }
     return null
-  }
-
-  forceUpdate () {
-    const stateQueue = this.$data.stateQueue
-
-    if (!stateQueue.length) {
-      Promise.resolve().then(() => {
-        updateDomTree(this)
-        stateQueue.length = 0
-      })
-    }
-
-    stateQueue.push(null)
   }
 
   createState (data) {
@@ -147,4 +138,17 @@ export function getProps (attrs, requireList, name) {
   }
 
   return props
+}
+
+export function forceUpdate (component) {
+  const stateQueue = component.$data.stateQueue
+
+  if (!stateQueue.length) {
+    Promise.resolve().then(() => {
+      updateDomTree(component)
+      stateQueue.length = 0
+    })
+  }
+
+  stateQueue.push(null)
 }
