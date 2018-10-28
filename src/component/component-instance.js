@@ -20,9 +20,11 @@ export function getComponentInstance (widgetVNode, parentComponent) {
   } else {
     const props = getProps(data.parentConfig.attrs)
     const template = componentClass(props, parentComponent)
-    
+
     instance = createNoStateComponent(props, template, componentClass)
   }
+
+  _.setOnlyReadAttr(instance, 'name', widgetVNode.data.parentConfig.tagName)
 
   // We saved ast in component constructor
   if (!componentClass.$ast) {

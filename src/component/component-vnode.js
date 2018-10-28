@@ -41,7 +41,7 @@ export class WidgetVNode {
   init () {
     // Now, we can get component instance, chonse this time, Because we can improve efficiency
     const component = getComponentInstance(this, this.parentComponent)
-    
+
     component.$slot = this.data.slotVnode
     component.$widgetVNode = this
     this.component = component
@@ -105,6 +105,9 @@ function update ({ component, data: { parentConfig } }) {
     if (!component.noStateComp &&
         component.willReceiveProps(newProps) === false) {
       return
+    } else if (component.noStateComp) {
+      // Update new props, props maybe changed in function component.
+      component.constructor.call(null, newProps, component.$parent)
     }
 
     component.props = newProps

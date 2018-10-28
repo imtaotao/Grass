@@ -6,17 +6,18 @@
     </div>
     <span v-for="val of arr">{{ val }}</span>
     <div>
-      <bb v-show="show" v-tt="api"/>
+      
     </div>
 
-    <Child test1="api" :test2="api" :show="true" :api="api">
+    <Childd test1="api" :test2="api" :show="true" :api="api">
       <div slot="tao">{{api}}</div>
       tt
       <bb slot='fangfang'></bb>
-    </Child>
+    </Childd>
     <div v-for="val of arr"  v-transition.animate="'slide-fade'" v-show="show">fsda</div>
 
-    <Child :show="true"/>
+    <Childd :show="true"/>
+    <response />
   </div>
 </template>
 
@@ -24,6 +25,7 @@
   import Grass, { CSSModules } from '../src'
   import Child from './child'
   import style from './style.css'
+  import response from './response.grs'
   // import Vue from 'vue'
 
   // const vm = new Vue({
@@ -102,33 +104,36 @@
 
     component () {
       return {
-        Child: Grass.async((resolve, reject) => {
+        response,
+        Childd: Grass.async((resolve, reject) => {
           return {
             component: new Promise((re) => {
               setTimeout(() => {
                 re(import('./child.grs'))
-              }, 5000)
+              }, 2000)
             }),
-            // error: Grass.async((resolve) => {
-            //   return {
-            //     component: new Promise(re => {
-            //       setTimeout(() => {
-            //         resolve(error)
-            //       }, 6000)
-            //     })
-            //   }
-            // }),
-            error,
+            error: Grass.async((resolve) => {
+              return {
+                component: new Promise(re => {
+                  setTimeout(() => {
+                    resolve(error)
+                  }, 6000)
+                })
+              }
+            }),
+            // error,
             timeout: 3000,
-            loading,
-            // loading: Grass.async(() => import('./response.grs')),
+            // loading,
+            loading: Grass.async(() => import('./response.grs')),
           }
         }, (err, cm) => {
-          console.log(err, cm);
+          console.dir(cm);
         }),
         // Child,
         bb: function bb (props, parent) {
-          return `<div>1</div>`
+          props.a = 121
+          console.log(props, parent, this);
+          return `<div>{{a}} taotao</div>`
         }
       }
     }

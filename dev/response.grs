@@ -1,5 +1,5 @@
 <template>
-  <div v-text="'loading'"></div>
+  <div v-text="a" @click="this.abc.bind(this)"></div>
 </template>
 
 <script>
@@ -18,7 +18,7 @@
     }
 
     abc () {
-
+      this.state.a = 2
     }
   }
   

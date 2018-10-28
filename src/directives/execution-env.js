@@ -1,14 +1,13 @@
 import scope from './scope'
 import Watcher from '../observer/Watcher'
 import * as _ from '../utils/index'
-import { updateDomTree } from '../component/update-state'
 
 export default function runExecuteContext (code, directName, tagName, component, callback) {
   const { noStateComp, state, props } = component
   const insertScope = noStateComp ? props : state
   const realData = scope.insertChain(insertScope || {})
 
-  if (directName !== '{{ }}') {
+  if (!/{{[\s\S]*}}/g.test(directName)) {
     directName = 'v-' + directName
   }
 
