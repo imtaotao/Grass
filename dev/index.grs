@@ -14,7 +14,9 @@
       tt
       <bb slot='fangfang'></bb>
     </Child>
-    <div v-for="val of obj" v-transition="'slide-fade'" v-if="show">{{val}}</div>
+    <div v-for="val of obj" v-transition="'slide-fade'" v-show="show">
+      <span v-for="v of val">{{v}}</span>
+    </div>
   </div>
 </template>
 
@@ -31,8 +33,13 @@
       arr: [1, 2],
       show: true,
       obj: {
-        tt: 'chentao',
-        ff: 'fangfang',
+        t: {
+          c: 'c'
+        },
+        o: {
+          a:1,
+          b:2
+        }
       }
     }
   })
@@ -47,9 +54,18 @@
         api: 'index',
         arr: [1, 2],
         show: true,
+        // obj: {
+        //   tt: 'chentao',
+        //   ff: 'fangfang'
+        // }
         obj: {
-          tt: 'chentao',
-          ff: 'fangfang'
+          t: {
+            c: 'c'
+          },
+          o: {
+            a:1,
+            b:2
+          }
         }
       })
 
@@ -102,7 +118,7 @@
     component () {
       return {
         response,
-        // Childd: Grass.async((resolve, reject) => {
+        // Child: Grass.async((resolve, reject) => {
         //   return {
         //     component: new Promise((re) => {
         //       setTimeout(() => {
@@ -114,17 +130,17 @@
         //         component: new Promise(re => {
         //           setTimeout(() => {
         //             resolve(error)
-        //           }, 6000)
+        //           }, 3000)
         //         })
         //       }
         //     }),
         //     // error,
-        //     timeout: 3000,
+        //     timeout: 1000,
         //     // loading,
         //     loading: Grass.async(() => import('./response.grs')),
         //   }
         // }, (err, cm) => {
-        //   console.dir(cm);
+        //   console.dir(err, cm);
         // }),
         Child,
         bb: function bb (props, parent) {

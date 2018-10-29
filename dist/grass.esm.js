@@ -156,6 +156,13 @@ function isEmptyObj(obj) {
   }
   return true;
 }
+function setOnlyReadAttr(obj, key, val) {
+  Object.defineProperty(obj, key, {
+    get: function get$$1() {
+      return val;
+    }
+  });
+}
 function isUndef(val) {
   return val === undefined || val === null;
 }
@@ -186,241 +193,6 @@ function warn(msg, noError) {
 function grassWarn(msg, compName) {
   var errorInfor = '[Grass tip]: ' + msg + '  \n\n    --->  ' + (compName || 'unknow') + '\n';
   throw Error(errorInfor);
-}
-
-var attribute = /^\s*([^\s"'<>\/=]+)(?:\s*(=)\s*(?:"([^"]*)"+|'([^']*)'+|([^\s"'=<>`]+)))?/;
-var ncname = '[a-zA-Z_][\\w\\-\\.]*';
-var qnameCapture = '((?:' + ncname + '\\:)?' + ncname + ')';
-var startTagOpen = new RegExp('^<' + qnameCapture);
-var startTagClose = /^\s*(\/?)>/;
-var endTag = new RegExp('^<\\/' + qnameCapture + '[^>]*>');
-var textREG = /[^<]*/;
-var defaultTagRE = /\{\{((?:.|\n)+?)\}\}/;
-var doctype = /^<!DOCTYPE [^>]+>/i;
-var comment = /^<!--/;
-var conditionalComment = /^<!\[/;
-var TEXT = 0;
-var STATICTAG = 1;
-var TAG = 2;
-function parseTemplate(html, compName) {
-  var index = 0;
-  var searchEndCount = 0;
-  var ast = [];
-  var scope = ast;
-  filter();
-  while (html) {
-    searchEndCount++;
-    parseStart();
-    parseEnd();
-    if (searchEndCount > html.length / 4) {
-      grassWarn('Parsing template error\n\n   Missing end tag', compName);
-    }
-  }
-  return ast[0];
-  function parseStart() {
-    var match = html.match(startTagOpen);
-    if (match && match[0]) {
-      var indexKey = void 0,
-          parent = void 0,
-          container = void 0;
-      var tagStr = match[0];
-      var tagName = match[1];
-      var isRoot = scope === ast;
-      if (isRoot) {
-        parent = null;
-        indexKey = toString$1(ast.length);
-        container = ast;
-      } else {
-        parent = scope;
-        indexKey = toString$1(scope.children.length);
-        container = scope.children;
-      }
-      var tagNode = createTag(tagName, indexKey, parent);
-      container.push(tagNode);
-      scope = tagNode;
-      advance(tagStr.length);
-      var end = void 0,
-          attr = void 0,
-          attrName = void 0,
-          attrValue = void 0;
-      while (!(end = html.match(startTagClose)) && (attr = html.match(attribute))) {
-        advance(attr[0].length);
-        attrName = attr[1];
-        attrValue = attr[3] || attr[4] || attr[5];
-        if (/^v-|@|:+/.test(attrName)) {
-          conversionDirection(defineProperty({}, attrName, attrValue));
-        } else {
-          scope.attrs[attrName] = attrValue;
-        }
-      }
-      if (end[1]) {
-        scope.isUnaryTag = true;
-        scope.end = index;
-        scope = scope.parent;
-        searchEndCount = 0;
-      } else {
-        scope.isUnaryTag = false;
-      }
-      advance(end[0].length);
-      while (parseStaticTag()) {}
-    }
-  }
-  function parseStaticTag() {
-    filter();
-    var match = html.match(textREG);
-    var text = void 0;
-    if (!match || !match[0]) return false;
-    if (match && (text = match[0])) {
-      if (!defaultTagRE.test(text)) {
-        var textNode = createStaticNode(text, scope);
-        advance(text.length);
-        textNode.end = index;
-        if (scope === null) {
-          grassWarn('Component can only have one root node', compName);
-        }
-        scope.children.push(textNode);
-      } else {
-        var expression = parseTextExpression(text);
-        var staticTag = createStaticTag(text, expression, scope);
-        advance(text.length);
-        staticTag.end = index;
-        scope.children.push(staticTag);
-      }
-    }
-    return true;
-  }
-  function parseTextExpression(text) {
-    var l = 0;
-    var first = true;
-    var match = null;
-    var resultText = '';
-    var reg = new RegExp(defaultTagRE, 'g');
-    while (match = reg.exec(text)) {
-      resultText += first ? '`' + text.slice(l, match.index) + '` + _s(' + match[1] + ') ' : '+ `' + text.slice(l, match.index) + '` + _s(' + match[1] + ') ';
-      l = match.index + match[0].length;
-      first && (first = false);
-    }
-    if (l === text.length) return resultText;
-    resultText += '+ `' + text.slice(l, text.length) + '`';
-    return resultText;
-  }
-  function parseEnd() {
-    var match = html.match(endTag);
-    if (match && match[0]) {
-      var _match = slicedToArray(match, 2),
-          tagStr = _match[0],
-          tagName = _match[1];
-
-      if (scope.type === TAG && scope.tagName === tagName) {
-        searchEndCount = 0;
-        advance(tagStr.length);
-        scope.end = index;
-        scope = scope.parent;
-        while (parseStaticTag()) {}
-      }
-    }
-  }
-  function filter() {
-    if (comment.test(html)) {
-      var commentEnd = html.indexOf('-->');
-      if (commentEnd >= 0) {
-        advance(commentEnd + 3);
-      }
-    }
-    if (conditionalComment.test(html)) {
-      var conditionalEnd = html.indexOf(']>');
-      if (conditionalEnd >= 0) {
-        advance(conditionalEnd + 2);
-      }
-    }
-    var doctypeMatch = html.match(doctype);
-    if (doctypeMatch) {
-      advance(doctypeMatch[0].length);
-    }
-  }
-  function advance(n) {
-    index += n;
-    html = html.substring(n);
-  }
-  function getForArgs(attr) {
-    var args = /((\w+)|(\([^\(]+\)))\s+of\s+([\w\.\(\)\[\]]+)/g.exec(attr['v-for']);
-    if (args) {
-      var key = args[1];
-      if (key.includes(',')) {
-        key = key.replace(/[\(\)]/g, '').split(',').map(function (val) {
-          return val.trim();
-        });
-      }
-      return {
-        key: key,
-        data: args[4],
-        isMultiple: Array.isArray(key)
-      };
-    }
-    return null;
-  }
-  function conversionDirection(vAttr) {
-    var bind = void 0,
-        on = void 0;
-    var key = Object.keys(vAttr)[0];
-    if (key === 'v-for' && vAttr[key]) {
-      var args = getForArgs(vAttr);
-      scope.forMultipleArg = Array.isArray(args);
-      scope.forArgs = args;
-      scope.for = true;
-    }
-    if (key === 'v-if') {
-      scope.if = true;
-    }
-    if (bind = key.match(/^(:)(.+)/)) {
-      vAttr = defineProperty({}, 'v-bind' + key, vAttr[key]);
-    }
-    if (on = key.match(/^@(.+)/)) {
-      vAttr = defineProperty({}, 'v-on:' + on[1], vAttr[key]);
-    }
-    scope.direction.push(vAttr);
-  }
-  function createTag(tagName, indexKey, parent) {
-    var root = parent ? false : true;
-    return {
-      type: TAG,
-      tagName: tagName,
-      bindState: [],
-      children: [],
-      attrs: {},
-      start: index,
-      indexKey: indexKey,
-      end: null,
-      parent: parent,
-      root: root,
-      isUnaryTag: null,
-      direction: [],
-      hasBindings: function hasBindings() {
-        return !!this.direction.length;
-      }
-    };
-  }
-  function createStaticTag(content, expression, parent) {
-    return {
-      type: STATICTAG,
-      start: index,
-      bindState: [],
-      parent: parent,
-      end: null,
-      expression: expression,
-      content: content
-    };
-  }
-  function createStaticNode(content, parent) {
-    return {
-      type: TEXT,
-      start: index,
-      parent: parent,
-      end: null,
-      content: content,
-      static: true
-    };
-  }
 }
 
 function cached(fn) {
@@ -1519,6 +1291,466 @@ var diff$1 = diff;
 var patch$1 = patch;
 var create = createElement;
 
+var uid = 0;
+
+var Dep = function () {
+  function Dep() {
+    classCallCheck(this, Dep);
+
+    this.id = uid++;
+    this.subs = [];
+  }
+
+  createClass(Dep, [{
+    key: "addSub",
+    value: function addSub(sub) {
+      this.subs.push(sub);
+    }
+  }, {
+    key: "removeSub",
+    value: function removeSub(sub) {
+      remove(this.subs, sub);
+    }
+  }, {
+    key: "depend",
+    value: function depend() {
+      if (Dep.target) {
+        Dep.target.addDep(this);
+      }
+    }
+  }, {
+    key: "notify",
+    value: function notify(newValue, oldValue) {
+      var subs = this.subs.slice();
+      for (var i = 0, len = subs.length; i < len; i++) {
+        subs[i].update(newValue, oldValue);
+      }
+    }
+  }]);
+  return Dep;
+}();
+
+Dep.target = null;
+var targetStack = [];
+function pushTarget(_target) {
+  if (Dep.target) {
+    targetStack.push(_target);
+  }
+  Dep.target = _target;
+}
+function clearTarget() {
+  Dep.target = targetStack.pop();
+}
+
+var bailRE = /[^\w.$]/;
+function parsePath(path) {
+  if (bailRE.test(path)) {
+    return;
+  }
+  var segments = path.split('.');
+  return function (obj) {
+    for (var i = 0; i < segments.length; i++) {
+      if (!obj) return;
+      obj = obj[segments[i]];
+    }
+    return obj;
+  };
+}
+function def(obj, key, val, enumerable) {
+  Object.defineProperty(obj, key, {
+    value: val,
+    enumerable: !!enumerable,
+    writable: true,
+    configurable: true
+  });
+}
+function protoAugment(target, src, keys) {
+  target.__proto__ = src;
+}
+function copyAugment(target, src, keys) {
+  for (var i = 0, len = keys.length; i < len; i++) {
+    var key = keys[i];
+    def(target, key, src[key]);
+  }
+}
+
+var arrayProto = Array.prototype;
+var arrayMethods = Object.create(arrayProto);
+var methodsToPatch = ['push', 'pop', 'shift', 'unshift', 'splice', 'sort', 'reverse'];
+
+var _loop = function _loop(i, len) {
+  var method = methodsToPatch[i];
+  var original = arrayProto[method];
+  def(arrayMethods, method, function mutator() {
+    for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+      args[_key] = arguments[_key];
+    }
+
+    var result = original.apply(this, args);
+    var ob = this.__ob__;
+    var inserted = void 0;
+    switch (method) {
+      case 'push':
+      case 'unshift':
+        inserted = args;
+        break;
+      case 'splice':
+        inserted = args.slice(2);
+        break;
+    }
+    if (inserted) {
+      ob.observeArray(inserted);
+    }
+    ob.dep.notify();
+    return result;
+  });
+};
+
+for (var i = 0, len = methodsToPatch.length; i < len; i++) {
+  _loop(i, len);
+}
+
+var hasProto = '__proto__' in {};
+var arrayKeys = Object.getOwnPropertyNames(arrayMethods);
+var Observer = function () {
+  function Observer(value) {
+    classCallCheck(this, Observer);
+
+    this.value = value;
+    this.dep = new Dep();
+    def(value, '__ob__', this);
+    if (Array.isArray(value)) {
+      var augment = hasProto ? protoAugment : copyAugment;
+      augment(value, arrayMethods, arrayKeys);
+      this.observeArray(value);
+    } else {
+      this.walk(value);
+    }
+  }
+
+  createClass(Observer, [{
+    key: 'walk',
+    value: function walk(obj) {
+      var keys = Object.keys(obj);
+      for (var i = 0, len = keys.length; i < len; i++) {
+        defineReactive(obj, keys[i], obj[keys[i]]);
+      }
+    }
+  }, {
+    key: 'observeArray',
+    value: function observeArray(items) {
+      for (var i = 0, len = items.length; i < len; i++) {
+        var item = items[i];
+        observe(item);
+      }
+    }
+  }]);
+  return Observer;
+}();
+function defineReactive(obj, key, val) {
+  var dep = new Dep();
+  var property = Object.getOwnPropertyDescriptor(obj, key);
+  if (property && property.configurable === false) {
+    return;
+  }
+  var getter = property && property.get;
+  var setter = property && property.set;
+  var childOb = observe(val);
+  Object.defineProperty(obj, key, {
+    enumerable: true,
+    configurable: true,
+    get: function get$$1() {
+      var value = getter ? getter.call(obj) : val;
+      if (Dep.target) {
+        dep.depend();
+        if (childOb) {
+          childOb.dep.depend();
+          if (Array.isArray(value)) {
+            dependArray(value);
+          }
+        }
+      }
+      return value;
+    },
+    set: function set$$1(newVal) {
+      var value = getter ? getter.call(obj) : val;
+      var oldValue = value;
+      if (newVal === value || newVal !== newVal && value !== value) {
+        return;
+      }
+      if (setter) {
+        setter.call(obj, newVal);
+      } else {
+        val = newVal;
+      }
+      childOb = observe(newVal);
+      dep.notify(newVal, oldValue);
+    }
+  });
+}
+function observe(value) {
+  if (!isObject(value) || isVNode$1(value)) {
+    return;
+  }
+  var ob = void 0;
+  if (hasOwn(value, '__ob__') && value.__ob__ instanceof Observer) {
+    ob = value.__ob__;
+  } else if ((Array.isArray(value) || isPlainObject(value)) && Object.isExtensible(value)) {
+    ob = new Observer(value);
+  }
+  return ob;
+}
+function dependArray(value) {
+  for (var i = 0, len = value.length; i < len; i++) {
+    var v = value[i];
+    if (v && v.__ob__) {
+      v.__ob__.dep.depend();
+    }
+    if (Array.isArray(v)) {
+      dependArray(v);
+    }
+  }
+}
+function initWatchState(data) {
+  observe(data);
+}
+
+var attribute = /^\s*([^\s"'<>\/=]+)(?:\s*(=)\s*(?:"([^"]*)"+|'([^']*)'+|([^\s"'=<>`]+)))?/;
+var ncname = '[a-zA-Z_][\\w\\-\\.]*';
+var qnameCapture = '((?:' + ncname + '\\:)?' + ncname + ')';
+var startTagOpen = new RegExp('^<' + qnameCapture);
+var startTagClose = /^\s*(\/?)>/;
+var endTag = new RegExp('^<\\/' + qnameCapture + '[^>]*>');
+var textREG = /[^<]*/;
+var defaultTagRE = /\{\{((?:.|\n)+?)\}\}/;
+var doctype = /^<!DOCTYPE [^>]+>/i;
+var comment = /^<!--/;
+var conditionalComment = /^<!\[/;
+var TEXT = 0;
+var STATICTAG = 1;
+var TAG = 2;
+function parseTemplate(html, compName) {
+  var index = 0;
+  var searchEndCount = 0;
+  var ast = [];
+  var scope = ast;
+  filter();
+  while (html) {
+    searchEndCount++;
+    parseStart();
+    parseEnd();
+    if (searchEndCount > html.length / 4) {
+      grassWarn('Parsing template error\n\n   Missing end tag', compName);
+    }
+  }
+  return ast[0];
+  function parseStart() {
+    var match = html.match(startTagOpen);
+    if (match && match[0]) {
+      var indexKey = void 0,
+          parent = void 0,
+          container = void 0;
+      var tagStr = match[0];
+      var tagName = match[1];
+      var isRoot = scope === ast;
+      if (isRoot) {
+        parent = null;
+        indexKey = toString$1(ast.length);
+        container = ast;
+      } else {
+        parent = scope;
+        indexKey = toString$1(scope.children.length);
+        container = scope.children;
+      }
+      var tagNode = createTag(tagName, indexKey, parent);
+      container.push(tagNode);
+      scope = tagNode;
+      advance(tagStr.length);
+      var end = void 0,
+          attr = void 0,
+          attrName = void 0,
+          attrValue = void 0;
+      while (!(end = html.match(startTagClose)) && (attr = html.match(attribute))) {
+        advance(attr[0].length);
+        attrName = attr[1];
+        attrValue = attr[3] || attr[4] || attr[5];
+        if (/^v-|@|:+/.test(attrName)) {
+          conversionDirection(defineProperty({}, attrName, attrValue));
+        } else {
+          scope.attrs[attrName] = attrValue;
+        }
+      }
+      if (end[1]) {
+        scope.isUnaryTag = true;
+        scope.end = index;
+        scope = scope.parent;
+        searchEndCount = 0;
+      } else {
+        scope.isUnaryTag = false;
+      }
+      advance(end[0].length);
+      while (parseStaticTag()) {}
+    }
+  }
+  function parseStaticTag() {
+    filter();
+    var match = html.match(textREG);
+    var text = void 0;
+    if (!match || !match[0]) return false;
+    if (match && (text = match[0])) {
+      if (!defaultTagRE.test(text)) {
+        var textNode = createStaticNode(text, scope);
+        advance(text.length);
+        textNode.end = index;
+        if (scope === null) {
+          grassWarn('Component can only have one root node', compName);
+        }
+        scope.children.push(textNode);
+      } else {
+        var expression = parseTextExpression(text);
+        var staticTag = createStaticTag(text, expression, scope);
+        advance(text.length);
+        staticTag.end = index;
+        scope.children.push(staticTag);
+      }
+    }
+    return true;
+  }
+  function parseTextExpression(text) {
+    var l = 0;
+    var first = true;
+    var match = null;
+    var resultText = '';
+    var reg = new RegExp(defaultTagRE, 'g');
+    while (match = reg.exec(text)) {
+      resultText += first ? '`' + text.slice(l, match.index) + '` + _s(' + match[1] + ') ' : '+ `' + text.slice(l, match.index) + '` + _s(' + match[1] + ') ';
+      l = match.index + match[0].length;
+      first && (first = false);
+    }
+    if (l === text.length) return resultText;
+    resultText += '+ `' + text.slice(l, text.length) + '`';
+    return resultText;
+  }
+  function parseEnd() {
+    var match = html.match(endTag);
+    if (match && match[0]) {
+      var _match = slicedToArray(match, 2),
+          tagStr = _match[0],
+          tagName = _match[1];
+
+      if (scope.type === TAG && scope.tagName === tagName) {
+        searchEndCount = 0;
+        advance(tagStr.length);
+        scope.end = index;
+        scope = scope.parent;
+        while (parseStaticTag()) {}
+      }
+    }
+  }
+  function filter() {
+    if (comment.test(html)) {
+      var commentEnd = html.indexOf('-->');
+      if (commentEnd >= 0) {
+        advance(commentEnd + 3);
+      }
+    }
+    if (conditionalComment.test(html)) {
+      var conditionalEnd = html.indexOf(']>');
+      if (conditionalEnd >= 0) {
+        advance(conditionalEnd + 2);
+      }
+    }
+    var doctypeMatch = html.match(doctype);
+    if (doctypeMatch) {
+      advance(doctypeMatch[0].length);
+    }
+  }
+  function advance(n) {
+    index += n;
+    html = html.substring(n);
+  }
+  function getForArgs(attr) {
+    var args = /((\w+)|(\([^\(]+\)))\s+of\s+([\w\.\(\)\[\]]+)/g.exec(attr['v-for']);
+    if (args) {
+      var key = args[1];
+      if (key.includes(',')) {
+        key = key.replace(/[\(\)]/g, '').split(',').map(function (val) {
+          return val.trim();
+        });
+      }
+      return {
+        key: key,
+        data: args[4],
+        isMultiple: Array.isArray(key)
+      };
+    }
+    return null;
+  }
+  function conversionDirection(vAttr) {
+    var bind = void 0,
+        on = void 0;
+    var key = Object.keys(vAttr)[0];
+    if (key === 'v-for' && vAttr[key]) {
+      var args = getForArgs(vAttr);
+      scope.for = true;
+      scope.forArgs = args;
+      scope.forMultipleArg = Array.isArray(args);
+      scope.watcherCollectList = {};
+    }
+    if (key === 'v-if') {
+      scope.if = true;
+    }
+    if (bind = key.match(/^(:)(.+)/)) {
+      vAttr = defineProperty({}, 'v-bind' + key, vAttr[key]);
+    }
+    if (on = key.match(/^@(.+)/)) {
+      vAttr = defineProperty({}, 'v-on:' + on[1], vAttr[key]);
+    }
+    scope.direction.push(vAttr);
+  }
+  function createTag(tagName, indexKey, parent) {
+    var root = parent ? false : true;
+    return {
+      type: TAG,
+      tagName: tagName,
+      bindState: [],
+      children: [],
+      attrs: {},
+      start: index,
+      indexKey: indexKey,
+      end: null,
+      parent: parent,
+      root: root,
+      isUnaryTag: null,
+      direction: [],
+      hasBindings: function hasBindings() {
+        return !!this.direction.length;
+      }
+    };
+  }
+  function createStaticTag(content, expression, parent) {
+    return {
+      type: STATICTAG,
+      start: index,
+      bindState: [],
+      parent: parent,
+      end: null,
+      expression: expression,
+      content: content
+    };
+  }
+  function createStaticNode(content, parent) {
+    return {
+      type: TEXT,
+      start: index,
+      parent: parent,
+      end: null,
+      content: content,
+      static: true
+    };
+  }
+}
+
 var Container = function () {
   function Container(val) {
     classCallCheck(this, Container);
@@ -1625,14 +1857,14 @@ function pushSlotVnode(vnodeChildren, vnode) {
   }
 }
 
-function createAsyncComponent(factory, context) {
-  if (factory.error === true && factory.errorComp) {
+function createAsyncComponent(factory, context, cb) {
+  if (factory.error && factory.errorComp) {
     return factory.errorComp;
   }
-  if (factory.resolved) {
+  if (!factory.error && factory.resolved) {
     return factory.resolved;
   }
-  if (factory.loading === true && factory.loadingComp) {
+  if (!factory.error && factory.loading && factory.loadingComp) {
     return factory.loadingComp;
   }
   if (Array.isArray(factory.context)) {
@@ -1640,31 +1872,41 @@ function createAsyncComponent(factory, context) {
   } else {
     var contexts = factory.context = [context];
     var sync = true;
+    var complete = false;
     var forceRender = function forceRender() {
       for (var i = 0, len = contexts.length; i < len; i++) {
         contexts[i].forceUpdate();
       }
     };
     var resolve = once(function (res) {
+      if (complete) return;
       factory.resolved = ensureCtor(res);
       if (!sync) {
+        if (typeof cb === 'function') {
+          cb(null, factory.resolved);
+        }
         forceRender();
+        complete = true;
       }
     });
     var reject = once(function (reason) {
-      warn('Failed to resolve async component: ' + (reason ? reason : ''), true);
-      if (factory.errorComp != null) {
-        factory.error = true;
-        forceRender();
+      if (complete) return;
+      if (typeof cb === 'function') {
+        cb(reason, null);
+      } else {
+        warn('Failed to resolve async component: ' + (reason ? reason : ''), true);
       }
+      factory.error = true;
+      complete = true;
+      forceRender();
     });
     var res = factory(resolve, reject);
-    dealWithResult(res, factory, resolve, reject, forceRender);
+    dealWithResult(res, factory, resolve, reject, context, forceRender);
     sync = false;
     return factory.loading ? factory.loadingComp : factory.resolved;
   }
 }
-function dealWithResult(res, factory, resolve, reject, forceRender) {
+function dealWithResult(res, factory, resolve, reject, context, forceRender) {
   if (!isObject(res)) return;
   if (typeof res.then === 'function') {
     if (isUndef(factory.resolved)) {
@@ -1672,26 +1914,38 @@ function dealWithResult(res, factory, resolve, reject, forceRender) {
     }
   } else if (res.component && typeof res.component.then === 'function') {
     var error = res.error,
-        delay = res.delay,
+        _res$delay = res.delay,
+        delay = _res$delay === undefined ? 0 : _res$delay,
         loading = res.loading,
         timeout = res.timeout,
         component = res.component;
 
     component.then(resolve, reject);
+    var setUtilComp = function setUtilComp(comp, name) {
+      if (comp.async) {
+        createAsyncComponent(comp.factory, context, function (err, cm) {
+          if (!err) {
+            factory[name] = cm;
+          }
+        });
+      } else {
+        factory[name] = comp;
+      }
+    };
     if (error) {
-      factory.errorComp = ensureCtor(error);
+      setUtilComp(error, 'errorComp');
     }
     if (loading) {
-      factory.loadingComp = ensureCtor(loading);
+      setUtilComp(loading, 'loadingComp');
       if (delay === 0) {
         factory.loading = true;
-      } else {
+      } else if (isNumber(delay)) {
         setTimeout(function () {
-          if (isUndef(factory.resolve) && isUndef(factory.error)) {
+          if (isUndef(factory.resolved) && isUndef(factory.error)) {
             factory.loading = true;
             forceRender();
           }
-        }, delay || 200);
+        }, delay);
       }
     }
     if (isNumber(timeout)) {
@@ -1773,89 +2027,6 @@ var scope$1 = {
   insertChain: insertChain
 };
 
-var bailRE = /[^\w.$]/;
-function parsePath(path) {
-  if (bailRE.test(path)) {
-    return;
-  }
-  var segments = path.split('.');
-  return function (obj) {
-    for (var i = 0; i < segments.length; i++) {
-      if (!obj) return;
-      obj = obj[segments[i]];
-    }
-    return obj;
-  };
-}
-function def(obj, key, val, enumerable) {
-  Object.defineProperty(obj, key, {
-    value: val,
-    enumerable: !!enumerable,
-    writable: true,
-    configurable: true
-  });
-}
-function protoAugment(target, src, keys) {
-  target.__proto__ = src;
-}
-function copyAugment(target, src, keys) {
-  for (var i = 0, len = keys.length; i < len; i++) {
-    var key = keys[i];
-    def(target, key, src[key]);
-  }
-}
-
-var uid = 0;
-
-var Dep = function () {
-  function Dep() {
-    classCallCheck(this, Dep);
-
-    this.id = uid++;
-    this.subs = [];
-  }
-
-  createClass(Dep, [{
-    key: "addSub",
-    value: function addSub(sub) {
-      this.subs.push(sub);
-    }
-  }, {
-    key: "removeSub",
-    value: function removeSub(sub) {
-      remove(this.subs, sub);
-    }
-  }, {
-    key: "depend",
-    value: function depend() {
-      if (Dep.target) {
-        Dep.target.addDep(this);
-      }
-    }
-  }, {
-    key: "notify",
-    value: function notify(newValue, oldValue) {
-      var subs = this.subs.slice();
-      for (var i = 0, len = subs.length; i < len; i++) {
-        subs[i].update(newValue, oldValue);
-      }
-    }
-  }]);
-  return Dep;
-}();
-
-Dep.target = null;
-var targetStack = [];
-function pushTarget(_target) {
-  if (Dep.target) {
-    targetStack.push(_target);
-  }
-  Dep.target = _target;
-}
-function clearTarget() {
-  Dep.target = targetStack.pop();
-}
-
 var Watcher = function () {
   function Watcher(compnent, expreOrFn, cb) {
     classCallCheck(this, Watcher);
@@ -1924,89 +2095,41 @@ var Watcher = function () {
   return Watcher;
 }();
 
-var CAPACITY = 1024;
-function enqueueSetState(component, partialState) {
-  if (isLegalState(partialState)) {
-    var data = component.$data;
-    if (!data.stateQueue.length) {
-      batchUpdateQueue(component);
-    }
-    data.stateQueue.push(partialState);
-  }
-}
-function batchUpdateQueue(component) {
-  Promise.resolve().then(function () {
-    var queue = component.$data.stateQueue;
-    var state = Object.assign({}, component.state);
-    var index$$1 = 0;
-    while (index$$1 < queue.length) {
-      var currentIndex = index$$1;
-      index$$1++;
-      state = mergeState(state, queue[currentIndex]);
-      if (index$$1 > CAPACITY) {
-        var newLength = queue.length - index$$1;
-        for (var i = 0; i < newLength; i++) {
-          queue[i] = queue[index$$1 + i];
-        }
-        queue.length -= index$$1;
-        index$$1 = 0;
-      }
-    }
-    queue.length = 0;
-    component.state = state;
-    updateDomTree(component);
-  });
-}
-function updateDomTree(component) {
-  if (!component.noStateComp) {
-    component.willUpdate();
-  }
-  var vnode = component.$widgetVNode;
-  var _vnode$container = vnode.container,
-      dom = _vnode$container.dom,
-      vtree = _vnode$container.vtree;
-
-  var ast = component.constructor.$ast;
-  var newTree = render(vnode, ast);
-  var patchs = diff$1(vtree, newTree);
-  patch$1(dom, patchs);
-  if (!component.noStateComp) {
-    component.didUpdate(dom);
-  }
-  cacheComponentDomAndVTree(vnode, newTree, dom);
-}
-function mergeState(state, partialState) {
-  if (typeof partialState === 'function') {
-    var newState = partialState(state);
-    return isPlainObject(newState) ? newState : state;
-  }
-  return isEmptyObj(partialState) ? state : Object.assign({}, state, partialState);
-}
-function isLegalState(state) {
-  return isPlainObject(state) || typeof state === 'function';
-}
-
-function runExecuteContext(code, directName, tagName, component, callback) {
+function runExecuteContext(code, directName, vnodeConf, component, callback) {
   var noStateComp = component.noStateComp,
       state = component.state,
       props = component.props;
 
   var insertScope = noStateComp ? props : state;
   var realData = scope$1.insertChain(insertScope || {});
-  if (directName !== '{{ }}') {
+  if (!/{{[\s\S]*}}/g.test(directName)) {
     directName = 'v-' + directName;
   }
   var options = {
     code: code,
-    tagName: tagName,
     callback: callback,
+    vnodeConf: vnodeConf,
     component: component,
     directName: directName,
     state: realData
   };
   return run(options);
 }
-function getStateResult(code, component, state, callback) {
+function run(_ref) {
+  var code = _ref.code,
+      state = _ref.state,
+      vnodeConf = _ref.vnodeConf,
+      callback = _ref.callback,
+      component = _ref.component,
+      directName = _ref.directName;
+
+  try {
+    return getStateResult(code, vnodeConf, component, state, callback);
+  } catch (error) {
+    warn('Component directive compilation error  \n\n  "' + directName + '":  ' + error + '\n\n\n    --->  ' + (component.name || 'unknow') + ': <' + (vnodeConf.tagName || 'unknow') + '/>\n');
+  }
+}
+function getStateResult(code, vnodeConf, component, state, callback) {
   var fun = new Function('$obj_', '$callback_', code);
   if (component.$isWatch && component.$firstCompilation) {
     var value = void 0;
@@ -2017,20 +2140,6 @@ function getStateResult(code, component, state, callback) {
     return value;
   } else {
     return fun.call(component, state, callback);
-  }
-}
-function run(_ref) {
-  var code = _ref.code,
-      state = _ref.state,
-      tagName = _ref.tagName,
-      callback = _ref.callback,
-      component = _ref.component,
-      directName = _ref.directName;
-
-  try {
-    return getStateResult(code, component, state, callback);
-  } catch (error) {
-    warn('Component directive compilation error  \n\n  "' + directName + '":  ' + error + '\n\n\n    --->  ' + component.name + ': <' + (tagName || '') + '/>\n');
   }
 }
 
@@ -2080,7 +2189,7 @@ function dealSingleBindAttr(_ref, component, vnodeConf) {
   }
   vnodeConf.attrs[attrName] = component ? getValue() : value;
   function getValue() {
-    return runExecuteContext('with($obj_) { return ' + value + '; }', 'bind', vnodeConf.tagName, component);
+    return runExecuteContext('with($obj_) { return ' + value + '; }', 'bind', vnodeConf, component);
   }
 }
 function getNormalStyleKey(key) {
@@ -2219,7 +2328,7 @@ function vevent(events, component, vnodeConf) {
             modifiers = _splitDireation.modifiers;
 
         var code = '\n        with ($obj_) {\n          return ' + event.value + ';\n        }\n      ';
-        var cb = runExecuteContext(code, 'on', vnodeConf.tagName, component);
+        var cb = runExecuteContext(code, 'on', vnodeConf, component);
         if (modifiers.length) {
           vnodeConf.attrs['on' + name] = createModifiersFun(modifiers, cb);
         } else {
@@ -2273,14 +2382,19 @@ function createVnodeConf(astNode, parent) {
         indexKey = astNode.indexKey,
         direction = astNode.direction;
 
+    var _children = [];
     var _attrs = deepClone(attrs);
     var _direction = deepClone(direction);
-    var _children = [];
-    return vTag(tagName, _attrs, indexKey, _direction, _children, parent);
+    var tag = vTag(tagName, parent, _attrs, indexKey, _direction, _children);
+    if (hasOwn(astNode, 'for')) {
+      tag.for = true;
+      tag.watcherCollectList = astNode.watcherCollectList;
+    }
+    return tag;
   }
   return vText$2(astNode.content, parent);
 }
-function vTag(tagName, attrs, indexKey, direction, children, parent) {
+function vTag(tagName, parent, attrs, indexKey, direction, children) {
   var node = Object.create(null);
   node.type = TAG;
   node.attrs = attrs;
@@ -2314,6 +2428,7 @@ function vfor(node, component, vnodeConf) {
     return;
   }
   var cloneNodes = [];
+  var watcherCollectList = {};
   var _node$forArgs = node.forArgs,
       keys = _node$forArgs.key,
       data = _node$forArgs.data,
@@ -2321,30 +2436,54 @@ function vfor(node, component, vnodeConf) {
 
   var code = '\n    var $data;\n\n    with($obj_) { $data = ' + data + '; }\n\n    if ($data) {\n      $callback_($data);\n    }\n\n    return $data;\n  ';
   function loopData(data) {
-    each(data, function (val, key, i) {
-      if (isMultiple) {
-        scope$1.add(keys[0], val);
-        scope$1.add(keys[1], key);
-      } else {
-        scope$1.add(keys, val);
+    if (Array.isArray(data)) {
+      for (var i = 0, len = data.length; i < len; i++) {
+        var nodeKey = vnodeConf.indexKey + '_' + i;
+        addValue(isMultiple, data[i], i, i, nodeKey);
       }
-      vforCallback(i);
-    });
+    } else if (isObject(data)) {
+      var dataKey = Object.keys(data);
+
+      var _loop = function _loop(_i, _len) {
+        var key = dataKey[_i];
+        var nodeKey = vnodeConf.indexKey + '_' + _i;
+        var val = getValue(component, function () {
+          return data[key];
+        }, node, nodeKey);
+        addValue(isMultiple, val, key, _i, nodeKey);
+      };
+
+      for (var _i = 0, _len = dataKey.length; _i < _len; _i++) {
+        _loop(_i, _len);
+      }
+    }
   }
-  function vforCallback(i) {
+  function addValue(isMultiple, val, key, i, nodeKey) {
+    if (isMultiple) {
+      scope$1.add(keys[0], val);
+      scope$1.add(keys[1], key);
+    } else {
+      scope$1.add(keys, val);
+    }
+    vforCallback(i, nodeKey);
+  }
+  function vforCallback(i, key) {
     var cloneNode = createVnodeConf(node, vnodeConf.parent);
-    var key = vnodeConf.indexKey + '_' + i;
     cloneNode.attrs['key'] = key;
     cloneNode.indexKey = key;
     node.for = false;
     cloneNodes[i] = parseSingleNode(node, component, cloneNode) === false ? null : cloneNode;
+    if (component.$isWatch) {
+      watcherCollectList[key] = true;
+    }
   }
   scope$1.create();
-  runExecuteContext(code, 'for', vnodeConf.tagName, component, loopData);
+  runExecuteContext(code, 'for', vnodeConf, component, loopData);
   scope$1.destroy();
   var index = serachIndex(vnodeConf);
   replaceWithLoopRes(vnodeConf, cloneNodes, index);
   node.for = true;
+  node.watcherCollectList = watcherCollectList;
 }
 function serachIndex(node) {
   var children = node.parent.children;
@@ -2359,12 +2498,27 @@ function replaceWithLoopRes(node, res, i) {
   var children = node.parent.children;
   children.splice.apply(children, [i, 1].concat(toConsumableArray(res)));
 }
+function getValue(component, fun, astNode, nodeKey) {
+  if (!component.$isWatch) {
+    return fun();
+  } else {
+    if (astNode.watcherCollectList[nodeKey]) {
+      return fun();
+    } else {
+      var value = void 0;
+      new Watcher(component, function () {
+        return value = fun();
+      }, component.forceUpdate);
+      return value;
+    }
+  }
+}
 
 function vif(node, val, component, vnodeConf) {
   if (!node.parent) {
     return sendDirectWarn('v-if', component.name);
   }
-  var res = runExecuteContext('\n    with($obj_) {\n      return !!(' + val + ');\n    }\n  ', 'if', vnodeConf.tagName, component);
+  var res = runExecuteContext('\n    with($obj_) {\n      return !!(' + val + ');\n    }\n  ', 'if', vnodeConf, component);
   if (!res) {
     removeChild(vnodeConf.parent, vnodeConf);
   }
@@ -2373,7 +2527,7 @@ function vif(node, val, component, vnodeConf) {
 
 function show(val, component, vnodeConf) {
   var code = '\n    with($obj_) {\n      return !!(' + val + ');\n    }';
-  var isShow = !!runExecuteContext(code, 'show', vnodeConf.tagName, component);
+  var isShow = !!runExecuteContext(code, 'show', vnodeConf, component);
   var bindValue = {
     attrName: 'style',
     value: isShow ? '' : 'display: none'
@@ -2388,7 +2542,7 @@ function show(val, component, vnodeConf) {
 
 function text(val, component, vnodeConf) {
   var code = 'with($obj_) { return ' + val + '; }';
-  var content = runExecuteContext(code, 'text', vnodeConf.tagName, component);
+  var content = runExecuteContext(code, 'text', vnodeConf, component);
   if (isReservedTag(vnodeConf.tagName)) {
     vnodeConf.children = [vText$2(content, vnodeConf)];
   } else {
@@ -2405,10 +2559,10 @@ function transition$1(direactiveKey, val, component, vnodeConf, transtionHookFun
   if (type === 'animate') {
     directName = 'animation';
   }
-  var transitonName = runExecuteContext('return ' + val, directName, vnodeConf.tagName, component);
+  var transitonName = runExecuteContext('return ' + val, directName, vnodeConf, component);
   var hookFuns = {};
   for (var key in transtionHookFuns) {
-    var fun = runExecuteContext('return ' + transtionHookFuns[key], directName, vnodeConf.tagName, component);
+    var fun = runExecuteContext('return ' + transtionHookFuns[key], directName, vnodeConf, component);
     hookFuns[key] = fun;
   }
   vnodeConf.vTransitionType = directName;
@@ -2418,8 +2572,8 @@ function transition$1(direactiveKey, val, component, vnodeConf, transtionHookFun
   };
 }
 
-function runCustomDirect(key, tagName, val, component) {
-  return runExecuteContext('\n    with ($obj_) {\n      return ' + val + ';\n    }', key.slice(2, key.length), tagName, component);
+function runCustomDirect(key, vnodeConf, val, component) {
+  return runExecuteContext('\n    with ($obj_) {\n      return ' + val + ';\n    }', key.slice(2, key.length), vnodeConf, component);
 }
 
 function complierDirectFromAst(ast, component) {
@@ -2484,7 +2638,7 @@ function complierDirect(node, component, vnodeConf) {
       }
       currentCustomDirect = key;
       customDirects[key] = function delay() {
-        customDirects[key] = runCustomDirect(key, vnodeConf.tagName, direct[key], component, vnodeConf);
+        customDirects[key] = runCustomDirect(key, vnodeConf, direct[key], component, vnodeConf);
       };
       return 'continue';
     }
@@ -2545,7 +2699,7 @@ function complierDirect(node, component, vnodeConf) {
 }
 function parseStaticNode(node, component, vnodeConf) {
   var code = '\n    with ($obj_) {\n      function _s (_val_) { return _val_ };\n      return ' + node.expression + ';\n    }\n  ';
-  vnodeConf.content = runExecuteContext(code, '{{ ' + node.expression + ' }}', vnodeConf.parent.tagName, component);
+  vnodeConf.content = runExecuteContext(code, '{{ ' + node.expression + ' }}', vnodeConf.parent, component);
 }
 function executSingleDirect(weight, key, val, node, component, vnodeConf, transtionHookFuns) {
   switch (weight) {
@@ -2641,8 +2795,11 @@ function genChildren(children, component) {
         } else {
           var childClass = getComponentClass(child, component);
           if (childClass.async) {
-            var factory = childClass.factory;
-            childClass = createAsyncComponent(factory, component);
+            var _childClass = childClass,
+                factory = _childClass.factory,
+                cb = _childClass.cb;
+
+            childClass = createAsyncComponent(factory, component, cb);
             if (!childClass) {
               continue;
             }
@@ -2684,11 +2841,74 @@ function getComponentClass(vnodeConfig, parentCompnent) {
   warn$$1();
 }
 
+var CAPACITY = 1024;
+function enqueueSetState(component, partialState) {
+  if (isLegalState(partialState)) {
+    var data = component.$data;
+    if (!data.stateQueue.length) {
+      batchUpdateQueue(component);
+    }
+    data.stateQueue.push(partialState);
+  }
+}
+function batchUpdateQueue(component) {
+  Promise.resolve().then(function () {
+    var queue = component.$data.stateQueue;
+    var state = Object.assign({}, component.state);
+    var index$$1 = 0;
+    while (index$$1 < queue.length) {
+      var currentIndex = index$$1;
+      index$$1++;
+      state = mergeState(state, queue[currentIndex]);
+      if (index$$1 > CAPACITY) {
+        var newLength = queue.length - index$$1;
+        for (var i = 0; i < newLength; i++) {
+          queue[i] = queue[index$$1 + i];
+        }
+        queue.length -= index$$1;
+        index$$1 = 0;
+      }
+    }
+    queue.length = 0;
+    component.state = state;
+    updateDomTree(component);
+  });
+}
+function updateDomTree(component) {
+  if (!component.noStateComp) {
+    component.willUpdate();
+  }
+  var vnode = component.$widgetVNode;
+  var _vnode$container = vnode.container,
+      dom = _vnode$container.dom,
+      vtree = _vnode$container.vtree;
+
+  var ast = component.constructor.$ast;
+  var newTree = render(vnode, ast);
+  var patchs = diff$1(vtree, newTree);
+  patch$1(dom, patchs);
+  if (!component.noStateComp) {
+    component.didUpdate(dom);
+  }
+  cacheComponentDomAndVTree(vnode, newTree, dom);
+}
+function mergeState(state, partialState) {
+  if (typeof partialState === 'function') {
+    var newState = partialState(state);
+    return isPlainObject(newState) ? newState : state;
+  }
+  return isEmptyObj(partialState) ? state : Object.assign({}, state, partialState);
+}
+function isLegalState(state) {
+  return isPlainObject(state) || typeof state === 'function';
+}
+
 function getComponentInstance(widgetVNode, parentComponent) {
   var componentClass = widgetVNode.componentClass,
       data = widgetVNode.data;
 
   var isClass$$1 = isClass(componentClass);
+  var tagName = widgetVNode.data.parentConfig.tagName;
   var instance = void 0;
   if (isClass$$1) {
     instance = new componentClass(data.parentConfig.attrs);
@@ -2700,6 +2920,9 @@ function getComponentInstance(widgetVNode, parentComponent) {
     var props = getProps(data.parentConfig.attrs);
     var template = componentClass(props, parentComponent);
     instance = createNoStateComponent(props, template, componentClass);
+  }
+  if (tagName) {
+    setOnlyReadAttr(instance, 'name', tagName);
   }
   if (!componentClass.$ast) {
     componentClass.$ast = genAstCode(instance);
@@ -2722,6 +2945,9 @@ function createNoStateComponent(props, template, componentClass) {
     $firstCompilation: true,
     $data: {
       stateQueue: []
+    },
+    forceUpdate: function forceUpdate$$1() {
+      _forceUpdate(this);
     },
     setState: function setState(partialState) {
       enqueueSetState(this, partialState);
@@ -2849,9 +3075,11 @@ function _update(_ref) {
     var newProps = getProps(parentConfig.attrs, $propsRequireList, name);
     if (!component.noStateComp && component.willReceiveProps(newProps) === false) {
       return;
+    } else if (component.noStateComp) {
+      component.constructor.call(component, newProps, component.$parent);
     }
     component.props = newProps;
-    component.setState({});
+    component.forceUpdate();
   }
 }
 function transferData(nv, ov) {
@@ -2862,145 +3090,42 @@ function transferData(nv, ov) {
   nv.component.$slot = nv.data.slotVnode;
 }
 
-var arrayProto = Array.prototype;
-var arrayMethods = Object.create(arrayProto);
-var methodsToPatch = ['push', 'pop', 'shift', 'unshift', 'splice', 'sort', 'reverse'];
-
-var _loop = function _loop(i, len) {
-  var method = methodsToPatch[i];
-  var original = arrayProto[method];
-  def(arrayMethods, method, function mutator() {
-    for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
-      args[_key] = arguments[_key];
-    }
-
-    var result = original.apply(this, args);
-    var ob = this.__ob__;
-    var inserted = void 0;
-    switch (method) {
-      case 'push':
-      case 'unshift':
-        inserted = args;
-        break;
-      case 'splice':
-        inserted = args.slice(2);
-        break;
-    }
-    if (inserted) {
-      ob.observeArray(inserted);
-    }
+function set$1(target, key, val) {
+  if (Array.isArray(target) && isValidArrayIndex(key)) {
+    target.length = Math.max(target.length, key);
+    target.splice(key, 1, val);
+    return val;
+  }
+  if (key in target && !(key in Object.prototype)) {
+    target[key] = val;
+    return val;
+  }
+  var ob = target.__ob__;
+  if (!ob) {
+    target[key] = val;
+    return val;
+  }
+  defineReactive(ob.value, key, val);
+  ob.dep.notify();
+  return val;
+}
+function del(target, key) {
+  if (Array.isArray(target) && isValidArrayIndex(key)) {
+    target.splice(key, 1);
+    return;
+  }
+  var ob = target.__ob__;
+  if (!hasOwn(target, key)) {
+    return;
+  }
+  delete target[key];
+  if (ob) {
     ob.dep.notify();
-    return result;
-  });
-};
-
-for (var i = 0, len = methodsToPatch.length; i < len; i++) {
-  _loop(i, len);
-}
-
-var hasProto = '__proto__' in {};
-var arrayKeys = Object.getOwnPropertyNames(arrayMethods);
-var Observer = function () {
-  function Observer(value) {
-    classCallCheck(this, Observer);
-
-    this.value = value;
-    this.dep = new Dep();
-    def(value, '__ob__', this);
-    if (Array.isArray(value)) {
-      var augment = hasProto ? protoAugment : copyAugment;
-      augment(value, arrayMethods, arrayKeys);
-      this.observeArray(value);
-    } else {
-      this.walk(value);
-    }
-  }
-
-  createClass(Observer, [{
-    key: 'walk',
-    value: function walk(obj) {
-      var keys = Object.keys(obj);
-      for (var i = 0, len = keys.length; i < len; i++) {
-        defineReactive(obj, keys[i], obj[keys[i]]);
-      }
-    }
-  }, {
-    key: 'observeArray',
-    value: function observeArray(items) {
-      for (var i = 0, len = items.length; i < len; i++) {
-        var item = items[i];
-        isPrimitive(item) ? defineReactive(items, i, item) : observe(item);
-      }
-    }
-  }]);
-  return Observer;
-}();
-function defineReactive(obj, key, val) {
-  var dep = new Dep();
-  var property = Object.getOwnPropertyDescriptor(obj, key);
-  if (property && property.configurable === false) {
-    return;
-  }
-  var getter = property && property.get;
-  var setter = property && property.set;
-  var childOb = observe(val);
-  Object.defineProperty(obj, key, {
-    enumerable: true,
-    configurable: true,
-    get: function get$$1() {
-      var value = getter ? getter.call(obj) : val;
-      if (Dep.target) {
-        dep.depend();
-        if (childOb) {
-          childOb.dep.depend();
-          if (Array.isArray(value)) {
-            dependArray(value);
-          }
-        }
-      }
-      return value;
-    },
-    set: function set$$1(newVal) {
-      var value = getter ? getter.call(obj) : val;
-      var oldValue = value;
-      if (newVal === value || newVal !== newVal && value !== value) {
-        return;
-      }
-      if (setter) {
-        setter.call(obj, newVal);
-      } else {
-        val = newVal;
-      }
-      childOb = observe(newVal);
-      dep.notify(newVal, oldValue);
-    }
-  });
-}
-function observe(value) {
-  if (!isObject(value) || isVNode$1(value)) {
-    return;
-  }
-  var ob = void 0;
-  if (hasOwn(value, '__ob__') && value.__ob__ instanceof Observer) {
-    ob = value.__ob__;
-  } else if ((Array.isArray(value) || isPlainObject(value)) && Object.isExtensible(value)) {
-    ob = new Observer(value);
-  }
-  return ob;
-}
-function dependArray(value) {
-  for (var i = 0, len = value.length; i < len; i++) {
-    var v = value[i];
-    if (v && v.__ob__) {
-      v.__ob__.dep.depend();
-    }
-    if (Array.isArray(v)) {
-      dependArray(v);
-    }
   }
 }
-function initWatchState(data) {
-  observe(data);
+function isValidArrayIndex(val) {
+  var n = parseFloat(String(val));
+  return n >= 0 && Math.floor(n) === n && isFinite(val);
 }
 
 var Component = function () {
@@ -3043,10 +3168,15 @@ var Component = function () {
     key: 'setState',
     value: function setState(partialState) {
       if (this.$isWatch) {
-        grassWarn('Current response data pattern.', this.name);
+        grassWarn("Current response data pattern, you can't use setState method.", this.name);
         return;
       }
       enqueueSetState(this, partialState);
+    }
+  }, {
+    key: 'forceUpdate',
+    value: function forceUpdate() {
+      _forceUpdate(this);
     }
   }, {
     key: 'getComponent',
@@ -3071,20 +3201,6 @@ var Component = function () {
       return null;
     }
   }, {
-    key: 'forceUpdate',
-    value: function forceUpdate() {
-      var _this = this;
-
-      var stateQueue = this.$data.stateQueue;
-      if (!stateQueue.length) {
-        Promise.resolve().then(function () {
-          updateDomTree(_this);
-          stateQueue.length = 0;
-        });
-      }
-      stateQueue.push(null);
-    }
-  }, {
     key: 'createState',
     value: function createState(data) {
       data = Object.setPrototypeOf(data, null);
@@ -3103,16 +3219,21 @@ var Component = function () {
         this.$isWatch = true;
       }
     }
+  }], [{
+    key: 'mount',
+    value: function mount(rootDOM) {
+      return _mount(rootDOM, this);
+    }
   }]);
   return Component;
 }();
-function mount(rootDOM, componentClass) {
-  return new Promise(function (resolve) {
-    var vnode = new WidgetVNode(null, {}, null, componentClass);
-    var dom = create(vnode);
-    rootDOM.appendChild(dom);
-    resolve(dom);
-  });
+Component.prototype.set = set$1;
+Component.prototype.delete = del;
+function _mount(rootDOM, componentClass) {
+  var vnode = new WidgetVNode(null, {}, null, componentClass);
+  var dom = create(vnode);
+  rootDOM && rootDOM.appendChild(dom);
+  return dom;
 }
 var filterPropsList = {
   'key': 1,
@@ -3145,6 +3266,24 @@ function getProps(attrs, requireList, name) {
     warn('Parent component does not pass "' + _attrs + '" attributes  \n\n    --->  ' + name + '\n', true);
   }
   return props;
+}
+function _forceUpdate(component) {
+  var stateQueue = component.$data.stateQueue;
+  if (!stateQueue.length) {
+    Promise.resolve().then(function () {
+      updateDomTree(component);
+      stateQueue.length = 0;
+    });
+  }
+  stateQueue.push(null);
+}
+
+function async(factory, cb) {
+  var options = Object.create(null);
+  options.factory = factory;
+  options.async = true;
+  options.cb = cb;
+  return options;
 }
 
 var BaseObserver = function () {
@@ -3318,19 +3457,6 @@ function creataError(reason) {
   }
 }
 
-function async(factory) {
-  var options = Object.create(null);
-  options.factory = factory;
-  options.async = true;
-  return options;
-}
-
-function initGlobalAPI (Grass) {
-  Grass.directive = customDirective;
-  Grass.event = extendEvent;
-  Grass.async = async;
-}
-
 var compName = void 0;
 function CSSModules(style) {
   return function (component) {
@@ -3393,9 +3519,16 @@ function haveStyleName(node) {
   return node && node.attrs && node.attrs.styleName;
 }
 
+function initGlobalAPI (Grass) {
+  Grass.event = extendEvent;
+  Grass.async = async;
+  Grass.CSSModules = CSSModules;
+  Grass.directive = customDirective;
+}
+
 var Grass = {
-  Component: Component,
-  mount: mount
+  mount: _mount,
+  Component: Component
 };
 var prototype = {};
 initGlobalAPI(prototype);
