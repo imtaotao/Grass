@@ -3,7 +3,8 @@ import Dep, { pushTarget, clearTarget } from './dep'
 import * as _ from '../utils'
 
 export default class Watcher {
-  constructor (compnent, expreOrFn, cb) {
+  constructor (id, compnent, expreOrFn, cb) {
+    this.id = id
     this.cb = cb
     this.compnent = compnent
     /**

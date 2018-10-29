@@ -37,7 +37,7 @@ function getStateResult (code, vnodeConf, component, state, callback) {
   if (component.$isWatch && component.$firstCompilation) {
     let value
 
-    new Watcher(component, () => {
+    new Watcher(vnodeConf.indexKey, component, () => {
       value = fun.call(component, state, callback)
       return value
     }, component.forceUpdate)

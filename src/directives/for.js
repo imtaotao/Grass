@@ -81,10 +81,14 @@ export default function vfor (node, component, vnodeConf) {
   runExecuteContext(code, 'for', vnodeConf, component, loopData)
   scope.destroy()
 
+  // 我们只记录 copy 节点的编译
+  if (node.for === false) {
+    node.watcherCollectList = watcherCollectList
+  }
+
   const index = serachIndex(vnodeConf)
   replaceWithLoopRes(vnodeConf, cloneNodes, index)
   node.for = true
-  node.watcherCollectList = watcherCollectList
 }
 
 function serachIndex (node) {
@@ -106,15 +110,15 @@ function getValue (component, fun, astNode, nodeKey) {
   if (!component.$isWatch) {
     return fun()
   } else {
-    // 避免重复的依赖收集，我们只对新添加的进行收集
+    // 避免重复的依赖收集，我们只对新添加的进行收集, 尽管在 dep 里面也有判断，但是此时判断能少创建 watcher
     if (astNode.watcherCollectList[nodeKey]) {
       return fun()
     } else {
       let value
-      new Watcher(component, () => {
+      new Watcher(nodeKey, component, () => {
         return value = fun()
       }, component.forceUpdate)
-    
+
       return value
     }
   }

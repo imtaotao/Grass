@@ -50,3 +50,6 @@ function isValidArrayIndex (val) {
   // Arrray index must be a int number
   return n >= 0 && Math.floor(n) === n && isFinite(val)
 }
+
+window.set = set
+window.del = del

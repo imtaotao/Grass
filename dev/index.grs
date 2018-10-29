@@ -15,7 +15,9 @@
       <bb slot='fangfang'></bb>
     </Child>
     <div v-for="val of obj" v-transition="'slide-fade'" v-show="show">
-      <span v-for="v of val">{{v}}</span>
+      <span v-for="val of val">
+        <a v-for="val of val">{{val}}</a>  
+      </span>
     </div>
   </div>
 </template>
@@ -33,12 +35,8 @@
       arr: [1, 2],
       show: true,
       obj: {
-        t: {
-          c: 'c'
-        },
         o: {
-          a:1,
-          b:2
+          c: [3, 4]
         }
       }
     }
@@ -60,11 +58,19 @@
         // }
         obj: {
           t: {
-            c: 'c'
+            cc: 'c',
+            b: ''
           },
           o: {
-            a:1,
-            b:2
+            a:{},
+            b: {
+              tt: 'tt',
+              ff: 'ff'
+            },
+            c: {
+              d:3,
+              e:4,
+            }
           }
         }
       })
@@ -160,7 +166,9 @@
     return '<div> error </div>'
   }
 
-
+  window.r = () => {
+    return Root.$ast.children[9].children[1].children[1].watcherCollectList
+  }
   Grass.directive('tt', (dom, val) => {
     // console.log(dom, val);
   })

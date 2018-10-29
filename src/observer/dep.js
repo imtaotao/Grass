@@ -6,13 +6,18 @@ export default class Dep {
   constructor () {
     this.id = uid++
     this.subs = []
+    this.subsIds = new Set()
   }
 
   addSub (sub) {
-    this.subs.push(sub)
+    if (!this.subsIds.has(sub.id)) {
+      this.subsIds.add(sub.id)
+      this.subs.push(sub)
+    }
   }
 
   removeSub (sub) {
+    this.subsIds.delete(sub.id)
     remove(this.subs, sub)
   }
 
