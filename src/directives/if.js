@@ -11,7 +11,7 @@ export default function vif (node, val, component, vnodeConf) {
     with($obj_) {
       return !!(${val});
     }
-  `, 'if', vnodeConf.tagName, component)
+  `, 'if', vnodeConf, component)
 
   if (!res) {
     removeChild(vnodeConf.parent, vnodeConf)

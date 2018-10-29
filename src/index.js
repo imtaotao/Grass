@@ -3,8 +3,8 @@ import initGlobalAPI from './global-api/index'
 export * from './global-api/css-modules'
 
 const Grass = {
-  Component,
   mount,
+  Component,
 }
 
 const prototype = {}

@@ -1,5 +1,5 @@
 import { parsePath } from './util'
-import { pushTarget, clearTarget } from './dep'
+import Dep, { pushTarget, clearTarget } from './dep'
 import * as _ from '../utils'
 
 export default class Watcher {
@@ -30,7 +30,7 @@ export default class Watcher {
     const data = compnent.state
 
     this.getter.call(compnent, data)
-
+    
     clearTarget()
     this.cleanupDeps()
   }

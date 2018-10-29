@@ -4,7 +4,7 @@ import { vText } from './util'
 
 export default function text (val, component, vnodeConf) {
   const code = `with($obj_) { return ${val}; }`
-  const content = runExecuteContext(code, 'text', vnodeConf.tagName, component)
+  const content = runExecuteContext(code, 'text', vnodeConf, component)
 
   if (_.isReservedTag(vnodeConf.tagName)) {
     // 但是既然用了 v-text 就不应该继续添加子元素了

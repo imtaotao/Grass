@@ -1,8 +1,10 @@
 import * as _ from '../utils/index'
-import { WidgetVNode } from './component-vnode'
 import { create } from '../virtual-dom/index'
-import { enqueueSetState, updateDomTree } from './update-state'
 import { initWatchState } from '../observer'
+import { WidgetVNode } from './component-vnode'
+import { set, del } from '../observer/additional'
+import { enqueueSetState, updateDomTree } from './update-state'
+
 
 export class Component {
   constructor (attrs, requireList) {
@@ -30,7 +32,7 @@ export class Component {
 
   setState (partialState) {
     if (this.$isWatch) {
-      _.grassWarn('Current response data pattern.', this.name)
+      _.grassWarn("Current response data pattern, you can't use setState method.", this.name)
       return
     }
     enqueueSetState(this, partialState)
@@ -83,19 +85,26 @@ export class Component {
       this.$isWatch = true
     }
   }
+
+  static
+  mount (rootDOM) {
+    return mount(rootDOM, this)
+  }
 }
+
+Component.prototype.set = set
+Component.prototype.delete = del
 
 export function mount (rootDOM, componentClass) {
-  return new Promise(resolve => {
-    const vnode = new WidgetVNode(null, {}, null, componentClass)
-    const dom = create(vnode)
+  const vnode = new WidgetVNode(null, {}, null, componentClass)
+  const dom = create(vnode)
 
-    rootDOM.appendChild(dom)
-    resolve(dom)
-  })
+  rootDOM && rootDOM.appendChild(dom)
+
+  return dom
 }
 
-// 如果定义了需要的 props 列表，我们就按照列表得到来
+// 如果定义了需要的 props 列表，我们就按照列表的来
 // 而且我们需要过滤掉内部用到的属性，例如 "key"
 const filterPropsList = {
   'key': 1,

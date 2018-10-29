@@ -1,5 +1,4 @@
 import { warn, isEmptyObj } from './tool'
-import { TAG, TEXT } from '../ast/parse-template'
 import { isPlainObject, isPrimitive, isGeneratorFunction } from './type-check'
 
 export function cached (fn) {

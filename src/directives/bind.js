@@ -39,7 +39,7 @@ function dealSingleBindAttr ({attrName, value}, component, vnodeConf) {
 
   // 计算模板表达式
   function getValue () {
-    return runExecuteContext(`with($obj_) { return ${value}; }`, 'bind', vnodeConf.tagName, component)
+    return runExecuteContext(`with($obj_) { return ${value}; }`, 'bind', vnodeConf, component)
   }
 }
 

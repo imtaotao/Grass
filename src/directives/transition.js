@@ -11,11 +11,11 @@ export default function transition (direactiveKey, val, component, vnodeConf, tr
     directName = 'animation'
   }
 
-  const transitonName = runExecuteContext ('return ' + val, directName, vnodeConf.tagName, component)
+  const transitonName = runExecuteContext ('return ' + val, directName, vnodeConf, component)
   const hookFuns = {}
 
   for (let key in transtionHookFuns) {
-    const fun = runExecuteContext ('return ' + transtionHookFuns[key], directName, vnodeConf.tagName, component)
+    const fun = runExecuteContext ('return ' + transtionHookFuns[key], directName, vnodeConf, component)
 
     hookFuns[key] = fun
   }

@@ -9,15 +9,12 @@
       
     </div>
 
-    <Childd test1="api" :test2="api" :show="true" :api="api">
+    <Child test1="api" :test2="api" :show="true" :api="api">
       <div slot="tao">{{api}}</div>
       tt
       <bb slot='fangfang'></bb>
-    </Childd>
-    <div v-for="val of arr"  v-transition.animate="'slide-fade'" v-show="show">fsda</div>
-
-    <Childd :show="true"/>
-    <response />
+    </Child>
+    <div v-for="val of obj" v-transition="'slide-fade'" v-if="show">{{val}}</div>
   </div>
 </template>
 
@@ -26,20 +23,22 @@
   import Child from './child'
   import style from './style.css'
   import response from './response.grs'
-  // import Vue from 'vue'
+  import Vue from 'vue'
 
-  // const vm = new Vue({
-  //   data: {
-  //     api: 'index',
-  //     arr: [1, 2],
-  //     show: true,
-  //     obj: {
-  //       tt: 'chentao',
-  //       ff: 'fangfang'
-  //     }
-  //   }
-  // })
+  const vm = new Vue({
+    data: {
+      api: 'index',
+      arr: [1, 2],
+      show: true,
+      obj: {
+        tt: 'chentao',
+        ff: 'fangfang',
+      }
+    }
+  })
 
+  window.vm = vm
+  window.vue = Vue
   @CSSModules(style)
   class Root extends Grass.Component {
     constructor () {
@@ -62,7 +61,7 @@
     }
 
     willUpdate () {
-      console.log(121);
+      // console.log(121);
     }
 
     callback (api) {
@@ -72,8 +71,6 @@
       //   api: 'taotao',
       // })
 
-      // console.log(this.getComponent('Child'));
-      console.log(this);
       this.state.show = !this.state.show
       this.state.arr = [1, 2, 3, 4, 5]
       this.state.api = 'taotao'
@@ -105,34 +102,34 @@
     component () {
       return {
         response,
-        Childd: Grass.async((resolve, reject) => {
-          return {
-            component: new Promise((re) => {
-              setTimeout(() => {
-                re(import('./child.grs'))
-              }, 2000)
-            }),
-            error: Grass.async((resolve) => {
-              return {
-                component: new Promise(re => {
-                  setTimeout(() => {
-                    resolve(error)
-                  }, 6000)
-                })
-              }
-            }),
-            // error,
-            timeout: 3000,
-            // loading,
-            loading: Grass.async(() => import('./response.grs')),
-          }
-        }, (err, cm) => {
-          console.dir(cm);
-        }),
-        // Child,
+        // Childd: Grass.async((resolve, reject) => {
+        //   return {
+        //     component: new Promise((re) => {
+        //       setTimeout(() => {
+        //         re(import('./child.grs'))
+        //       }, 2000)
+        //     }),
+        //     error: Grass.async((resolve) => {
+        //       return {
+        //         component: new Promise(re => {
+        //           setTimeout(() => {
+        //             resolve(error)
+        //           }, 6000)
+        //         })
+        //       }
+        //     }),
+        //     // error,
+        //     timeout: 3000,
+        //     // loading,
+        //     loading: Grass.async(() => import('./response.grs')),
+        //   }
+        // }, (err, cm) => {
+        //   console.dir(cm);
+        // }),
+        Child,
         bb: function bb (props, parent) {
           props.a = 121
-          console.log(props, parent, this);
+          // console.log(props, parent, this);
           return `<div>{{a}} taotao</div>`
         }
       }
@@ -152,5 +149,6 @@
     // console.log(dom, val);
   })
   
-  Grass.mount(document.getElementById('root'), Root)
+  Root.mount(document.getElementById('root'))
+  // Grass.mount(document.getElementById('root'), Root)
 </script>

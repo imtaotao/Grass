@@ -99,7 +99,7 @@ function complierDirect (node, component, vnodeConf) {
       }
       currentCustomDirect = key
       customDirects[key] = function delay () {
-        customDirects[key] = runCustomDirect(key, vnodeConf.tagName, direct[key], component, vnodeConf)
+        customDirects[key] = runCustomDirect(key, vnodeConf, direct[key], component, vnodeConf)
       }
       continue
     }
@@ -122,7 +122,6 @@ function complierDirect (node, component, vnodeConf) {
 
 
   // 指定自定义指令
-  // Spe
   vnodeConf.customDirection = customDirects
 
   // 按照指令的权重进行指令的编译
@@ -178,7 +177,7 @@ function parseStaticNode (node, component, vnodeConf) {
       return ${node.expression};
     }
   `
-  vnodeConf.content = runExecuteContext(code, `{{ ${node.expression} }}`, vnodeConf.parent.tagName, component)
+  vnodeConf.content = runExecuteContext(code, `{{ ${node.expression} }}`, vnodeConf.parent, component)
 }
 
 function executSingleDirect (weight, key, val, node, component, vnodeConf, transtionHookFuns) {

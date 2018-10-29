@@ -6,6 +6,7 @@ import { parseTemplate } from '../ast/parse-template'
 export function getComponentInstance (widgetVNode, parentComponent) {
   const { componentClass, data } = widgetVNode
   const isClass = _.isClass(componentClass)
+  const tagName = widgetVNode.data.parentConfig.tagName
   let instance
 
   if (isClass) {
@@ -24,8 +25,10 @@ export function getComponentInstance (widgetVNode, parentComponent) {
     instance = createNoStateComponent(props, template, componentClass)
   }
 
-  _.setOnlyReadAttr(instance, 'name', widgetVNode.data.parentConfig.tagName)
-
+  if (tagName) {
+    _.setOnlyReadAttr(instance, 'name', tagName)
+  }
+  
   // We saved ast in component constructor
   if (!componentClass.$ast) {
     componentClass.$ast = genAstCode(instance)

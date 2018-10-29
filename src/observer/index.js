@@ -36,14 +36,12 @@ export class Observer {
   observeArray (items) {
     for (let i = 0, len = items.length; i < len; i++) {
       const item = items[i]
-      _.isPrimitive(item)
-        ? defineReactive(items, i, item)
-        : observe(item)
+      observe(item)
     }
   }
 }
 
-function defineReactive (obj, key, val) {
+export function defineReactive (obj, key, val) {
   const dep = new Dep()
   const property = Object.getOwnPropertyDescriptor(obj, key)
 

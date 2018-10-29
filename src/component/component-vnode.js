@@ -58,7 +58,7 @@ export class WidgetVNode {
     // We need update old component state, so, make new vnode state transfer to old vnode
     transferData(this, previousVnode)
     update(this)
-    // console.log(this.data.slotVnode, this.component.slot);
+   
     return dom
   }
 
@@ -107,7 +107,7 @@ function update ({ component, data: { parentConfig } }) {
       return
     } else if (component.noStateComp) {
       // Update new props, props maybe changed in function component.
-      component.constructor.call(null, newProps, component.$parent)
+      component.constructor.call(component, newProps, component.$parent)
     }
 
     component.props = newProps

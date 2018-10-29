@@ -4,17 +4,25 @@ import { TAG, TEXT } from '../ast/parse-template'
 export function createVnodeConf (astNode, parent) {
   if (astNode.type === TAG) {
     const { tagName, attrs, indexKey, direction } = astNode
+    const _children = []
     const _attrs = _.deepClone(attrs)
     const _direction = _.deepClone(direction)
-    const _children = []
 
-    return vTag(tagName, _attrs, indexKey, _direction, _children, parent)
+    const tag = vTag(tagName, parent, _attrs, indexKey, _direction, _children)
+
+    if (_.hasOwn(astNode, 'for')) {
+      // 此处不用深拷贝
+      tag.for = true
+      tag.watcherCollectList = astNode.watcherCollectList
+    }
+
+    return tag
   }
 
   return vText(astNode.content, parent)
 }
 
-export function vTag (tagName, attrs, indexKey, direction, children, parent) {
+export function vTag (tagName, parent, attrs, indexKey, direction, children) {
   const node = Object.create(null)
 
   node.type = TAG

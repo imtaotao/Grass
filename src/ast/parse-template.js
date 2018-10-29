@@ -237,9 +237,10 @@ export function parseTemplate (html, compName) {
     if (key === 'v-for' && vAttr[key]) {
       const args = getForArgs(vAttr)
 
-      scope.forMultipleArg = Array.isArray(args)
-      scope.forArgs = args
       scope.for = true
+      scope.forArgs = args
+      scope.forMultipleArg = Array.isArray(args)
+      scope.watcherCollectList = {}
     }
 
     if (key === 'v-if') {

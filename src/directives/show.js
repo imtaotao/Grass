@@ -8,7 +8,7 @@ export default function show (val, component, vnodeConf) {
       return !!(${val});
     }`
 
-  const isShow = !!runExecuteContext(code, 'show', vnodeConf.tagName, component)
+  const isShow = !!runExecuteContext(code, 'show', vnodeConf, component)
 
   const bindValue = {
     attrName: 'style',

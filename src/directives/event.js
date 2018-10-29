@@ -13,7 +13,7 @@ export default function vevent (events, component, vnodeConf) {
           return ${event.value};
         }
       `
-      const cb = runExecuteContext(code, 'on', vnodeConf.tagName, component)
+      const cb = runExecuteContext(code, 'on', vnodeConf, component)
 
       if (modifiers.length) {
         vnodeConf.attrs['on' + name] = createModifiersFun(modifiers, cb)

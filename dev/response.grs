@@ -11,7 +11,7 @@
     constructor (props) {
       super(props)
       this.createResponseState({
-        a: 1,
+        a: 'loading',
       })
 
       window.s = this.state
@@ -22,6 +22,5 @@
     }
   }
   
-  console.log(12);
   // Grass.mount(document.getElementById('root'), Root)
 </script>
