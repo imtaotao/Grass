@@ -1299,16 +1299,21 @@ var Dep = function () {
 
     this.id = uid++;
     this.subs = [];
+    this.subsIds = new Set();
   }
 
   createClass(Dep, [{
     key: "addSub",
     value: function addSub(sub) {
-      this.subs.push(sub);
+      if (!this.subsIds.has(sub.id)) {
+        this.subsIds.add(sub.id);
+        this.subs.push(sub);
+      }
     }
   }, {
     key: "removeSub",
     value: function removeSub(sub) {
+      this.subsIds.delete(sub.id);
       remove(this.subs, sub);
     }
   }, {
@@ -2028,9 +2033,10 @@ var scope$1 = {
 };
 
 var Watcher = function () {
-  function Watcher(compnent, expreOrFn, cb) {
+  function Watcher(id, compnent, expreOrFn, cb) {
     classCallCheck(this, Watcher);
 
+    this.id = id;
     this.cb = cb;
     this.compnent = compnent;
     this.deps = [];
@@ -2133,7 +2139,7 @@ function getStateResult(code, vnodeConf, component, state, callback) {
   var fun = new Function('$obj_', '$callback_', code);
   if (component.$isWatch && component.$firstCompilation) {
     var value = void 0;
-    new Watcher(component, function () {
+    new Watcher(vnodeConf.indexKey, component, function () {
       value = fun.call(component, state, callback);
       return value;
     }, component.forceUpdate);
@@ -2480,10 +2486,12 @@ function vfor(node, component, vnodeConf) {
   scope$1.create();
   runExecuteContext(code, 'for', vnodeConf, component, loopData);
   scope$1.destroy();
+  if (node.for === false) {
+    node.watcherCollectList = watcherCollectList;
+  }
   var index = serachIndex(vnodeConf);
   replaceWithLoopRes(vnodeConf, cloneNodes, index);
   node.for = true;
-  node.watcherCollectList = watcherCollectList;
 }
 function serachIndex(node) {
   var children = node.parent.children;
@@ -2506,7 +2514,7 @@ function getValue(component, fun, astNode, nodeKey) {
       return fun();
     } else {
       var value = void 0;
-      new Watcher(component, function () {
+      new Watcher(nodeKey, component, function () {
         return value = fun();
       }, component.forceUpdate);
       return value;
@@ -3127,6 +3135,8 @@ function isValidArrayIndex(val) {
   var n = parseFloat(String(val));
   return n >= 0 && Math.floor(n) === n && isFinite(val);
 }
+window.set = set$1;
+window.del = del;
 
 var Component = function () {
   function Component(attrs, requireList) {
