@@ -5,9 +5,6 @@
       点击
     </div>
     <span v-for="val of arr">{{ val }}</span>
-    <div>
-      
-    </div>
 
     <Child test1="api" :test2="api" :show="true" :api="api">
       <div slot="tao">{{api}}</div>
@@ -41,6 +38,8 @@
       }
     }
   })
+
+  window.g = Grass
 
   window.vm = vm
   window.vue = Vue
@@ -78,7 +77,8 @@
       window.ss = this.state
     }
 
-    create () {
+    created (dom) {
+      console.log(this.$parent, this.$children);
       Child.listener('tt', this.testListener)
     }
 
@@ -124,36 +124,36 @@
     component () {
       return {
         response,
-        Child: Grass.async((resolve, reject) => {
-          return {
-            component: new Promise((re) => {
-              setTimeout(() => {
-                re(import('./child.grs'))
-              }, 2000)
-            }),
-            error: Grass.async((resolve) => {
-              return {
-                component: new Promise(re => {
-                  setTimeout(() => {
-                    resolve(error)
-                  }, 3000)
-                })
-              }
-            }),
-            // error,
-            timeout: 2100,
-            // loading,
-            loading: Grass.async(() => import('./response.grs')),
-          }
-        }, (err, cm) => {
-          console.log(err)
-          console.dir(cm)
-        }),
-        // Child,
+        // Child: Grass.async((resolve, reject) => {
+        //   return {
+        //     component: new Promise((re) => {
+        //       setTimeout(() => {
+        //         re(import('./child.grs'))
+        //       }, 2000)
+        //     }),
+        //     error: Grass.async((resolve) => {
+        //       return {
+        //         component: new Promise(re => {
+        //           setTimeout(() => {
+        //             resolve(error)
+        //           }, 3000)
+        //         })
+        //       }
+        //     }),
+        //     // error,
+        //     timeout: 2100,
+        //     // loading,
+        //     loading: Grass.async(() => import('./response.grs')),
+        //   }
+        // }, (err, cm) => {
+        //   console.log(err)
+        //   console.dir(cm)
+        // }),
+        Child,
         bb: function bb (props, parent) {
           props.a = 121
           // console.log(props, parent, this);
-          return `<div>{{a}} taotao</div>`
+          return `<div>{{a}}</div>`
         }
       }
     }
@@ -174,6 +174,6 @@
     // console.log(dom, val);
   })
   
-  Root.mount(document.getElementById('root'))
+  window.rr = Root.mount(document.getElementById('root'))
   // Grass.mount(document.getElementById('root'), Root)
 </script>

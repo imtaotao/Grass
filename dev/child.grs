@@ -27,6 +27,9 @@
       })
     }
 
+    created() {
+      console.log(this.$parent, this.$children);
+    }
     click () {
       this.tNext('tt', 1212121)
     }

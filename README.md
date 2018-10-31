@@ -19,7 +19,7 @@
     createBefor () {}
 
     // dom 节点创建之后
-    create (dom) {}
+    created (dom) {}
 
     // 将要更新组件
     willUpdate () {}
@@ -67,6 +67,7 @@
 
   Grass.mount(document.getElementById('root'), Root)
 ```
+在组件 created 方法调用时，你能够拿到当前组件的初始化完成后的属性，例如 $children、$parent、$slot、$el 等，唯一需要注意的是 $children 属性，如果子组件是异步组件的形式，因为所以没有办法控制组件具体加载的时间，所以你可以在异步组件的钩子里面获取当前组件的子组件实例
 
 ### 定义了几个指令
   + `v-on:event (@event)`
@@ -264,11 +265,11 @@
   }
 ```
 
-#### create
+#### created
 dom 元素创建后调用，它接受一个渲染完毕的 dom 元素作为参数
 ```js
   class C extends Grass.Component {
-    create (dom) {
+    created (dom) {
       // ...
     }
   }

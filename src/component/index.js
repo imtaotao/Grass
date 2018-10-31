@@ -14,6 +14,7 @@ export class Component {
     this.$el = null
     this.$slot = null
     this.$parent = null
+    this.$children = {}
     this.$isWatch = false
     this.$firstCompilation = true
     this.$propsRequireList = requireList
@@ -24,7 +25,7 @@ export class Component {
 
 
   createBefore () {}
-  create (dom) {}
+  created (dom) {}
   willUpdate (dom) {}
   willReceiveProps (newProps) {}
   didUpdate (dom) {}
@@ -101,7 +102,7 @@ export function mount (rootDOM, componentClass) {
 
   rootDOM && rootDOM.appendChild(dom)
 
-  return dom
+  return vnode.component
 }
 
 // 如果定义了需要的 props 列表，我们就按照列表的来
