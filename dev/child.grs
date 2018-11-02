@@ -14,10 +14,10 @@
 </template>
 
 <script>
-  import Grass, { CSSModules } from '../src'
+  import Grass from '../src'
 
   @Grass.event
-  @CSSModules(require('./style.css'))
+  @Grass.CSSModules(require('./style.css'))
   export default class Child extends Grass.Component {
     constructor (props) {
       super(props)

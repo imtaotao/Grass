@@ -3,10 +3,10 @@
 </template>
 
 <script>
-  import Grass, { CSSModules } from '../src'
+  import Grass from '../src'
   import style from './response'
 
-  @CSSModules(style)
+  @Grass.CSSModules(style)
   export default class Res extends Grass.Component {
     constructor (props) {
       super(props)

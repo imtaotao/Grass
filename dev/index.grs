@@ -43,7 +43,7 @@
 
   window.vm = vm
   window.vue = Vue
-  @CSSModules(style)
+  @Grass.CSSModules(style)
   class Root extends Grass.Component {
     constructor () {
       super()
@@ -174,6 +174,10 @@
     // console.log(dom, val);
   })
   
+  Grass.mixin(Root, {
+    tt () {},
+    ttao: 12
+  })
   window.rr = Root.mount(document.getElementById('root'))
   // Grass.mount(document.getElementById('root'), Root)
 </script>

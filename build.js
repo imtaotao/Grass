@@ -38,6 +38,7 @@ async function build (cfg) {
       babel({
         exclude: 'node_modules/**',
         presets: ["es2015-rollup"],
+        babelrc: false,
       }),
       cmd(),
     ]

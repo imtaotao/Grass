@@ -1,6 +1,5 @@
 import { Component, mount } from './component/index'
 import initGlobalAPI from './global-api/index'
-export * from './global-api/css-modules'
 
 const Grass = {
   mount,

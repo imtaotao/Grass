@@ -1,7 +1,5 @@
 'use strict';
 
-Object.defineProperty(exports, '__esModule', { value: true });
-
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) {
   return typeof obj;
 } : function (obj) {
@@ -153,6 +151,12 @@ function remove(arr, item) {
 }
 function toString$1(val) {
   return val == null ? '' : (typeof val === 'undefined' ? 'undefined' : _typeof(val)) === 'object' ? JSON.stringify(val, null, 2) : String(val);
+}
+function extend(to, _from) {
+  for (var key in _from) {
+    to[key] = _from[key];
+  }
+  return to;
 }
 function isEmptyObj(obj) {
   for (var val in obj) {
@@ -2939,9 +2943,6 @@ function getComponentInstance(widgetVNode, parentComponent) {
   if (!componentClass.$ast) {
     componentClass.$ast = genAstCode(instance);
   }
-  if (parentComponent) {
-    instance.$parent = parentComponent;
-  }
   return instance;
 }
 function createNoStateComponent(props, template, componentClass) {
@@ -2954,6 +2955,7 @@ function createNoStateComponent(props, template, componentClass) {
     $el: null,
     $slot: null,
     $parent: null,
+    $children: {},
     $firstCompilation: true,
     $data: {
       stateQueue: []
@@ -3020,7 +3022,11 @@ var WidgetVNode = function () {
   createClass(WidgetVNode, [{
     key: 'init',
     value: function init() {
-      var component = getComponentInstance(this, this.parentComponent);
+      var parentComponent = this.parentComponent;
+      var component = getComponentInstance(this, parentComponent);
+      if (!component.noStateComp) {
+        component.createBefore();
+      }
       component.$slot = this.data.slotVnode;
       component.$widgetVNode = this;
       this.component = component;
@@ -3030,7 +3036,14 @@ var WidgetVNode = function () {
           vtree = _renderingRealDom.vtree;
 
       component.$el = dom;
+      if (parentComponent) {
+        component.$parent = parentComponent;
+        parentComponent.$children[component.name] = component;
+      }
       cacheComponentDomAndVTree(this, vtree, dom);
+      if (!component.noStateComp) {
+        component.created(dom);
+      }
       return dom;
     }
   }, {
@@ -3056,21 +3069,12 @@ var WidgetVNode = function () {
   return WidgetVNode;
 }();
 function renderingRealDom(widgetVNode) {
-  var component = widgetVNode.component,
-      componentClass = widgetVNode.componentClass;
+  var componentClass = widgetVNode.componentClass;
 
   var ast = componentClass.$ast;
-  if (component.noStateComp) {
-    var vtree = render(widgetVNode, ast);
-    var dom = create(vtree);
-    return { dom: dom, vtree: vtree };
-  } else {
-    component.createBefore();
-    var _vtree = render(widgetVNode, ast);
-    var _dom = create(_vtree);
-    component.create(_dom);
-    return { dom: _dom, vtree: _vtree };
-  }
+  var vtree = render(widgetVNode, ast);
+  var dom = create(vtree);
+  return { dom: dom, vtree: vtree };
 }
 function cacheComponentDomAndVTree(widgetVNode, vtree, dom) {
   widgetVNode.container.vtree = vtree;
@@ -3152,6 +3156,7 @@ var Component = function () {
     this.$el = null;
     this.$slot = null;
     this.$parent = null;
+    this.$children = {};
     this.$isWatch = false;
     this.$firstCompilation = true;
     this.$propsRequireList = requireList;
@@ -3164,8 +3169,8 @@ var Component = function () {
     key: 'createBefore',
     value: function createBefore() {}
   }, {
-    key: 'create',
-    value: function create$$1(dom) {}
+    key: 'created',
+    value: function created(dom) {}
   }, {
     key: 'willUpdate',
     value: function willUpdate(dom) {}
@@ -3247,7 +3252,7 @@ function _mount(rootDOM, componentClass) {
   var vnode = new WidgetVNode(null, {}, null, componentClass);
   var dom = create(vnode);
   rootDOM && rootDOM.appendChild(dom);
-  return dom;
+  return vnode.component;
 }
 var filterPropsList = {
   'key': 1,
@@ -3292,12 +3297,38 @@ function _forceUpdate(component) {
   stateQueue.push(null);
 }
 
-function async(factory, cb) {
-  var options = Object.create(null);
-  options.factory = factory;
-  options.async = true;
-  options.cb = cb;
-  return options;
+var installedPlugins = [];
+function use(plugin) {
+  if (!pligin || installedPlugins.indexOf(plugin) > -1) {
+    return this;
+  }
+
+  for (var _len = arguments.length, args = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+    args[_key - 1] = arguments[_key];
+  }
+
+  args.unshift(this);
+  if (typeof plugin === 'function') {
+    plugin.apply(null, args);
+  } else if (typeof plugin.init === 'function') {
+    plugin.init.apply(plugin, args);
+  }
+  installedPlugins.push(plugin);
+  return this;
+}
+
+function mixin(component, mixin) {
+  if (component) {
+    if (!mixin) {
+      mixin = component;
+      component = null;
+    }
+    if (isObject(mixin)) {
+      var proto = component ? component.prototype : this.Component.prototype;
+      extend(proto, mixin);
+    }
+  }
+  return this;
 }
 
 var BaseObserver = function () {
@@ -3471,6 +3502,14 @@ function creataError(reason) {
   }
 }
 
+function async(factory, cb) {
+  var options = Object.create(null);
+  options.factory = factory;
+  options.async = true;
+  options.cb = cb;
+  return options;
+}
+
 var compName = void 0;
 function CSSModules(style) {
   return function (component) {
@@ -3533,7 +3572,9 @@ function haveStyleName(node) {
   return node && node.attrs && node.attrs.styleName;
 }
 
-function initGlobalAPI (Grass) {
+function initGlobalAPI(Grass) {
+  Grass.use = use;
+  Grass.mixin = mixin;
   Grass.event = extendEvent;
   Grass.async = async;
   Grass.CSSModules = CSSModules;
@@ -3546,7 +3587,10 @@ var Grass = {
 };
 var prototype = {};
 initGlobalAPI(prototype);
-Object.setPrototypeOf(Grass, prototype);
+if (Object.setPrototypeOf) {
+  Object.setPrototypeOf(Grass, prototype);
+} else {
+  Grass.__proto__ = prototype;
+}
 
-exports.default = Grass;
-exports.CSSModules = CSSModules;
+module.exports = Grass;

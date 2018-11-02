@@ -19,8 +19,10 @@ describe('组件的创建', () => {
   it('能正确创建组件', () => {
     const cm = createComp({
       template () { return '<div>a</div>' }
-    })
-    expect(typeof cm.mount() === 'object').toBeTruthy()
+    }).mount()
+
+    expect(typeof cm === 'object').toBeTruthy()
+    expect(isWidget(cm.$widgetVNode)).toBeTruthy()
   })
 
   it('创建组件后 vnode container 正确', () => {

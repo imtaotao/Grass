@@ -43,6 +43,10 @@ export class WidgetVNode {
     const parentComponent = this.parentComponent
     const component = getComponentInstance(this, parentComponent)
 
+    if (!component.noStateComp) {
+      component.createBefore()
+    }
+
     component.$slot = this.data.slotVnode
     component.$widgetVNode = this
     this.component = component
@@ -85,12 +89,8 @@ export class WidgetVNode {
 }
 
 export function renderingRealDom (widgetVNode) {
-  const { component, componentClass } = widgetVNode
+  const { componentClass } = widgetVNode
   const ast = componentClass.$ast
-
-  if (!component.noStateComp) {
-    component.createBefore()
-  }
 
   const vtree = render(widgetVNode, ast)
   const dom = create(vtree)
