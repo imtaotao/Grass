@@ -92,7 +92,7 @@ function dealWithResult (res, factory, resolve, reject, context, forceRender) {
       res.then(resolve, reject)
     }
   } else if (res.component && typeof res.component.then === 'function' ) {
-    const { error, delay = 0, loading, timeout, component } = res
+    let { error, delay, loading, timeout, component } = res
 
     component.then(resolve, reject)
 
@@ -114,11 +114,12 @@ function dealWithResult (res, factory, resolve, reject, context, forceRender) {
 
     if (loading) {
       setUtilComp(loading, 'loadingComp')
+      !_.isNumber(delay) && (delay = 0)
 
       if (delay === 0) {
         // Into loading state.
         factory.loading = true
-      } else if (_.isNumber(delay)) {
+      } else {
         setTimeout(() => {
           // Maybe resolved method alread call.
           if (_.isUndef(factory.resolved) && _.isUndef(factory.error)) {

@@ -4,7 +4,8 @@ import { splitDireation } from './weight'
 
 export default function vevent (events, component, vnodeConf) {
   if (_.isReservedTag(vnodeConf.tagName)) {
-    for (const event of events) {
+    for (let i = 0, len = events.length; i < len; i++) {
+      const event = events[i]
       const direactiveKey = event.attrName
       const { direation:name, modifiers } = splitDireation(direactiveKey)
 

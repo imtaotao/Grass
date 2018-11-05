@@ -2,7 +2,7 @@ import * as _ from '../utils'
 import { getProps } from './index'
 import { render } from './render'
 import { create } from '../virtual-dom'
-import { elementCreated } from '../global-api/constom-directive'
+import { elementCreated } from '../global-api/custom-directive'
 import { getComponentInstance } from './component-instance'
 
 export class WidgetVNode {
@@ -22,7 +22,7 @@ export class WidgetVNode {
     this.name = componentClass.name
     this.componentClass = componentClass
     this.parentComponent = parentComponent
-    this.id = '_' + this.name + parentConfig.indexKey
+    this.id = '_' + this.name + (parentConfig.indexKey || '')
     this.data = {
       haveShowTag,
       vTransitionType,

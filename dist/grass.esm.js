@@ -1925,8 +1925,7 @@ function dealWithResult(res, factory, resolve, reject, context, forceRender) {
     }
   } else if (res.component && typeof res.component.then === 'function') {
     var error = res.error,
-        _res$delay = res.delay,
-        delay = _res$delay === undefined ? 0 : _res$delay,
+        delay = res.delay,
         loading = res.loading,
         timeout = res.timeout,
         component = res.component;
@@ -1948,9 +1947,10 @@ function dealWithResult(res, factory, resolve, reject, context, forceRender) {
     }
     if (loading) {
       setUtilComp(loading, 'loadingComp');
+      !isNumber(delay) && (delay = 0);
       if (delay === 0) {
         factory.loading = true;
-      } else if (isNumber(delay)) {
+      } else {
         setTimeout(function () {
           if (isUndef(factory.resolved) && isUndef(factory.error)) {
             factory.loading = true;
@@ -2162,29 +2162,8 @@ function bind(props, component, vnodeConf) {
     dealSingleBindAttr(props, component, vnodeConf);
     return;
   }
-  var _iteratorNormalCompletion = true;
-  var _didIteratorError = false;
-  var _iteratorError = undefined;
-
-  try {
-    for (var _iterator = props[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-      var prop = _step.value;
-
-      dealSingleBindAttr(prop, component, vnodeConf);
-    }
-  } catch (err) {
-    _didIteratorError = true;
-    _iteratorError = err;
-  } finally {
-    try {
-      if (!_iteratorNormalCompletion && _iterator.return) {
-        _iterator.return();
-      }
-    } finally {
-      if (_didIteratorError) {
-        throw _iteratorError;
-      }
-    }
+  for (var i = 0, len = props.length; i < len; i++) {
+    dealSingleBindAttr(props[i], component, vnodeConf);
   }
 }
 function dealSingleBindAttr(_ref, component, vnodeConf) {
@@ -2210,32 +2189,12 @@ function getNormalStyleKey(key) {
   });
 }
 function getFormatStyle(v) {
+  var keys = Object.keys(v);
   var result = '';
-  var _iteratorNormalCompletion2 = true;
-  var _didIteratorError2 = false;
-  var _iteratorError2 = undefined;
-
-  try {
-    for (var _iterator2 = Object.keys(v)[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
-      var key = _step2.value;
-
-      result += getNormalStyleKey(key) + ': ' + v[key] + ';';
-    }
-  } catch (err) {
-    _didIteratorError2 = true;
-    _iteratorError2 = err;
-  } finally {
-    try {
-      if (!_iteratorNormalCompletion2 && _iterator2.return) {
-        _iterator2.return();
-      }
-    } finally {
-      if (_didIteratorError2) {
-        throw _iteratorError2;
-      }
-    }
+  for (var i = 0, len = keys.length; i < len; i++) {
+    var key = keys[i];
+    result += getNormalStyleKey(key) + ': ' + v[key] + ';';
   }
-
   return result;
 }
 function spliceStyleStr(o, n) {
@@ -2325,40 +2284,20 @@ function splitDireation(direationKey) {
 
 function vevent(events, component, vnodeConf) {
   if (isReservedTag(vnodeConf.tagName)) {
-    var _iteratorNormalCompletion = true;
-    var _didIteratorError = false;
-    var _iteratorError = undefined;
+    for (var i = 0, len = events.length; i < len; i++) {
+      var event = events[i];
+      var direactiveKey = event.attrName;
 
-    try {
-      for (var _iterator = events[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-        var event = _step.value;
+      var _splitDireation = splitDireation(direactiveKey),
+          name = _splitDireation.direation,
+          modifiers = _splitDireation.modifiers;
 
-        var direactiveKey = event.attrName;
-
-        var _splitDireation = splitDireation(direactiveKey),
-            name = _splitDireation.direation,
-            modifiers = _splitDireation.modifiers;
-
-        var code = '\n        with ($obj_) {\n          return ' + event.value + ';\n        }\n      ';
-        var cb = runExecuteContext(code, 'on', vnodeConf, component);
-        if (modifiers.length) {
-          vnodeConf.attrs['on' + name] = createModifiersFun(modifiers, cb);
-        } else {
-          vnodeConf.attrs['on' + name] = cb;
-        }
-      }
-    } catch (err) {
-      _didIteratorError = true;
-      _iteratorError = err;
-    } finally {
-      try {
-        if (!_iteratorNormalCompletion && _iterator.return) {
-          _iterator.return();
-        }
-      } finally {
-        if (_didIteratorError) {
-          throw _iteratorError;
-        }
+      var code = '\n        with ($obj_) {\n          return ' + event.value + ';\n        }\n      ';
+      var cb = runExecuteContext(code, 'on', vnodeConf, component);
+      if (modifiers.length) {
+        vnodeConf.attrs['on' + name] = createModifiersFun(modifiers, cb);
+      } else {
+        vnodeConf.attrs['on' + name] = cb;
       }
     }
   }
@@ -2889,14 +2828,14 @@ function batchUpdateQueue(component) {
   });
 }
 function updateDomTree(component) {
-  if (!component.noStateComp) {
-    component.willUpdate();
-  }
   var vnode = component.$widgetVNode;
   var _vnode$container = vnode.container,
       dom = _vnode$container.dom,
       vtree = _vnode$container.vtree;
 
+  if (!component.noStateComp) {
+    component.willUpdate(dom);
+  }
   var ast = component.constructor.$ast;
   var newTree = render(vnode, ast);
   var patchs = diff$1(vtree, newTree);
@@ -3002,7 +2941,7 @@ var WidgetVNode = function () {
     this.name = componentClass.name;
     this.componentClass = componentClass;
     this.parentComponent = parentComponent;
-    this.id = '_' + this.name + parentConfig.indexKey;
+    this.id = '_' + this.name + (parentConfig.indexKey || '');
     this.data = {
       haveShowTag: haveShowTag,
       vTransitionType: vTransitionType,
@@ -3329,6 +3268,8 @@ function mixin(component, mixin) {
   return this;
 }
 
+var version$1 = 'v1.0.0';
+
 var BaseObserver = function () {
   function BaseObserver() {
     classCallCheck(this, BaseObserver);
@@ -3425,7 +3366,6 @@ function extendEvent(compClass) {
     }
     return compClass;
   }
-  compClass.error = error;
   function error(callback) {
     if (typeof callback === 'function') {
       errorOB.on(callback);
@@ -3461,16 +3401,21 @@ function extendEvent(compClass) {
   }
   function prototypeError(reason) {
     if (!isDone) {
-      errorOB.emit(creataError(reason));
+      if (errorOB.commonFuns.length || errorOB.onceFuns.length) {
+        errorOB.emit(reason);
+      } else {
+        throw new Error(reason);
+      }
       isDone = true;
       remove$$1();
     }
   }
   function prototypeNextHelp(type, data) {
     this.next({ type: type, data: data });
+    return this;
   }
   function remove$$1(fun) {
-    if (typeof fun._parentCb === 'function') {
+    if (fun && typeof fun._parentCb === 'function') {
       fun = fun._parentCb;
     }
     nextOB.remove(fun);
@@ -3478,8 +3423,9 @@ function extendEvent(compClass) {
     errorOB.remove(fun);
   }
   compClass.on = on;
-  compClass.done = done;
   compClass.once = once$$1;
+  compClass.done = done;
+  compClass.error = error;
   compClass.listener = listener;
   compClass.prototype.next = prototypeNext;
   compClass.prototype.done = prototypeDone;
@@ -3491,21 +3437,6 @@ function extendEvent(compClass) {
 function hasExpanded(compClass) {
   if (!compClass.remove) return false;
   return compClass.remove === compClass.prototype.remove;
-}
-function creataError(reason) {
-  try {
-    throw Error(reason);
-  } catch (err) {
-    return err;
-  }
-}
-
-function async(factory, cb) {
-  var options = Object.create(null);
-  options.factory = factory;
-  options.async = true;
-  options.cb = cb;
-  return options;
 }
 
 var compName = void 0;
@@ -3570,6 +3501,14 @@ function haveStyleName(node) {
   return node && node.attrs && node.attrs.styleName;
 }
 
+function async(factory, cb) {
+  var options = Object.create(null);
+  options.factory = factory;
+  options.async = true;
+  options.cb = cb;
+  return options;
+}
+
 function initGlobalAPI(Grass) {
   Grass.use = use;
   Grass.mixin = mixin;
@@ -3577,11 +3516,13 @@ function initGlobalAPI(Grass) {
   Grass.async = async;
   Grass.CSSModules = CSSModules;
   Grass.directive = customDirective;
+  setOnlyReadAttr(Grass, 'version', version$1);
 }
 
 var Grass = {
   mount: _mount,
-  Component: Component
+  Component: Component,
+  forceUpdate: _forceUpdate
 };
 var prototype = {};
 initGlobalAPI(prototype);

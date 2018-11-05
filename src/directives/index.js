@@ -11,7 +11,7 @@ import transition from './transition'
 import runCustomDirect from './custom-direct'
 import runExecuteContext from './execution-env'
 import { TAG, STATICTAG } from '../ast/parse-template'
-import { haveRegisteredCustomDirect } from '../global-api/constom-directive'
+import { haveRegisteredCustomDirect } from '../global-api/custom-directive'
 import { createVnodeConf } from './util'
 
 /**

@@ -49,12 +49,13 @@ function batchUpdateQueue (component) {
 }
 
 export function updateDomTree (component) {
-  if (!component.noStateComp) {
-    component.willUpdate()
-  }
-
   const vnode = component.$widgetVNode
   const { dom, vtree } = vnode.container
+
+  if (!component.noStateComp) {
+    component.willUpdate(dom)
+  }
+
   const ast = component.constructor.$ast
   const newTree = render(vnode, ast)
   const patchs = diff(vtree, newTree)
