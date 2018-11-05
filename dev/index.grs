@@ -5,9 +5,6 @@
       点击
     </div>
     <span v-for="val of arr">{{ val }}</span>
-    <div>
-      
-    </div>
 
     <Child test1="api" :test2="api" :show="true" :api="api">
       <div slot="tao">{{api}}</div>
@@ -42,9 +39,11 @@
     }
   })
 
+  window.g = Grass
+
   window.vm = vm
   window.vue = Vue
-  @CSSModules(style)
+  @Grass.CSSModules(style)
   class Root extends Grass.Component {
     constructor () {
       super()
@@ -78,12 +77,13 @@
       window.ss = this.state
     }
 
-    create () {
+    created (dom) {
+      console.log(this.$parent, this.$children);
       Child.listener('tt', this.testListener)
     }
 
-    willUpdate () {
-      // console.log(121);
+    willUpdate (dom) {
+      console.log(dom);
     }
 
     callback (api) {
@@ -142,8 +142,12 @@
             }),
             // error,
             timeout: 2100,
-            // loading,
-            loading: Grass.async(() => import('./response.grs')),
+            loading,
+            // loading: Grass.async((resolve) => {
+            //   setTimeout(() => {
+            //     resolve(response)
+            //   }, 500)
+            // }),
           }
         }, (err, cm) => {
           console.log(err)
@@ -153,7 +157,7 @@
         bb: function bb (props, parent) {
           props.a = 121
           // console.log(props, parent, this);
-          return `<div>{{a}} taotao</div>`
+          return `<div>{{a}}</div>`
         }
       }
     }
@@ -174,6 +178,11 @@
     // console.log(dom, val);
   })
   
-  Root.mount(document.getElementById('root'))
+  Grass.mixin(Root, {
+    tt () {},
+    ttao: 12
+  })
+  window.rr = Root.mount(document.getElementById('root'))
+  console.log(rr.$el.textContent);
   // Grass.mount(document.getElementById('root'), Root)
 </script>

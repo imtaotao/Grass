@@ -10,8 +10,8 @@ export default function bind (props, component, vnodeConf) {
     return
   }
 
-  for (const prop of props) {
-    dealSingleBindAttr(prop, component, vnodeConf)
+  for (let i = 0, len = props.length; i < len; i++) {
+    dealSingleBindAttr(props[i], component, vnodeConf)
   }
 }
 
@@ -50,8 +50,11 @@ function getNormalStyleKey (key) {
 }
 
 function getFormatStyle (v) {
+  const keys = Object.keys(v)
   let result = ''
-  for (const key of Object.keys(v)) {
+  
+  for (let i = 0, len = keys.length; i < len; i++) {
+    const key = keys[i]
     result += `${getNormalStyleKey(key)}: ${v[key]};`
   }
   return result

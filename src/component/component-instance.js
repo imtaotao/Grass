@@ -34,10 +34,6 @@ export function getComponentInstance (widgetVNode, parentComponent) {
     componentClass.$ast = genAstCode(instance)
   }
 
-  if (parentComponent) {
-    instance.$parent = parentComponent
-  }
-
   return instance
 }
 
@@ -51,6 +47,7 @@ function createNoStateComponent (props, template, componentClass) {
     $el: null,
     $slot: null,
     $parent: null,
+    $children: {},
     $firstCompilation: true,
     $data: {
       stateQueue: []

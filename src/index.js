@@ -1,10 +1,14 @@
-import { Component, mount } from './component/index'
+import {
+  mount,
+  forceUpdate,
+  Component,
+} from './component/index'
 import initGlobalAPI from './global-api/index'
-export * from './global-api/css-modules'
 
 const Grass = {
   mount,
   Component,
+  forceUpdate,
 }
 
 const prototype = {}

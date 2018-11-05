@@ -2,7 +2,7 @@ import * as _ from '../utils/index'
 
 let compName
 
-export function CSSModules (style) {
+export default function CSSModules (style) {
   return component => {
     if (!component || _.isEmptyObj(style)) {
       return component

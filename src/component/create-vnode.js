@@ -1,6 +1,6 @@
 import * as _ from '../utils'
 import { h } from '../virtual-dom'
-import { elementCreated } from '../global-api/constom-directive'
+import { elementCreated } from '../global-api/custom-directive'
 
 export function createVNode (vnodeConfig, children) {
   const { tagName, attrs, customDirection } = vnodeConfig

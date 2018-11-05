@@ -2,7 +2,7 @@ import * as _ from '../utils'
 import { getProps } from './index'
 import { render } from './render'
 import { create } from '../virtual-dom'
-import { elementCreated } from '../global-api/constom-directive'
+import { elementCreated } from '../global-api/custom-directive'
 import { getComponentInstance } from './component-instance'
 
 export class WidgetVNode {
@@ -22,7 +22,7 @@ export class WidgetVNode {
     this.name = componentClass.name
     this.componentClass = componentClass
     this.parentComponent = parentComponent
-    this.id = '_' + this.name + parentConfig.indexKey
+    this.id = '_' + this.name + (parentConfig.indexKey || '')
     this.data = {
       haveShowTag,
       vTransitionType,
@@ -40,7 +40,12 @@ export class WidgetVNode {
 
   init () {
     // Now, we can get component instance, chonse this time, Because we can improve efficiency
-    const component = getComponentInstance(this, this.parentComponent)
+    const parentComponent = this.parentComponent
+    const component = getComponentInstance(this, parentComponent)
+
+    if (!component.noStateComp) {
+      component.createBefore()
+    }
 
     component.$slot = this.data.slotVnode
     component.$widgetVNode = this
@@ -49,7 +54,17 @@ export class WidgetVNode {
     const { dom, vtree } = renderingRealDom(this)
 
     component.$el = dom
+  
+    if (parentComponent) {
+      component.$parent = parentComponent
+      parentComponent.$children[component.name] = component
+    }
+
     cacheComponentDomAndVTree(this, vtree, dom)
+
+    if (!component.noStateComp) {
+      component.created(dom)
+    }
 
     return dom
   }
@@ -74,22 +89,13 @@ export class WidgetVNode {
 }
 
 export function renderingRealDom (widgetVNode) {
-  const { component, componentClass } = widgetVNode
+  const { componentClass } = widgetVNode
   const ast = componentClass.$ast
 
-  if (component.noStateComp) {
-    const vtree = render(widgetVNode, ast)
-    const dom = create(vtree)
+  const vtree = render(widgetVNode, ast)
+  const dom = create(vtree)
 
-    return { dom, vtree }
-  } else {
-    component.createBefore()
-    const vtree = render(widgetVNode, ast)
-    const dom = create(vtree)
-    component.create(dom)
-
-    return { dom, vtree }
-  }
+  return { dom, vtree }
 }
 
 export function cacheComponentDomAndVTree (widgetVNode, vtree, dom) {

@@ -40,8 +40,6 @@ export default function extendEvent (compClass) {
     return compClass
   }
 
-  compClass.error = error
-
   function error (callback) {
     if (typeof callback === 'function') {
       errorOB.on(callback)
@@ -88,7 +86,12 @@ export default function extendEvent (compClass) {
 
   function prototypeError (reason) {
     if (!isDone) {
-      errorOB.emit(creataError(reason))
+      if (errorOB.commonFuns.length || errorOB.onceFuns.length) {
+        errorOB.emit(reason)
+      } else {
+        throw new Error(reason)
+      }
+
       isDone = true
       remove()
     }
@@ -96,10 +99,11 @@ export default function extendEvent (compClass) {
 
   function prototypeNextHelp (type, data) {
     this.next({type, data})
+    return this
   }
 
   function remove (fun) {
-    if (typeof fun._parentCb === 'function') {
+    if (fun && typeof fun._parentCb === 'function') {
       fun = fun._parentCb
     }
     
@@ -109,8 +113,9 @@ export default function extendEvent (compClass) {
   }
 
   compClass.on = on
-  compClass.done = done
   compClass.once = once
+  compClass.done = done
+  compClass.error = error
   compClass.listener = listener
 
   compClass.prototype.next = prototypeNext 
@@ -126,12 +131,4 @@ export default function extendEvent (compClass) {
 function hasExpanded (compClass) {
   if (!compClass.remove) return false
   return compClass.remove === compClass.prototype.remove
-}
-
-function creataError (reason) {
-  try {
-    throw Error(reason)
-  } catch (err) {
-    return err
-  }
 }
