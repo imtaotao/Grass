@@ -28,6 +28,10 @@ export function getComponentInstance (widgetVNode, parentComponent) {
   if (tagName) {
     _.setOnlyReadAttr(instance, 'name', tagName)
   }
+
+  if (!instance.noStateComp) {
+    instance.createBefore()
+  }
   
   // We saved ast in component constructor
   if (!componentClass.$ast) {

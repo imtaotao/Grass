@@ -11,11 +11,13 @@
       tt
       <bb slot='fangfang'></bb>
     </Child>
+  
     <div v-for="val of obj" v-transition="'slide-fade'" v-show="show">
       <span v-for="val of val">
         <a v-for="val of val">{{val}}</a>  
       </span>
     </div>
+    <Child v-if="show"/>
   </div>
 </template>
 
@@ -122,6 +124,7 @@
     }
 
     component () {
+      console.log(this);
       return {
         response,
         Child: Grass.async((resolve, reject) => {
@@ -150,6 +153,7 @@
             // }),
           }
         }, (err, cm) => {
+          console.log(this);
           console.log(err)
           console.dir(cm)
         }),
@@ -171,18 +175,5 @@
     return '<div> error </div>'
   }
 
-  window.r = () => {
-    return Root.$ast.children[9].children[1].children[1].watcherCollectList
-  }
-  Grass.directive('tt', (dom, val) => {
-    // console.log(dom, val);
-  })
-  
-  Grass.mixin(Root, {
-    tt () {},
-    ttao: 12
-  })
-  window.rr = Root.mount(document.getElementById('root'))
-  console.log(rr.$el.textContent);
-  // Grass.mount(document.getElementById('root'), Root)
+  // window.rr = Root.mount(document.getElementById('root'))
 </script>

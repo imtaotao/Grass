@@ -29,6 +29,7 @@
 
     created() {
       console.log(this.$parent, this.$children);
+      console.log('slot', this.$slot);
     }
     click () {
       this.tNext('tt', 1212121)

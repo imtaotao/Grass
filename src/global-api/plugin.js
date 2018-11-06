@@ -1,7 +1,7 @@
 const installedPlugins = []
 
 export default function use (plugin, ...args) {
-  if (!pligin || installedPlugins.indexOf(plugin) > -1) {
+  if (!plugin || installedPlugins.indexOf(plugin) > -1) {
     return this
   }
 

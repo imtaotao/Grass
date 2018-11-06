@@ -128,7 +128,6 @@ export function getProps (attrs, requireList, name) {
     if (filterPropsList[key]) {
       continue
     }
-
     const val = attrs[key]
 
     if (!requireList) {

@@ -2,11 +2,12 @@ import * as _ from '../utils'
 import { getProps } from './index'
 import { render } from './render'
 import { create } from '../virtual-dom'
+import { updateDomTree } from './update-state'
 import { elementCreated } from '../global-api/custom-directive'
 import { getComponentInstance } from './component-instance'
 
 export class WidgetVNode {
-  constructor (parentComponent, parentConfig, slotVnode, componentClass) {
+  constructor (parentComponent, parentConfig, slotVNode, componentClass) {
     const {
       attrs = {},
       haveShowTag,
@@ -29,7 +30,7 @@ export class WidgetVNode {
       vTransitionData,
       customDirection,
       parentConfig,
-      slotVnode,
+      slotVNode,
     }
 
     this.container = {
@@ -43,11 +44,7 @@ export class WidgetVNode {
     const parentComponent = this.parentComponent
     const component = getComponentInstance(this, parentComponent)
 
-    if (!component.noStateComp) {
-      component.createBefore()
-    }
-
-    component.$slot = this.data.slotVnode
+    component.$slot = this.data.slotVNode
     component.$widgetVNode = this
     this.component = component
 
@@ -81,6 +78,7 @@ export class WidgetVNode {
     if (typeof this.component.destroy === 'function') {
       this.component.destroy(dom)
     }
+    this.component.$isDestroyed = true
   }
 
   elementCreated (dom, node) {
@@ -117,7 +115,7 @@ function update ({ component, data: { parentConfig } }) {
     }
 
     component.props = newProps
-    component.forceUpdate()
+    updateDomTree(component)
   }
 }
 
@@ -131,5 +129,5 @@ function transferData (nv, ov) {
   nv.container = ov.container
 
   nv.component.$widgetVNode = nv
-  nv.component.$slot = nv.data.slotVnode
+  nv.component.$slot = nv.data.slotVNode
 }

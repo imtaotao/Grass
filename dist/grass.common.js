@@ -1845,7 +1845,7 @@ function createVNode(vnodeConfig, children) {
   return vnode;
 }
 
-function getSlotVnode(name, component) {
+function getSlotVNode(name, component) {
   var slot = component.$slot;
   if (isUndef(name)) {
     return slot;
@@ -1862,7 +1862,7 @@ function getSlotVnode(name, component) {
   }
   return null;
 }
-function pushSlotVnode(vnodeChildren, vnode) {
+function pushSlotVNode(vnodeChildren, vnode) {
   if (Array.isArray(vnode)) {
     vnodeChildren.push.apply(vnodeChildren, vnode);
   } else {
@@ -2742,9 +2742,9 @@ function genChildren(children, component) {
           vnodeChildren.push(vnode);
         } else if (isInternelTag(child.tagName)) {
           if (child.tagName === 'slot') {
-            var _vnode = getSlotVnode(child.attrs.name, component);
+            var _vnode = getSlotVNode(child.attrs.name, component);
             if (_vnode) {
-              pushSlotVnode(vnodeChildren, _vnode);
+              pushSlotVNode(vnodeChildren, _vnode);
             }
           }
         } else {
@@ -2759,8 +2759,8 @@ function genChildren(children, component) {
               continue;
             }
           }
-          var slotVnode = genChildren(child.children, component);
-          var _vnode2 = new WidgetVNode(component, child, slotVnode, childClass);
+          var slotVNode = genChildren(child.children, component);
+          var _vnode2 = new WidgetVNode(component, child, slotVNode, childClass);
           vnodeChildren.push(_vnode2);
         }
       } else {
@@ -2785,7 +2785,7 @@ function getComponentClass(vnodeConfig, parentCompnent) {
     return null;
   }
   if (typeof childComponents === 'function') {
-    parentCompnent.component = childComponents = childComponents();
+    parentCompnent.component = childComponents = childComponents.call(parentCompnent);
   }
   if (isPlainObject(childComponents)) {
     var res = childComponents[tagName];
@@ -2879,6 +2879,9 @@ function getComponentInstance(widgetVNode, parentComponent) {
   if (tagName) {
     setOnlyReadAttr(instance, 'name', tagName);
   }
+  if (!instance.noStateComp) {
+    instance.createBefore();
+  }
   if (!componentClass.$ast) {
     componentClass.$ast = genAstCode(instance);
   }
@@ -2927,7 +2930,7 @@ function genAstCode(component) {
 }
 
 var WidgetVNode = function () {
-  function WidgetVNode(parentComponent, parentConfig, slotVnode, componentClass) {
+  function WidgetVNode(parentComponent, parentConfig, slotVNode, componentClass) {
     classCallCheck(this, WidgetVNode);
     var _parentConfig$attrs = parentConfig.attrs,
         attrs = _parentConfig$attrs === undefined ? {} : _parentConfig$attrs,
@@ -2950,7 +2953,7 @@ var WidgetVNode = function () {
       vTransitionData: vTransitionData,
       customDirection: customDirection,
       parentConfig: parentConfig,
-      slotVnode: slotVnode
+      slotVNode: slotVNode
     };
     this.container = {
       vtree: null,
@@ -2963,10 +2966,7 @@ var WidgetVNode = function () {
     value: function init() {
       var parentComponent = this.parentComponent;
       var component = getComponentInstance(this, parentComponent);
-      if (!component.noStateComp) {
-        component.createBefore();
-      }
-      component.$slot = this.data.slotVnode;
+      component.$slot = this.data.slotVNode;
       component.$widgetVNode = this;
       this.component = component;
 
@@ -2998,6 +2998,7 @@ var WidgetVNode = function () {
       if (typeof this.component.destroy === 'function') {
         this.component.destroy(dom);
       }
+      this.component.$isDestroyed = true;
     }
   }, {
     key: 'elementCreated',
@@ -3034,7 +3035,7 @@ function _update(_ref) {
       component.constructor.call(component, newProps, component.$parent);
     }
     component.props = newProps;
-    component.forceUpdate();
+    updateDomTree(component);
   }
 }
 function transferData(nv, ov) {
@@ -3042,7 +3043,7 @@ function transferData(nv, ov) {
   nv.componentClass = ov.componentClass;
   nv.container = ov.container;
   nv.component.$widgetVNode = nv;
-  nv.component.$slot = nv.data.slotVnode;
+  nv.component.$slot = nv.data.slotVNode;
 }
 
 function set$1(target, key, val) {
@@ -3238,7 +3239,7 @@ function _forceUpdate(component) {
 
 var installedPlugins = [];
 function use(plugin) {
-  if (!pligin || installedPlugins.indexOf(plugin) > -1) {
+  if (!plugin || installedPlugins.indexOf(plugin) > -1) {
     return this;
   }
 
@@ -3262,8 +3263,9 @@ function mixin(component, mixin) {
       mixin = component;
       component = null;
     }
+    var originComponent = this ? this.Component : Component;
     if (isObject(mixin)) {
-      var proto = component ? component.prototype : this.Component.prototype;
+      var proto = component ? component.prototype : originComponent.prototype;
       extend(proto, mixin);
     }
   }

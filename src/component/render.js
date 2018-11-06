@@ -2,7 +2,7 @@ import * as _ from '../utils/index'
 import { TAG } from '../ast/parse-template'
 import { WidgetVNode } from './component-vnode'
 import { createVNode } from './create-vnode'
-import { getSlotVnode, pushSlotVnode } from './component-slot'
+import { getSlotVNode, pushSlotVNode } from './component-slot'
 import { createAsyncComponent } from './component-async'
 import { migrateComponentStatus } from './component-transfer'
 import complierDirectFromAst from '../directives/index'
@@ -46,10 +46,10 @@ export function genChildren (children, component) {
         } else if (_.isInternelTag(child.tagName)) {
           // If a slot
           if (child.tagName === 'slot') {
-            const vnode = getSlotVnode(child.attrs.name, component)
+            const vnode = getSlotVNode(child.attrs.name, component)
 
             if (vnode) {
-              pushSlotVnode(vnodeChildren, vnode)
+              pushSlotVNode(vnodeChildren, vnode)
             }
           }
         } else {
@@ -67,8 +67,8 @@ export function genChildren (children, component) {
             }
           }
 
-          const slotVnode = genChildren(child.children, component)
-          const vnode = new WidgetVNode(component, child, slotVnode, childClass)
+          const slotVNode = genChildren(child.children, component)
+          const vnode = new WidgetVNode(component, child, slotVNode, childClass)
 
           vnodeChildren.push(vnode)
         }
@@ -99,7 +99,7 @@ function getComponentClass (vnodeConfig, parentCompnent) {
 
   // 'components' attribute of component is function or object, so, we need judgment
   if (typeof childComponents === 'function') {
-    parentCompnent.component = childComponents = childComponents()
+    parentCompnent.component = childComponents = childComponents.call(parentCompnent)
   }
 
   if (_.isPlainObject(childComponents)) {

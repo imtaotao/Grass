@@ -1,6 +1,6 @@
 import { isUndef, isVNode } from '../utils'
 
-export function getSlotVnode (name, component) {
+export function getSlotVNode (name, component) {
   const slot = component.$slot
 
   if (isUndef(name)) {
@@ -22,7 +22,7 @@ export function getSlotVnode (name, component) {
   return null
 }
 
-export function pushSlotVnode (vnodeChildren, vnode) {
+export function pushSlotVNode (vnodeChildren, vnode) {
   if (Array.isArray(vnode)) {
     vnodeChildren.push.apply(vnodeChildren, vnode)
   } else {

@@ -1,31 +1,27 @@
 import Grass from '../../../src'
 import * as _ from '../../../src/utils'
-import { createComp, throwComponent } from '../util'
+import { throwComponent } from '../util'
 import { isVNode } from '../../../src/virtual-dom/vnode/typeof-vnode'
 
 const {
   mount,
-  Component,
-  forceUpdate,
-
-  use,
   mixin,
   event,
   async,
+  Component,
   directive,
+  forceUpdate,
 } = Grass
 
-describe('global API', () => {
+describe('Global API', () => {
   it('mount', () => {
     class p extends Component {
       template () {
         return '<div></div>'
       }
     }
-
     const a = mount(null, p)
     const b = p.mount()
-
     expect(a.set).toBe(b.set)
     expect(a.delete).toBe(b.delete)
   })
@@ -35,13 +31,11 @@ describe('global API', () => {
       template () {
         return '<div></div>'
       }
-
       willUpdate (dom) {
         expect(typeof dom).toBe('object')
         done()
       }
     }
-
     forceUpdate(p.mount())
   })
 
@@ -59,24 +53,20 @@ describe('global API', () => {
           done()
         }, 1000)
       }
-
       template () {
         return '<div></div>'
       }
     }
-
     class b extends Component {
       created () {
         a.on(data => {
           expect(data.i).toBe(count.i)
           count.i++
         })
-
         a.once(data => {
           expect(data.i).toBe(count.i)
           count.i++
         })
-
         a.done(data => {
           expect(data.i).toBe(count.i)
           count.i++
@@ -86,14 +76,12 @@ describe('global API', () => {
         return '<div></div>'
       }
     }
-
     const cm = event(a).mount()
     b.mount()
-
     expect(a.remove).toBe(cm.remove)
   })
 
-  it('event error', done => {
+  it('Event error', done => {
     let count = 0
     class a extends Component {
       created () {
@@ -104,24 +92,20 @@ describe('global API', () => {
           done()
         })
       }
-
       template () {
         return '<div></div>'
       }
     }
-
     event(a).mount()
-
     a.on(() => {
       count++
     })
-
     a.error(err => {
       expect(err).toBe('error')
     })
   })
 
-  it('event help method', done => {
+  it('Event help method', done => {
     class a extends Component {
       created () {
         setTimeout(() => {
@@ -131,40 +115,38 @@ describe('global API', () => {
           done()
         })
       }
-
       template () {
         return '<div></div>'
       }
     }
-
     event(a).mount()
-
     a.listener('one', data => {
       expect(data).toBe(1)
     })
-
     a.listener('two', data => {
       expect(data).toBe(2)
     })
   })
 
-  it('async component', done => {
+  it('No state component "event"', () => {
+    const p = () => '<div></div>'
+    expect(throwComponent(() => event(p))).toThrowError('rethrow')
+  })
+
+  it('Async component', done => {
     class a extends Component {
       template () {
         return `<div>a</div>`
       }
     }
-
     class b extends Component {
       didUpdate () {
         expect(this.$el.textContent).toBe('a')
         done()
       }
-
       template () {
         return '<div><Child/></div>'
       }
-
       component () {
         return {
           Child: async((resolve) => {
@@ -178,27 +160,29 @@ describe('global API', () => {
         }
       }
     }
-
     b.mount()
+    const factory = () => {}
+    const cb = () => {}
+    const asyncComp = async(factory, cb)
+    expect(asyncComp.async).toBeTruthy()
+    expect(asyncComp.factory).toBe(factory)
+    expect(asyncComp.cb).toBe(cb)
   })
 
-  it('complex async component', done => {
+  it('Complex async component', done => {
     class a extends Component {
       template () {
         return `<div>a</div>`
       }
     }
-
     class b extends Component {
       didUpdate () {
         expect(this.$el.textContent).toBe('a')
         done()
       }
-
       template () {
         return '<div><Child/></div>'
       }
-
       component () {
         return {
           Child: async((resolve) => ({
@@ -217,7 +201,6 @@ describe('global API', () => {
         }
       }
     }
-
     expect(b.mount().$el.textContent).toBe('loading')
   })
 
@@ -227,12 +210,10 @@ describe('global API', () => {
         return `<div>a</div>`
       }
     }
-
     class b extends Component {
       template () {
         return '<div><Child/></div>'
       }
-
       component () {
         return {
           Child: async((resolve) => ({
@@ -249,26 +230,92 @@ describe('global API', () => {
         }
       }
     }
-
     expect(b.mount().$el.textContent).toBe('')
   })
 
   it('directive', done => {
     class p extends Component {
       template () {
-        return (`
-          <div v-tt="'custom'">a</div>
-        `)
+        return `<div v-tt="'custom'">a</div>`
       }
     }
-
     directive('tt', (dom, val, vnode) => {
       expect(dom.textContent).toBe('a')
       expect(val).toBe('custom')
       expect(isVNode(vnode)).toBeTruthy()
       done()
     })
-
     p.mount()
+  })
+
+  it('single mixin', () => {
+    class a extends Component {
+      template () {
+        return '<div></div>'
+      }
+    }
+    class b extends Component {
+      template () {
+        return '<div></div>'
+      }
+    }
+    const two = () => {}
+    mixin({
+      one: 1,
+      two,
+    })
+    const cma = a.mount()
+    const cmb = b.mount()
+    expect(cma.one).toBe(1)
+    expect(cma.two).toBe(two)
+    expect(cmb.one).toBe(1)
+    expect(cmb.two).toBe(two)
+    delete Component.prototype.one
+    delete Component.prototype.two
+  })
+
+  it('mixin', () => {
+    class a extends Component {
+      template () {
+        return '<div></div>'
+      }
+    }
+    class b extends Component {
+      template () {
+        return '<div></div>'
+      }
+    }
+    const two = () => {}
+    mixin(a, {
+      one: 1,
+      two,
+    })
+    const cma = a.mount()
+    const cmb = b.mount()
+    expect(cma.one).toBe(1)
+    expect(cma.two).toBe(two)
+    expect(cmb.one).toBeUndefined()
+    expect(cmb.two).toBeUndefined()
+  })
+
+  it('use', () => {
+    let i = 0
+    class p extends Component {
+      template () {
+        return '<div></div>'
+      }
+    }
+    const plugin = (g, one, two) => {
+      expect(g).toBe(Grass)
+      expect(one).toBe(1)
+      expect(two).toBe(2)
+      mixin({ a: 11 })
+      i++
+    }
+    Grass.use(plugin, 1, 2)
+         .use(plugin, 1, 2)
+    expect(i).toBe(1)
+    expect(p.mount().a).toBe(11)
+    delete Component.prototype.a
   })
 })

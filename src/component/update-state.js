@@ -51,7 +51,7 @@ function batchUpdateQueue (component) {
 export function updateDomTree (component) {
   const vnode = component.$widgetVNode
   const { dom, vtree } = vnode.container
-
+  
   if (!component.noStateComp) {
     component.willUpdate(dom)
   }
