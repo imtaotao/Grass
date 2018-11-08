@@ -2,7 +2,8 @@ const base = require('./karma.base.config.js')
 
 module.exports = function (config) {
   var options = Object.assign(base, {
-    browsers: ['PhantomJS'],
+    // browsers: ['PhantomJS'],
+    browsers: ['Chrome'],
     reporters: ['mocha', 'coverage'],
     coverageReporter: {
       reporters: [
@@ -13,7 +14,8 @@ module.exports = function (config) {
     singleRun: true,
     plugins: base.plugins.concat([
       'karma-coverage',
-      'karma-phantomjs-launcher',
+      'karma-chrome-launcher',
+      // 'karma-phantomjs-launcher',
     ])
   })
 
@@ -21,9 +23,9 @@ module.exports = function (config) {
   options.webpack.module.rules[0].options = {
     plugins: [['istanbul', {
       exclude: [
-        '/test/',
-        '/dev/',
-        '/src/ast/static-optimize.js',
+        'test/',
+        'dev/',
+        'src/ast/static-optimize.js',
       ],
     }]],
   }

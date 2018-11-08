@@ -757,7 +757,7 @@ function enter(node, vnode, rm) {
   var name = vTransitionData.name,
       hookFuns = vTransitionData.hookFuns;
 
-  var type = vTransitionType === 'transtion' ? TRANSITION : ANIMATION;
+  var type = vTransitionType === 'transition' ? TRANSITION : ANIMATION;
   if (typeof hookFuns['v-beforeEnter'] === 'function') {
     if (hookFuns['v-beforeEnter'](node) === false) {
       rm();
@@ -2172,12 +2172,13 @@ function dealSingleBindAttr(_ref, component, vnodeConf) {
   var attrName = _ref.attrName,
       value = _ref.value;
 
+  var originStyle = vnodeConf.attrs[attrName];
   if (attrName === 'style') {
     if (!value || stringFormat.test(value) && !objectFormat.test(value)) {
-      vnodeConf.attrs.style = spliceStyleStr(vnodeConf.attrs[attrName], value);
+      vnodeConf.attrs.style = spliceStyleStr(originStyle, value);
       return;
     }
-    vnodeConf.attrs.style = spliceStyleStr(vnodeConf.attrs[attrName], getFormatStyle(getValue()));
+    vnodeConf.attrs.style = spliceStyleStr(originStyle, getFormatStyle(originStyle, getValue()));
     return;
   }
   vnodeConf.attrs[attrName] = component ? getValue() : value;
@@ -2190,12 +2191,15 @@ function getNormalStyleKey(key) {
     return '-' + k1.toLocaleLowerCase();
   });
 }
-function getFormatStyle(v) {
+function getFormatStyle(o, v) {
   var keys = Object.keys(v);
   var result = '';
   for (var i = 0, len = keys.length; i < len; i++) {
-    var key = keys[i];
-    result += getNormalStyleKey(key) + ': ' + v[key] + ';';
+    var key = getNormalStyleKey(keys[i]);
+    var value = v[keys[i]];
+    if (test(o, result, key)) {
+      result += key + ': ' + value + ';';
+    }
   }
   return result;
 }
@@ -2203,6 +2207,10 @@ function spliceStyleStr(o, n) {
   if (!o) return n;
   if (o[o.length - 1] === ';') return o + n;
   return o + ';' + n;
+}
+function test(o, str, key) {
+  var reg = new RegExp(key, 'g');
+  return !reg.test(o) && !reg.test(str);
 }
 
 function migrateComponentStatus(outputNode, acceptNode) {
@@ -2510,10 +2518,7 @@ function transition$1(direactiveKey, val, component, vnodeConf, transtionHookFun
       modifiers = _splitDireation.modifiers;
 
   var type = modifiers[0];
-  var directName = 'transtion';
-  if (type === 'animate') {
-    directName = 'animation';
-  }
+  var directName = type === 'animate' ? 'animation' : 'transition';
   var transitonName = runExecuteContext('return ' + val, directName, vnodeConf, component);
   var hookFuns = {};
   for (var key in transtionHookFuns) {
@@ -2588,13 +2593,12 @@ function complierDirect(node, component, vnodeConf) {
       return 'continue';
     }
     if (!isReservedDireation(key)) {
-      if (!haveRegisteredCustomDirect(key) || key === currentCustomDirect) {
-        return 'continue';
+      if (haveRegisteredCustomDirect(key) && key !== currentCustomDirect) {
+        currentCustomDirect = key;
+        customDirects[key] = function delay() {
+          customDirects[key] = runCustomDirect(key, vnodeConf, direct[key], component, vnodeConf);
+        };
       }
-      currentCustomDirect = key;
-      customDirects[key] = function delay() {
-        customDirects[key] = runCustomDirect(key, vnodeConf, direct[key], component, vnodeConf);
-      };
       return 'continue';
     }
     var weight = getWeight(key);
@@ -2842,10 +2846,10 @@ function updateDomTree(component) {
   var newTree = render(vnode, ast);
   var patchs = diff$1(vtree, newTree);
   patch$1(dom, patchs);
+  cacheComponentDomAndVTree(vnode, newTree, dom);
   if (!component.noStateComp) {
     component.didUpdate(dom);
   }
-  cacheComponentDomAndVTree(vnode, newTree, dom);
 }
 function mergeState(state, partialState) {
   if (typeof partialState === 'function') {

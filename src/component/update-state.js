@@ -61,12 +61,12 @@ export function updateDomTree (component) {
   const patchs = diff(vtree, newTree)
 
   patch(dom, patchs)
- 
+  
+  cacheComponentDomAndVTree(vnode, newTree, dom)
+
   if (!component.noStateComp) {
     component.didUpdate(dom)
   }
-
-  cacheComponentDomAndVTree(vnode, newTree, dom)
 }
 
 function mergeState (state, partialState) {

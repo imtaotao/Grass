@@ -67,7 +67,7 @@ export function enter (node, vnode, rm) {
   }
 
   const { name, hookFuns } = vTransitionData
-  const type = vTransitionType === 'transtion'
+  const type = vTransitionType === 'transition'
     ? TRANSITION
     : ANIMATION
 

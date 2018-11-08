@@ -12,7 +12,7 @@
       <bb slot='fangfang'></bb>
     </Child>
   
-    <div v-for="val of obj" v-transition="'slide-fade'" v-show="show">
+    <div data-dd="1" v-for="val of obj" v-transition="'slide-fade'" v-beforeEnter="this.enter" v-show="show">
       <span v-for="val of val">
         <a v-for="val of val">{{val}}</a>  
       </span>
@@ -33,11 +33,7 @@
       api: 'index',
       arr: [1, 2],
       show: true,
-      obj: {
-        o: {
-          c: [3, 4]
-        }
-      }
+      obj: {}
     }
   })
 
@@ -84,6 +80,9 @@
       Child.listener('tt', this.testListener)
     }
 
+    enter (dom) {
+      console.log(dom);
+    }
     willUpdate (dom) {
       console.log(dom);
     }
@@ -175,5 +174,5 @@
     return '<div> error </div>'
   }
 
-  // window.rr = Root.mount(document.getElementById('root'))
+  window.rr = Root.mount(document.getElementById('root'))
 </script>

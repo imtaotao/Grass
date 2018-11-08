@@ -94,12 +94,12 @@ function complierDirect (node, component, vnodeConf) {
 
     // Add custom direactive collection
     if (!W.isReservedDireation(key)) {
-      if (!haveRegisteredCustomDirect(key) || key === currentCustomDirect) {
-        continue
-      }
-      currentCustomDirect = key
-      customDirects[key] = function delay () {
-        customDirects[key] = runCustomDirect(key, vnodeConf, direct[key], component, vnodeConf)
+      // Regist direct and no repeat direct
+      if (haveRegisteredCustomDirect(key) && key !== currentCustomDirect) {
+        currentCustomDirect = key
+        customDirects[key] = function delay () {
+          customDirects[key] = runCustomDirect(key, vnodeConf, direct[key], component, vnodeConf)
+        }
       }
       continue
     }

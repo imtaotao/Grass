@@ -16,18 +16,20 @@ export default function bind (props, component, vnodeConf) {
 }
 
 function dealSingleBindAttr ({attrName, value}, component, vnodeConf) {
+  const originStyle = vnodeConf.attrs[attrName]
   if (attrName === 'style') {
     if (
         !value ||
         (stringFormat.test(value) && !objectFormat.test(value))
     ) {
-      vnodeConf.attrs.style = spliceStyleStr(vnodeConf.attrs[attrName], value)
+      vnodeConf.attrs.style = spliceStyleStr(originStyle, value)
       return
     }
-
+    
+    
     vnodeConf.attrs.style = spliceStyleStr(
-      vnodeConf.attrs[attrName],
-      getFormatStyle(getValue())
+      originStyle,
+      getFormatStyle(originStyle, getValue())
     )
     return
   }
@@ -49,13 +51,16 @@ function getNormalStyleKey (key) {
   })
 }
 
-function getFormatStyle (v) {
+function getFormatStyle (o, v) {
   const keys = Object.keys(v)
   let result = ''
   
   for (let i = 0, len = keys.length; i < len; i++) {
-    const key = keys[i]
-    result += `${getNormalStyleKey(key)}: ${v[key]};`
+    const key = getNormalStyleKey(keys[i])
+    const value = v[keys[i]]
+    if (test(o, result, key)) {
+      result += `${key}: ${value};`
+    }
   }
   return result
 }
@@ -66,4 +71,9 @@ function spliceStyleStr (o, n) {
     return o + n
 
   return o + ';' + n
+}
+
+function test (o, str, key) {
+  const reg = new RegExp(key, 'g')
+  return !reg.test(o) && !reg.test(str)
 }

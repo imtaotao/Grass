@@ -12,13 +12,15 @@ describe('Component', () => {
   })
 
   it('Template no return "string"', () => {
-    class p extends Component {
+    class a extends Component {
       template () {}
     }
-    expect(throwComponent(p)).toThrowError('rethrow')
+    const b = () => {}
+    expect(throwComponent(a)).toThrowError('rethrow')
+    expect(throwComponent(b)).toThrowError('rethrow')
   })
 
-  it('Ability to create components correctly', () => {
+  it('Ability to create components', () => {
     class p extends Component {
       template () {
         return '<div></div>'
@@ -26,6 +28,14 @@ describe('Component', () => {
     }
     const cm = p.mount()
     expect(typeof cm).toBe('object')
+    expect(isWidget(cm.$widgetVNode)).toBeTruthy()
+  })
+
+  it('Ability to create no state component', () => {
+    const p = () => '<div>1</div>'
+    const cm = Grass.mount(null, p)
+    expect(typeof cm).toBe('object')
+    expect(cm.$el.textContent).toBe('1')
     expect(isWidget(cm.$widgetVNode)).toBeTruthy()
   })
 
