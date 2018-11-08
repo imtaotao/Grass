@@ -248,6 +248,41 @@ describe('Component', () => {
     }).mount()
   })
 
+  it('check each attribute after setState', done => {
+    const a = () => '<div><slot></slot></div>'
+    class b extends Component {
+      createBefore () {
+        this.state = { show: false, text: 'tao' }
+        this.component = { Child: a }
+      }
+      created () {
+        this.setState({ show: true })
+        expect(this.$slot).toBeNull()
+        expect(this.$el.textContent).toBe('')
+        expect(this.$data.stateQueue.length).toBe(1)
+        expect(_.isEmptyObj(this.$children)).toBeTruthy()
+      }
+      didUpdate () {
+        expect(this.$slot).toBeNull()
+        expect(this.$el.textContent).toBe('tao')
+        expect(this.$data.stateQueue.length).toBe(0)
+        expect(Object.keys(this.$children).length).toBe(1)
+        expect(isVNode(this.$children.Child.$slot[0])).toBeTruthy()
+        done()
+      }
+      template () {
+        return (`
+          <div>
+            <Child v-if="show">
+              <div>{{text}}</div>
+            </Child>
+          </div>
+        `)
+      }
+    }
+    b.mount()
+  })
+
   it('getComponent method', done => {
     const a = () => '<a/>'
     class p extends Component {

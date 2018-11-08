@@ -117,21 +117,16 @@ function isGeneratorFunction(fun) {
 }
 
 function each(arr, cb) {
-  var i = 0;
-  if (Array.isArray(arr) || arr.length) {
-    var length = arr.length;
-    for (; i < length; i++) {
+  if (arr.length) {
+    for (var i = 0, len = arr.length; i < len; i++) {
       if (cb(arr[i], i, i) === false) return;
     }
     return;
   }
   if (isPlainObject(arr)) {
-    var keyName = Object.keys(arr);
-    var _length = keyName.length;
-    for (; i < _length; i++) {
-      if (cb(arr[keyName[i]], keyName[i], i) === false) {
-        return;
-      }
+    var keys = Object.keys(arr);
+    for (var _i = 0, _len = keys.length; _i < _len; _i++) {
+      if (cb(arr[keys[_i]], keys[_i], _i) === false) return;
     }
   }
 }
@@ -1592,10 +1587,10 @@ function parseTemplate(html, compName) {
         }
       }
       if (end[1]) {
-        scope.isUnaryTag = true;
         scope.end = index;
-        scope = scope.parent;
         searchEndCount = 0;
+        scope = scope.parent;
+        scope.isUnaryTag = true;
       } else {
         scope.isUnaryTag = false;
       }

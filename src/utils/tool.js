@@ -4,52 +4,22 @@ export function random (max = 100000, min = 0, fractionDigits = 0) {
   return +(Math.random() * (max - min) + min).toFixed(fractionDigits)
 }
 
-export function setAttr (node, key, value) {
-  if (!value && value !== 0) {
-    node.removeAttribute(key)
-    return
-  }
-  switch (key) {
-    case 'style' :
-      node.style.cssText = value
-      break
-    case 'value' :
-      var tagName = node.tagName || ''
-      tagName = tagName.toLowerCase()
-      if (
-        tagName === 'input' || tagName === 'textarea'
-      ) {
-        node.value = value
-      } else {
-        // if it is not a input or textarea, use `setAttribute` to set
-        node.setAttribute(key, value)
-      }
-      break
-    default:
-      node.setAttribute(key, value)
-      break
-  }
-}
-
 export function each (arr, cb) {
-  let i = 0
-  // Deal array and like-array
-  if (Array.isArray(arr) || arr.length) {
-    const length = arr.length
-    for (; i < length; i++) {
-      if (cb(arr[i], i, i) === false) return
+  // Deal with array and like-array
+  if (arr.length) {
+    for (let i = 0, len = arr.length; i < len; i++) {
+      if (cb(arr[i], i, i) === false)
+        return
     }
     return
   }
 
-  // Deal object
+  // Deal with object
   if (isPlainObject(arr)) {
-    const keyName = Object.keys(arr)
-    const length  = keyName.length
-    for (; i < length; i++) {
-      if (cb(arr[keyName[i]], keyName[i], i) === false) {
+    const keys = Object.keys(arr)
+    for (let i = 0, len = keys.length; i < len; i++) {
+      if (cb(arr[keys[i]], keys[i], i) === false)
         return
-      }
     }
   }
 }
