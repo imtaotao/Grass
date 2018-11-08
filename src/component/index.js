@@ -25,7 +25,7 @@ export class Component {
   }
 
 
-  createBefore () {}
+  beforeCreate () {}
   created (dom) {}
   willUpdate (dom) {}
   willReceiveProps (newProps) {}

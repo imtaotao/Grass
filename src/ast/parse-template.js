@@ -96,10 +96,10 @@ export function parseTemplate (html, compName) {
       }
 
       if (end[1] ) {
-        scope.end = index
-        searchEndCount = 0
-        scope = scope.parent
         scope.isUnaryTag = true
+        scope.end = index
+        scope = scope.parent
+        searchEndCount = 0
       } else {
         scope.isUnaryTag = false
       }

@@ -45,7 +45,7 @@
   class Root extends Grass.Component {
     constructor () {
       super()
-      this.createState({
+      this.createResponseState({
         api: 'index',
         arr: [1, 2],
         show: true,

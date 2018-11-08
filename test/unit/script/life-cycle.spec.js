@@ -4,9 +4,9 @@ import { isEmptyObj } from '../../../src/utils'
 const Component = Grass.Component
 
 describe('Life cycle', () => {
-  it('createBefore', () => {
+  it('beforeCreate', () => {
     class p extends Component {
-      createBefore (arg) {
+      beforeCreate (arg) {
         expect(isEmptyObj(this.state)).toBeTruthy()
         this.state = { a: 1 }
         expect(arg).toBeUndefined()
@@ -22,7 +22,7 @@ describe('Life cycle', () => {
   it('created', () => {
     const a = () => '<div></div>';
     (class b extends Component {
-      createBefore () {
+      beforeCreate () {
         this.state = { a: 1 }
       }
       created (dom) {
@@ -141,7 +141,7 @@ describe('Life cycle', () => {
 
   it('didUpdate', done => {
     (class p extends Component {
-      createBefore () {
+      beforeCreate () {
         this.state = { a: 1 }
         setTimeout(() => {
           this.setState({ a: 2 })
@@ -193,7 +193,7 @@ describe('Life cycle', () => {
   it('life cycle order', done => {
     let i = 0
     class a extends Component {
-      createBefore () {
+      beforeCreate () {
         expect(i).toBe(0)
         i++
       }

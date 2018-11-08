@@ -184,7 +184,7 @@ describe('Component', () => {
 
   it('setState method', done => {
     (class p extends Component {
-      createBefore () {
+      beforeCreate () {
         this.state = { a: 1 }
         setTimeout(() => {
           this.setState({ a: 2 })
@@ -205,7 +205,7 @@ describe('Component', () => {
 
   it('setState is async changed state', done => {
     (class p extends Component {
-      createBefore () {
+      beforeCreate () {
         this.state = { a: 1 }
         this.template = '<div></div>'
       }
@@ -224,7 +224,7 @@ describe('Component', () => {
   
   it('setState arg is callback function', done => {
     (class p extends Component {
-      createBefore () {
+      beforeCreate () {
         this.state = { a: 1 }
         this.template = '<div></div>'
       }
@@ -251,7 +251,7 @@ describe('Component', () => {
   it('check each attribute after setState', done => {
     const a = () => '<div><slot></slot></div>'
     class b extends Component {
-      createBefore () {
+      beforeCreate () {
         this.state = { show: false, text: 'tao' }
         this.component = { Child: a }
       }
@@ -319,7 +319,7 @@ describe('Component', () => {
     const obj = { a: 1 }
     Object.setPrototypeOf(obj, { b: 2 })
     class p extends Component {
-      createBefore () {
+      beforeCreate () {
         this.createState(obj)
       }
       template () {
@@ -336,7 +336,7 @@ describe('Component', () => {
     const obj = { a: 1 }
     Object.setPrototypeOf(obj, { b: 2 })
     class p extends Component {
-      createBefore () {
+      beforeCreate () {
         this.createResponseState(obj)
       }
       template () {
@@ -368,7 +368,7 @@ describe('Component', () => {
       }
     }
     (class b extends Component {
-      createBefore () {
+      beforeCreate () {
         this.state = { a: 1 }
         this.component = { Child: a }
       }
@@ -407,7 +407,7 @@ describe('Component', () => {
       }
     }
     (class b extends Component {
-      createBefore () {
+      beforeCreate () {
         this.state = { a: 1, b: 2 }
         this.component = {
           Child: a,
@@ -431,7 +431,7 @@ describe('Component', () => {
   it('component name', () => {
     const a = () => '<div></div>'
     class p extends Component {
-      createBefore () {
+      beforeCreate () {
         this.template = '<div><Child/></div>'
         this.component = { Child: a }
       }

@@ -30,7 +30,7 @@ export function getComponentInstance (widgetVNode, parentComponent) {
   }
 
   if (!instance.noStateComp) {
-    instance.createBefore()
+    instance.beforeCreate()
   }
   
   // We saved ast in component constructor

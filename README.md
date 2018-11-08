@@ -16,7 +16,7 @@
     }
 
     // dom 节点创建之前
-    createBefor () {}
+    beforeCreate () {}
 
     // dom 节点创建之后
     created (dom) {}
@@ -255,11 +255,11 @@
 ```
 
 ### 钩子函数
-#### createBefore
+#### beforeCreate
 在组件模板编译之前调用，此时你可以对 state 进行一些调整
 ```js
   class C extends Grass.Component {
-    createBefore () {
+    beforeCreate () {
       // this.state = xxx
     }
   }
@@ -320,7 +320,7 @@ dom 跟新完毕后调用
 ```
 
 ### 动画
-Grass 提供了 `v-transition` 和 `v-animation` 来做动画，动画会在元素或者组件创建销毁时触发，并提供了四个钩子函数, 所有
+Grass 提供了 `v-transition` 和一个 `animate` 修饰符来做动画效果，动画会在元素或者组件创建销毁时触发，并提供了四个钩子函数, 所有
 + `v-beforeEnter`
 + `v-afterEnter`
 + `v-beforeLeave`

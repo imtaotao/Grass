@@ -65,7 +65,7 @@ describe('directive', () => {
 
   it('v-bind', () => {
     class p extends Component {
-      createBefore () {
+      beforeCreate () {
         this.state = { a: 2 }
         this.template = '<div a="1" v-bind:a="a"></div>'
       }
@@ -76,7 +76,7 @@ describe('directive', () => {
 
   it('v-bind align', () => {
     class p extends Component {
-      createBefore () {
+      beforeCreate () {
         this.state = { a: 2 }
         this.template = '<div a="1" :a="a"></div>'
       }
@@ -87,7 +87,7 @@ describe('directive', () => {
 
   it('v-bind:style', () => {
     class p extends Component {
-      createBefore () {
+      beforeCreate () {
         this.state = {
           style: { height: '2px', marginRight: '3px' },
         }
@@ -109,14 +109,14 @@ describe('directive', () => {
 
   it('v-if', done => {
     class a extends Component {
-      createBefore () {
+      beforeCreate () {
         this.state = { show: true }
         this.template = '<div v-if="show"></div>'
       }
     }
     class b extends Component {
       c() {}
-      createBefore () {
+      beforeCreate () {
         this.state = { show: true }
         this.template = '<div><span v-if="show" @click="this.c">a</span></div>'
         setTimeout(() => {
@@ -142,7 +142,7 @@ describe('directive', () => {
   it('v-show', done => {
     class p extends Component {
       c() {}
-      createBefore () {
+      beforeCreate () {
         this.state = {
           show: true,
           style: { height: '1px' },
@@ -169,7 +169,7 @@ describe('directive', () => {
   it('v-text', done => {
     class p extends Component {
       c() {}
-      createBefore () {
+      beforeCreate () {
         this.state = { a: 1 }
         this.template = '<div v-text="a">2</div>'
         setTimeout(() => {
@@ -217,7 +217,7 @@ describe('directive', () => {
           done()
         })
       }
-      createBefore () {
+      beforeCreate () {
         this.state = { show: true }
         this.template = `
           <div
@@ -268,7 +268,7 @@ describe('directive', () => {
           done()
         })
       }
-      createBefore () {
+      beforeCreate () {
         this.state = { show: true }
         this.template = `
           <div
@@ -294,7 +294,7 @@ describe('directive', () => {
 
   it('v-for', () => {
     class a extends Component {
-      createBefore () {
+      beforeCreate () {
         this.state = { arr: [1, 2] }
       }
       template () {
@@ -302,7 +302,7 @@ describe('directive', () => {
       }
     }
     class b extends Component {
-      createBefore () {
+      beforeCreate () {
         this.state = {
           arr: [1, 2],
           obj: { one: 1, two: 2 },
@@ -325,7 +325,7 @@ describe('directive', () => {
 
   it('complex v-for', () => {
     class b extends Component {
-      createBefore () {
+      beforeCreate () {
         this.state = {
           data: {
             arr: [1, 2],

@@ -71,11 +71,9 @@ export function enter (node, vnode, rm) {
     ? TRANSITION
     : ANIMATION
 
-  if (typeof hookFuns['v-beforeEnter'] === 'function') {
-    if (hookFuns['v-beforeEnter'](node) === false) {
-      rm()
-      return
-    }
+  if (callHook(hookFuns, node, 'beforeEnter') === false) {
+    rm()
+    return
   }
 
   const { enterClass, enterActiveClass, enterToClass } = autoCssTransition(name)
@@ -84,9 +82,7 @@ export function enter (node, vnode, rm) {
     removeTransitionClass(node, enterToClass)
     removeTransitionClass(node, enterActiveClass)
 
-    if (typeof hookFuns['v-afterEnter'] === 'function') {
-      hookFuns['v-afterEnter'](node)
-    }
+    callHook(hookFuns, node, 'afterEnter')
 
     node._enterCb = null
     rm()
@@ -123,11 +119,9 @@ export function leave (node, vnode, rm) {
       ? TRANSITION
       : ANIMATION
 
-    if (typeof hookFuns['v-beforeLeave'] === 'function') {
-      if (hookFuns['v-beforeLeave'](node) === false) {
-        rm()
-        return
-      }
+    if (callHook(hookFuns, node, 'beforeLeave') === false) {
+      rm()
+      return
     }
 
     const { leaveClass, leaveActiveClass, leaveToClass } = autoCssTransition(name)
@@ -152,9 +146,7 @@ export function leave (node, vnode, rm) {
       removeTransitionClass(node, leaveToClass)
       removeTransitionClass(node, leaveActiveClass)
 
-      if (typeof hookFuns['v-afterLeave'] === 'function') {
-        hookFuns['v-afterLeave'](node)
-      }
+      callHook(hookFuns, node, 'afterLeave')
 
       node._leaveCb = null
       rm()
@@ -302,5 +294,12 @@ export function removeClass (node, cls) {
     } else {
       node.removeAttribute('class')
     }
+  }
+}
+
+function callHook (funs, node, type) {
+  const fun = funs[`v-${type}`]
+  if (typeof fun === 'function') {
+    return fun(node)
   }
 }
