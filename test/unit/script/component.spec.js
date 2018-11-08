@@ -6,12 +6,12 @@ import { isWidget, isVNode } from '../../../src/virtual-dom/vnode/typeof-vnode'
 const Component = Grass.Component
 
 describe('Component', () => {
-  it('Missing "template" function, can\'t create component', () => {
+  it('missing template function, can\'t create component', () => {
     class p extends Component {}
     expect(throwComponent(p)).toThrowError('rethrow')
   })
 
-  it('Template no return "string"', () => {
+  it('template no return string', () => {
     class a extends Component {
       template () {}
     }
@@ -20,7 +20,7 @@ describe('Component', () => {
     expect(throwComponent(b)).toThrowError('rethrow')
   })
 
-  it('Ability to create components', () => {
+  it('ability to create components', () => {
     class p extends Component {
       template () {
         return '<div></div>'
@@ -31,7 +31,7 @@ describe('Component', () => {
     expect(isWidget(cm.$widgetVNode)).toBeTruthy()
   })
 
-  it('Ability to create no state component', () => {
+  it('ability to create no state component', () => {
     const p = () => '<div>1</div>'
     const cm = Grass.mount(null, p)
     expect(typeof cm).toBe('object')
@@ -39,7 +39,7 @@ describe('Component', () => {
     expect(isWidget(cm.$widgetVNode)).toBeTruthy()
   })
 
-  it('The vnode "container" is normal', () => {
+  it('vnode container is normal', () => {
     class p extends Component {
       template () {
         return '<div>a</div>'
@@ -50,7 +50,7 @@ describe('Component', () => {
     expect(cm.$widgetVNode.container.dom.textContent).toBe('a')
   })
 
-  it('The "state", "props", and "$el" is normal', () => {
+  it('state、props, and $el is normal', () => {
     class p extends Component {
       template () {
         return '<div>a</div>'
@@ -63,7 +63,7 @@ describe('Component', () => {
     expect(cm.$el.textContent).toBe('a')
   })
 
-  it('Parent and child components nested successfully', () => {
+  it('parent and child components nested successfully', () => {
     class a extends Component {
       template () {
         return '<a>child</a>'
@@ -109,7 +109,7 @@ describe('Component', () => {
     expect(vnode.properties.className).toBe('b')
   })
 
-  it('Stateless components use CSSModules', () => {
+  it('no state component use CSSModules', () => {
     const style = { a: 'b' }
     const compClass = Grass.CSSModules(style)(
       () => '<div styleName="a"></div>'
@@ -121,7 +121,7 @@ describe('Component', () => {
     expect(vnode.properties.className).toBe('b')
   })
 
-  it('StyleName is not available without the CSSModules method', () => {
+  it('styleName is not available without the CSSModules method', () => {
     class p extends Component {
       template () {
         return '<div styleName="a"></div>'
@@ -135,7 +135,7 @@ describe('Component', () => {
     expect(vnode.properties.className).toBeUndefined()
   })
 
-  it('Stateless components are in normal use', () => {
+  it('no state component are in normal use', () => {
     const a = () => '<div>{{a}}</div>'
     class b extends Component {
       constructor () {
@@ -152,7 +152,7 @@ describe('Component', () => {
     expect(b.mount().$el.textContent).toBe('1')
   })
 
-  it('Component can only contain one "root node"', () => {
+  it('component can only contain one root node', () => {
     class cm extends Component {
       template () {
         return (`
@@ -164,7 +164,7 @@ describe('Component', () => {
     expect(throwComponent(cm)).toThrowError('rethrow')
   })
 
-  it('The html tag is not closed', () => {
+  it('the html tag is not closed', () => {
     class cm extends Component {
       template () {
         return '<div><div>'
@@ -173,7 +173,7 @@ describe('Component', () => {
     expect(throwComponent(cm)).toThrowError('rethrow')
   })
 
-  it('The html single tag is not closed', () => {
+  it('the html single tag is not closed', () => {
     class cm extends Component {
       template () {
         return '<a>'
@@ -182,7 +182,7 @@ describe('Component', () => {
     expect(throwComponent(cm)).toThrowError('rethrow')
   })
 
-  it('"setState" method', done => {
+  it('setState method', done => {
     (class p extends Component {
       createBefore () {
         this.state = { a: 1 }
@@ -202,8 +202,53 @@ describe('Component', () => {
       }
     }).mount()
   })
+
+  it('setState is async changed state', done => {
+    (class p extends Component {
+      createBefore () {
+        this.state = { a: 1 }
+        this.template = '<div></div>'
+      }
+      created () {
+        this.setState({ a: 2 })
+        expect(this.state.a).toBe(1)
+        this.setState({ a: 3 })
+        expect(this.state.a).toBe(1)
+        setTimeout(() => {
+          expect(this.state.a).toBe(3)
+          done()
+        })
+      }
+    }).mount()
+  })
   
-  it('"getComponent" method', done => {
+  it('setState arg is callback function', done => {
+    (class p extends Component {
+      createBefore () {
+        this.state = { a: 1 }
+        this.template = '<div></div>'
+      }
+      created () {
+        this.setState({ a: 2 })
+        this.setState(state => {
+          expect(state.a).toBe(2)
+          return { a: 3 }
+        })
+        this.setState(state => {
+          expect(state.a).toBe(3)
+          state.a = 4
+          return state
+        })
+        expect(this.state.a).toBe(1)
+        setTimeout(() => {
+          expect(this.state.a).toBe(4)
+          done()
+        })
+      }
+    }).mount()
+  })
+
+  it('getComponent method', done => {
     const a = () => '<a/>'
     class p extends Component {
       template () {
@@ -235,7 +280,7 @@ describe('Component', () => {
     expect(cm.getComponent('child-async')).toBeNull()
   })
 
-  it('"createState" method', () => {
+  it('createState method', () => {
     const obj = { a: 1 }
     Object.setPrototypeOf(obj, { b: 2 })
     class p extends Component {
@@ -252,7 +297,7 @@ describe('Component', () => {
     expect(Object.getPrototypeOf(cm.state)).toBeNull()
   })
 
-  it('"createResponseState" method', () => {
+  it('createResponseState method', () => {
     const obj = { a: 1 }
     Object.setPrototypeOf(obj, { b: 2 })
     class p extends Component {
@@ -271,7 +316,7 @@ describe('Component', () => {
     expect(typeof cm.state.__ob__).not.toBeNull()
   })
 
-  it('Default slot', () => {
+  it('default slot', () => {
     class a extends Component {
       created () {
         expect(this.$slot.length).toBe(1)
@@ -348,7 +393,7 @@ describe('Component', () => {
     }).mount()
   })
 
-  it('Component name', () => {
+  it('component name', () => {
     const a = () => '<div></div>'
     class p extends Component {
       createBefore () {

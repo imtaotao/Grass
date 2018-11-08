@@ -81,7 +81,7 @@ describe('Global API', () => {
     expect(a.remove).toBe(cm.remove)
   })
 
-  it('Event error', done => {
+  it('event error', done => {
     let count = 0
     class a extends Component {
       created () {
@@ -128,12 +128,12 @@ describe('Global API', () => {
     })
   })
 
-  it('No state component "event"', () => {
+  it('no state component event', () => {
     const p = () => '<div></div>'
     expect(throwComponent(() => event(p))).toThrowError('rethrow')
   })
 
-  it('Async component', done => {
+  it('async component', done => {
     class a extends Component {
       template () {
         return `<div>a</div>`
@@ -169,7 +169,7 @@ describe('Global API', () => {
     expect(asyncComp.cb).toBe(cb)
   })
 
-  it('Complex async component', done => {
+  it('complex async component', done => {
     class a extends Component {
       template () {
         return `<div>a</div>`

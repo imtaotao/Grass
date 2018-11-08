@@ -45,7 +45,7 @@
   class Root extends Grass.Component {
     constructor () {
       super()
-      this.createResponseState({
+      this.createState({
         api: 'index',
         arr: [1, 2],
         show: true,
@@ -73,6 +73,10 @@
       })
 
       window.ss = this.state
+    }
+
+    createBefore() {
+      this.setState({ a: 1}) 
     }
 
     created (dom) {

@@ -26,3 +26,7 @@ selenium-debug.log
 *.ntvs*
 *.njsproj
 *.sln
+
+# Test files
+coverage
+test/

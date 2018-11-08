@@ -20,6 +20,7 @@ export class Component {
     this.$propsRequireList = requireList
     this.$data = {
       stateQueue: [],
+      created: false,
     }
   }
 
@@ -33,7 +34,7 @@ export class Component {
 
   setState (partialState) {
     if (this.$isWatch) {
-      _.grassWarn("Current response data pattern, you can't use setState method.", this.name)
+      _.grassWarn("Current response data pattern, you can't use setState method", this.name)
       return
     }
     enqueueSetState(this, partialState)

@@ -54,7 +54,8 @@ function createNoStateComponent (props, template, componentClass) {
     $children: {},
     $firstCompilation: true,
     $data: {
-      stateQueue: []
+      stateQueue: [],
+      created: false,
     },
     forceUpdate () {
       forceUpdate(this)

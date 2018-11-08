@@ -2902,7 +2902,8 @@ function createNoStateComponent(props, template, componentClass) {
     $children: {},
     $firstCompilation: true,
     $data: {
-      stateQueue: []
+      stateQueue: [],
+      created: false
     },
     forceUpdate: function forceUpdate$$1() {
       _forceUpdate(this);
@@ -2982,6 +2983,7 @@ var WidgetVNode = function () {
         parentComponent.$children[component.name] = component;
       }
       cacheComponentDomAndVTree(this, vtree, dom);
+      component.$data.created = true;
       if (!component.noStateComp) {
         component.created(dom);
       }
@@ -3103,7 +3105,8 @@ var Component = function () {
     this.$firstCompilation = true;
     this.$propsRequireList = requireList;
     this.$data = {
-      stateQueue: []
+      stateQueue: [],
+      created: false
     };
   }
 
@@ -3129,7 +3132,7 @@ var Component = function () {
     key: 'setState',
     value: function setState(partialState) {
       if (this.$isWatch) {
-        grassWarn("Current response data pattern, you can't use setState method.", this.name);
+        grassWarn("Current response data pattern, you can't use setState method", this.name);
         return;
       }
       enqueueSetState(this, partialState);

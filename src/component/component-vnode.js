@@ -58,6 +58,7 @@ export class WidgetVNode {
     }
 
     cacheComponentDomAndVTree(this, vtree, dom)
+    component.$data.created = true
 
     if (!component.noStateComp) {
       component.created(dom)

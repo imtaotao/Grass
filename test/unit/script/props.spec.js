@@ -3,7 +3,7 @@ import Grass from '../../../src'
 const Component = Grass.Component
 
 describe('Props', () => {
-  it('Props is normal', done => {
+  it('props is normal', done => {
     class a extends Component {
       constructor (props) {
         super(props)
@@ -46,7 +46,7 @@ describe('Props', () => {
     }).mount()
   })
 
-  it('Defined props require list', () => {
+  it('defined props require list', () => {
     class a extends Component {
       constructor (props) {
         super(props, ['a'])

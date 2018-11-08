@@ -103,7 +103,7 @@ describe('Life cycle', () => {
     expect(b.mount().$el.textContent).toBe('1')
   })
 
-  it('If "willReceiveProps" return false', done => {
+  it('if willReceiveProps method return false', done => {
     class a extends Component {
       constructor (props) {
         super(props)
@@ -190,7 +190,7 @@ describe('Life cycle', () => {
     }).mount()
   })
 
-  it('Life cycle order', done => {
+  it('life cycle order', done => {
     let i = 0
     class a extends Component {
       createBefore () {
