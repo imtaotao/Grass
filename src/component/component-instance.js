@@ -1,7 +1,7 @@
 import * as _ from '../utils'
 import { getProps, forceUpdate } from './index'
 import { enqueueSetState } from './update-state'
-import { parseTemplate } from '../ast/parse-template'
+import { TAG, parseTemplate } from '../ast/parse-template'
 
 export function getComponentInstance (widgetVNode, parentComponent) {
   const { componentClass, data } = widgetVNode
@@ -73,6 +73,10 @@ function genAstCode (component) {
   // 'template' attribute maybe a function
   if (typeof template === 'function') {
     template = template.call(component)
+  }
+
+  if (_.isObject(template) && template.type === TAG) {
+    return template
   }
 
   if (typeof template !== 'string') {

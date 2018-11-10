@@ -15,7 +15,6 @@ const prototype = {}
 
 initGlobalAPI(prototype)
 
-// "setPrototypeOf" is a undefined in PhantomJs.
 if (Object.setPrototypeOf) {
   Object.setPrototypeOf(Grass, prototype)
 } else {

@@ -12,13 +12,13 @@
 </template>
 
 <script>
-  import Grass, { CSSModules } from '../../src'
+  import Grass from '../../src'
   import style from './style'
   import List from '../list'
   import AddUser from '../add-user'
   import ChangeUserComponent from '../change-user-infor'
 
-  @CSSModules(style)
+  @Grass.CSSModules(style)
   export default class UserList extends Grass.Component {
     constructor(props) {
       super(props)
@@ -28,7 +28,7 @@
       }
     }
 
-    createBefore () {
+    beforeCreate () {
       ChangeUserComponent.on(data => {
         this.setState({showChangeUS: data})
       })

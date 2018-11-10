@@ -89,7 +89,7 @@ export class Component {
   }
 
   static
-  mount (rootDOM) {
+  $mount (rootDOM) {
     return mount(rootDOM, this)
   }
 }
@@ -155,8 +155,8 @@ export function forceUpdate (component) {
 
   if (!stateQueue.length) {
     Promise.resolve().then(() => {
-      updateDomTree(component)
       stateQueue.length = 0
+      updateDomTree(component)
     })
   }
 

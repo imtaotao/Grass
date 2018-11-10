@@ -29,14 +29,14 @@
 </template>
 
 <script>
-  import Grass, { CSSModules } from "../../src"
+  import Grass from "../../src"
   import AddUser from '../add-user'
   import ChangeUserComponent from '../change-user-infor'
   import style from './style.css'
   import * as _ from '../util'
 
   @Grass.event
-  @CSSModules(style)
+  @Grass.CSSModules(style)
   export default class List extends Grass.Component {
     constructor(props) {
       super(props)
@@ -51,7 +51,7 @@
       }
     }
 
-    createBefore () {
+    beforeCreate () {
       AddUser.on(data => {
         this.addUser(data)
       })

@@ -26,7 +26,7 @@ describe('Component', () => {
         return '<div></div>'
       }
     }
-    const cm = p.mount()
+    const cm = p.$mount()
     expect(typeof cm).toBe('object')
     expect(isWidget(cm.$widgetVNode)).toBeTruthy()
   })
@@ -45,7 +45,7 @@ describe('Component', () => {
         return '<div>a</div>'
       }
     }
-    const cm = p.mount()
+    const cm = p.$mount()
     expect(isVNode(cm.$widgetVNode.container.vtree)).toBeTruthy()
     expect(cm.$widgetVNode.container.dom.textContent).toBe('a')
   })
@@ -56,7 +56,7 @@ describe('Component', () => {
         return '<div>a</div>'
       }
     }
-    const cm = p.mount()
+    const cm = p.$mount()
     expect(!cm).toBeFalsy()
     expect(cm.state && _.isEmptyObj(cm.state)).toBeTruthy()
     expect(cm.props && _.isEmptyObj(cm.props)).toBeTruthy()
@@ -83,8 +83,8 @@ describe('Component', () => {
         return { Child: a }
       }
     }
-    const acm = a.mount()
-    const bcm = b.mount()
+    const acm = a.$mount()
+    const bcm = b.$mount()
     expect(acm.$el.textContent).toBe('child')
     expect(_.isEmptyObj(acm.$children)).toBeTruthy()
     expect(acm.$parent).toBeNull()
@@ -102,7 +102,7 @@ describe('Component', () => {
         return '<div styleName="a"></div>'
       }
     }
-    const cm = Grass.CSSModules(style)(p).mount()
+    const cm = Grass.CSSModules(style)(p).$mount()
     const ast = cm.constructor.$ast
     const vnode = cm.$widgetVNode.container.vtree
     expect(ast.attrs.styleName).toBe('a')
@@ -127,7 +127,7 @@ describe('Component', () => {
         return '<div styleName="a"></div>'
       }
     }
-    const cm = p.mount()
+    const cm = p.$mount()
     const ast = cm.constructor.$ast
     const vnode = cm.$widgetVNode.container.vtree
     expect(ast.attrs.styleName).toBe('a')
@@ -149,7 +149,7 @@ describe('Component', () => {
         return { Child: a }
       }
     }
-    expect(b.mount().$el.textContent).toBe('1')
+    expect(b.$mount().$el.textContent).toBe('1')
   })
 
   it('component can only contain one root node', () => {
@@ -200,7 +200,7 @@ describe('Component', () => {
       template () {
         return '<div>{{a}}</div>'
       }
-    }).mount()
+    }).$mount()
   })
 
   it('setState is async changed state', done => {
@@ -219,7 +219,7 @@ describe('Component', () => {
           done()
         })
       }
-    }).mount()
+    }).$mount()
   })
   
   it('setState arg is callback function', done => {
@@ -245,7 +245,7 @@ describe('Component', () => {
           done()
         })
       }
-    }).mount()
+    }).$mount()
   })
 
   it('check each attribute after setState', done => {
@@ -280,7 +280,7 @@ describe('Component', () => {
         `)
       }
     }
-    b.mount()
+    b.$mount()
   })
 
   it('getComponent method', done => {
@@ -310,7 +310,7 @@ describe('Component', () => {
         }
       }
     }
-    const cm = p.mount()
+    const cm = p.$mount()
     expect(cm.getComponent('Child')).toBe(a)
     expect(cm.getComponent('child-async')).toBeNull()
   })
@@ -326,7 +326,7 @@ describe('Component', () => {
         return '<div>{{a}}</div>'
       }
     }
-    const cm = p.mount()
+    const cm = p.$mount()
     expect(cm.$el.textContent).toBe('1')
     expect(cm.state.b).toBeUndefined()
     expect(Object.getPrototypeOf(cm.state)).toBeNull()
@@ -343,7 +343,7 @@ describe('Component', () => {
         return '<div>{{a}}</div>'
       }
     }
-    const cm = p.mount()
+    const cm = p.$mount()
     expect(cm.$el.textContent).toBe('1')
     expect(cm.state.b).toBeUndefined()
     expect(Object.getPrototypeOf(cm.state)).toBeNull()
@@ -381,7 +381,7 @@ describe('Component', () => {
           </div>
         `)
       }
-    }).mount()
+    }).$mount()
   })
 
   it('slot name', () => {
@@ -425,7 +425,7 @@ describe('Component', () => {
           </div>
         `)
       }
-    }).mount()
+    }).$mount()
   })
 
   it('component name', () => {

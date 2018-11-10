@@ -19,7 +19,7 @@ describe('directive', () => {
         `)
       }
     }
-    const cm = p.mount()
+    const cm = p.$mount()
     expect(cm.$el.children[0].onclick).toBe(cm.click)
     expect(cm.$el.children[1].onmouseenter).toBe(cm.enter)
   })
@@ -37,7 +37,7 @@ describe('directive', () => {
         `)
       }
     }
-    const cm = p.mount()
+    const cm = p.$mount()
     expect(cm.$el.children[0].onclick).toBe(cm.click)
     expect(cm.$el.children[1].onmouseenter).toBe(cm.enter)
   })
@@ -56,7 +56,7 @@ describe('directive', () => {
         `)
       }
     }
-    const cm = p.mount()
+    const cm = p.$mount()
     const el = cm.$el.querySelector('span')
     el.click()
     expect(el.onclick).not.toBe(cm.click)
@@ -70,7 +70,7 @@ describe('directive', () => {
         this.template = '<div a="1" v-bind:a="a"></div>'
       }
     }
-    const cm = p.mount()
+    const cm = p.$mount()
     expect(cm.$widgetVNode.container.vtree.properties.attributes.a).toBe(2)
   })
 
@@ -81,7 +81,7 @@ describe('directive', () => {
         this.template = '<div a="1" :a="a"></div>'
       }
     }
-    const cm = p.mount()
+    const cm = p.$mount()
     expect(cm.$widgetVNode.container.vtree.properties.attributes.a).toBe(2)
   })
 
@@ -95,7 +95,7 @@ describe('directive', () => {
       }
     }
     const obj = {}
-    const cm = p.mount()
+    const cm = p.$mount()
     const string = cm.$widgetVNode.container.vtree.properties.style
     string.split(';').forEach(item => {
       if (!item) return
@@ -129,7 +129,7 @@ describe('directive', () => {
         done()
       }
     }
-    const cm = b.mount()
+    const cm = b.$mount()
     const node = b.$ast.children[0]
     expect(throwComponent(a)).toThrowError('rethrow')
     expect(cm.$el.textContent).toBe('a')
@@ -159,7 +159,7 @@ describe('directive', () => {
         done()
       }
     }
-    const cm = p.mount()
+    const cm = p.$mount()
     const style = cm.$widgetVNode.container.vtree.properties.style
     expect(cm.$el.textContent).toBe('')
     expect(p.$ast.tagName).toBe('div')
@@ -181,7 +181,7 @@ describe('directive', () => {
         done()
       }
     }
-    const cm = p.mount()
+    const cm = p.$mount()
     const children = cm.$widgetVNode.container.vtree.children
     expect(cm.$el.textContent).toBe('12')
     expect(children.length).toBe(2)
@@ -233,7 +233,7 @@ describe('directive', () => {
         }, 20)
       }
     }
-    const cm = p.mount()
+    const cm = p.$mount()
     const vnode = cm.$widgetVNode.container.vtree
     expect(vnode.data.haveShowTag).toBeTruthy()
     expect(vnode.data.vTransitionType).toBe('transition')
@@ -284,7 +284,7 @@ describe('directive', () => {
         }, 20)
       }
     }
-    const cm = p.mount()
+    const cm = p.$mount()
     const vnode = cm.$widgetVNode.container.vtree
     expect(vnode.data.haveShowTag).toBeTruthy()
     expect(vnode.data.vTransitionType).toBe('animation')
@@ -317,7 +317,7 @@ describe('directive', () => {
         `)
       }
     }
-    const cm = b.mount()
+    const cm = b.$mount()
     expect(throwComponent(a)).toThrowError('rethrow')
     expect(cm.$el.textContent).toBe('12one1two2')
     expect(cm.$el.children.length).toBe(4)
@@ -351,7 +351,7 @@ describe('directive', () => {
         `)
       }
     }
-    const cm = b.mount()
+    const cm = b.$mount()
     const key = '[\\s\\S]*'
     const regString = `1,2${key}1${key}2${key}\[object Object\]${key}3${key}4${key}5,6${key}56`
     const reg = new RegExp(regString, 'g')

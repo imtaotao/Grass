@@ -34,12 +34,12 @@
 </template>
 
 <script>
-  import Grass, { CSSModules } from "../../src";
+  import Grass from "../../src";
   import * as _ from '../util'
   import style from './style.css'
 
   @Grass.event
-  @CSSModules(style)
+  @Grass.CSSModules(style)
   export default class AddUser extends Grass.Component {
     constructor(props) {
       super(props)

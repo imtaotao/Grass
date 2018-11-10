@@ -14,14 +14,14 @@ const {
 } = Grass
 
 describe('Global API', () => {
-  it('mount', () => {
+  it('mount and $mount', () => {
     class p extends Component {
       template () {
         return '<div></div>'
       }
     }
     const a = mount(null, p)
-    const b = p.mount()
+    const b = p.$mount()
     expect(a.set).toBe(b.set)
     expect(a.delete).toBe(b.delete)
   })
@@ -36,7 +36,7 @@ describe('Global API', () => {
         done()
       }
     }
-    forceUpdate(p.mount())
+    forceUpdate(p.$mount())
   })
 
   it('event', done => {
@@ -76,8 +76,8 @@ describe('Global API', () => {
         return '<div></div>'
       }
     }
-    const cm = event(a).mount()
-    b.mount()
+    const cm = event(a).$mount()
+    b.$mount()
     expect(a.remove).toBe(cm.remove)
   })
 
@@ -96,7 +96,7 @@ describe('Global API', () => {
         return '<div></div>'
       }
     }
-    event(a).mount()
+    event(a).$mount()
     a.on(() => {
       count++
     })
@@ -119,7 +119,7 @@ describe('Global API', () => {
         return '<div></div>'
       }
     }
-    event(a).mount()
+    event(a).$mount()
     a.listener('one', data => {
       expect(data).toBe(1)
     })
@@ -160,7 +160,7 @@ describe('Global API', () => {
         }
       }
     }
-    b.mount()
+    b.$mount()
     const factory = () => {}
     const cb = () => {}
     const asyncComp = async(factory, cb)
@@ -201,7 +201,7 @@ describe('Global API', () => {
         }
       }
     }
-    expect(b.mount().$el.textContent).toBe('loading')
+    expect(b.$mount().$el.textContent).toBe('loading')
   })
 
   it('complex async component delay', done => {
@@ -230,7 +230,7 @@ describe('Global API', () => {
         }
       }
     }
-    expect(b.mount().$el.textContent).toBe('')
+    expect(b.$mount().$el.textContent).toBe('')
   })
 
   it('directive', done => {
@@ -245,7 +245,7 @@ describe('Global API', () => {
       expect(isVNode(vnode)).toBeTruthy()
       done()
     })
-    p.mount()
+    p.$mount()
   })
 
   it('single mixin', () => {
@@ -264,8 +264,8 @@ describe('Global API', () => {
       one: 1,
       two,
     })
-    const cma = a.mount()
-    const cmb = b.mount()
+    const cma = a.$mount()
+    const cmb = b.$mount()
     expect(cma.one).toBe(1)
     expect(cma.two).toBe(two)
     expect(cmb.one).toBe(1)
@@ -290,8 +290,8 @@ describe('Global API', () => {
       one: 1,
       two,
     })
-    const cma = a.mount()
-    const cmb = b.mount()
+    const cma = a.$mount()
+    const cmb = b.$mount()
     expect(cma.one).toBe(1)
     expect(cma.two).toBe(two)
     expect(cmb.one).toBeUndefined()
@@ -315,7 +315,7 @@ describe('Global API', () => {
     Grass.use(plugin, 1, 2)
          .use(plugin, 1, 2)
     expect(i).toBe(1)
-    expect(p.mount().a).toBe(11)
+    expect(p.$mount().a).toBe(11)
     delete Component.prototype.a
   })
 })

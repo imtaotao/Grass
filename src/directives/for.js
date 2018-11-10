@@ -92,13 +92,8 @@ export default function vfor (node, component, vnodeConf) {
 }
 
 function serachIndex (node) {
-  const children = node.parent.children
-  const length = children.length
-  for (let i = 0; i < length; i++) {
-    if (children[i] === node) {
-      return i
-    }
-  }
+  let index = node.parent.children.indexOf(node)
+  return index > -1 ? index : undefined
 }
 
 function replaceWithLoopRes (node, res, i) {
@@ -118,7 +113,6 @@ function getValue (component, fun, astNode, nodeKey) {
       new Watcher(nodeKey, component, () => {
         return value = fun()
       }, component.forceUpdate)
-
       return value
     }
   }

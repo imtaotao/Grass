@@ -753,11 +753,9 @@ function enter(node, vnode, rm) {
       hookFuns = vTransitionData.hookFuns;
 
   var type = vTransitionType === 'transition' ? TRANSITION : ANIMATION;
-  if (typeof hookFuns['v-beforeEnter'] === 'function') {
-    if (hookFuns['v-beforeEnter'](node) === false) {
-      rm();
-      return;
-    }
+  if (callHook(hookFuns, node, 'beforeEnter') === false) {
+    rm();
+    return;
   }
 
   var _autoCssTransition = autoCssTransition(name),
@@ -768,9 +766,7 @@ function enter(node, vnode, rm) {
   var cb = node._enterCb = once(function () {
     removeTransitionClass(node, enterToClass);
     removeTransitionClass(node, enterActiveClass);
-    if (typeof hookFuns['v-afterEnter'] === 'function') {
-      hookFuns['v-afterEnter'](node);
-    }
+    callHook(hookFuns, node, 'afterEnter');
     node._enterCb = null;
     rm();
   });
@@ -802,11 +798,9 @@ function leave(node, vnode, rm) {
       hookFuns = vTransitionData.hookFuns;
 
   var type = vTransitionType === 'transtion' ? TRANSITION : ANIMATION;
-  if (typeof hookFuns['v-beforeLeave'] === 'function') {
-    if (hookFuns['v-beforeLeave'](node) === false) {
-      rm();
-      return;
-    }
+  if (callHook(hookFuns, node, 'beforeLeave') === false) {
+    rm();
+    return;
   }
 
   var _autoCssTransition2 = autoCssTransition(name),
@@ -828,9 +822,7 @@ function leave(node, vnode, rm) {
     }
     removeTransitionClass(node, leaveToClass);
     removeTransitionClass(node, leaveActiveClass);
-    if (typeof hookFuns['v-afterLeave'] === 'function') {
-      hookFuns['v-afterLeave'](node);
-    }
+    callHook(hookFuns, node, 'afterLeave');
     node._leaveCb = null;
     rm();
   });
@@ -955,6 +947,12 @@ function removeClass(node, cls) {
     } else {
       node.removeAttribute('class');
     }
+  }
+}
+function callHook(funs, node, type) {
+  var fun = funs['v-' + type];
+  if (typeof fun === 'function') {
+    return fun(node);
   }
 }
 
@@ -1589,10 +1587,10 @@ function parseTemplate(html, compName) {
         }
       }
       if (end[1]) {
-        scope.end = index;
-        searchEndCount = 0;
-        scope = scope.parent;
         scope.isUnaryTag = true;
+        scope.end = index;
+        scope = scope.parent;
+        searchEndCount = 0;
       } else {
         scope.isUnaryTag = false;
       }
@@ -2444,13 +2442,8 @@ function vfor(node, component, vnodeConf) {
   node.for = true;
 }
 function serachIndex(node) {
-  var children = node.parent.children;
-  var length = children.length;
-  for (var i = 0; i < length; i++) {
-    if (children[i] === node) {
-      return i;
-    }
-  }
+  var index = node.parent.children.indexOf(node);
+  return index > -1 ? index : undefined;
 }
 function replaceWithLoopRes(node, res, i) {
   var children = node.parent.children;
@@ -2879,7 +2872,7 @@ function getComponentInstance(widgetVNode, parentComponent) {
     setOnlyReadAttr(instance, 'name', tagName);
   }
   if (!instance.noStateComp) {
-    instance.createBefore();
+    instance.beforeCreate();
   }
   if (!componentClass.$ast) {
     componentClass.$ast = genAstCode(instance);
@@ -2917,6 +2910,9 @@ function genAstCode(component) {
   var ast = void 0;
   if (typeof template === 'function') {
     template = template.call(component);
+  }
+  if (isObject(template) && template.type === TAG) {
+    return template;
   }
   if (typeof template !== 'string') {
     grassWarn('Component template must a "string" or "function", But now is "' + (typeof template === 'undefined' ? 'undefined' : _typeof(template)) + '"', name);
@@ -3108,8 +3104,8 @@ var Component = function () {
   }
 
   createClass(Component, [{
-    key: 'createBefore',
-    value: function createBefore() {}
+    key: 'beforeCreate',
+    value: function beforeCreate() {}
   }, {
     key: 'created',
     value: function created(dom) {}
@@ -3181,16 +3177,16 @@ var Component = function () {
       }
     }
   }], [{
-    key: 'mount',
-    value: function mount(rootDOM) {
-      return _mount(rootDOM, this);
+    key: '$mount',
+    value: function $mount(rootDOM) {
+      return mount(rootDOM, this);
     }
   }]);
   return Component;
 }();
 Component.prototype.set = set$1;
 Component.prototype.delete = del;
-function _mount(rootDOM, componentClass) {
+function mount(rootDOM, componentClass) {
   var vnode = new WidgetVNode(null, {}, null, componentClass);
   var dom = create(vnode);
   rootDOM && rootDOM.appendChild(dom);
@@ -3232,8 +3228,8 @@ function _forceUpdate(component) {
   var stateQueue = component.$data.stateQueue;
   if (!stateQueue.length) {
     Promise.resolve().then(function () {
-      updateDomTree(component);
       stateQueue.length = 0;
+      updateDomTree(component);
     });
   }
   stateQueue.push(null);
@@ -3526,7 +3522,7 @@ function initGlobalAPI(Grass) {
 }
 
 var Grass = {
-  mount: _mount,
+  mount: mount,
   Component: Component,
   forceUpdate: _forceUpdate
 };

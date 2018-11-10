@@ -43,7 +43,7 @@ describe('Props', () => {
           </div>
         `)
       }
-    }).mount()
+    }).$mount()
   })
 
   it('defined props require list', () => {
@@ -73,7 +73,7 @@ describe('Props', () => {
           </div>
         `)
       }
-    }).mount()
+    }).$mount()
   })
 
   it('Multi-layer component props', done => {
@@ -169,6 +169,6 @@ function multiPropsTest (done, mode) {
       `)
     }
   }
-  const cm = d.mount()
+  const cm = d.$mount()
   expect(cm.$el.textContent).toBe('1')
 }

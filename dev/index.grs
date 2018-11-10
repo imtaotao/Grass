@@ -26,21 +26,7 @@
   import Child from './child'
   import style from './style.css'
   import response from './response.grs'
-  import Vue from 'vue'
 
-  const vm = new Vue({
-    data: {
-      api: 'index',
-      arr: [1, 2],
-      show: true,
-      obj: {}
-    }
-  })
-
-  window.g = Grass
-
-  window.vm = vm
-  window.vue = Vue
   @Grass.CSSModules(style)
   class Root extends Grass.Component {
     constructor () {
@@ -178,5 +164,5 @@
     return '<div> error </div>'
   }
 
-  window.rr = Root.mount(document.getElementById('root'))
+  window.rr = Root.$mount(document.getElementById('root'))
 </script>

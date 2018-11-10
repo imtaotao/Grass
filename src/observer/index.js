@@ -10,6 +10,7 @@ const arrayKeys = Object.getOwnPropertyNames(arrayMethods)
 export class Observer {
   constructor (value) {
     this.value = value
+    // This dep is for 'set and 'delete' method
     this.dep = new Dep()
     def(value, '__ob__', this)
     
@@ -59,7 +60,7 @@ export function defineReactive (obj, key, val) {
     configurable: true,
     get: function () {
       const value = getter ? getter.call(obj) : val
-
+      
       if (Dep.target) {
         dep.depend()
         if (childOb) {

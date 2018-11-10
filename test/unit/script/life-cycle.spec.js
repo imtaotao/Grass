@@ -15,7 +15,7 @@ describe('Life cycle', () => {
         return '<div></div>'
       }
     }
-    const cm = p.mount()
+    const cm = p.$mount()
     expect(cm.state.a).toBe(1)
   })
 
@@ -41,7 +41,7 @@ describe('Life cycle', () => {
       component () {
         return { Child: a }
       }
-    }).mount()
+    }).$mount()
   })
 
   it('willUpdate', done => {
@@ -65,7 +65,7 @@ describe('Life cycle', () => {
         return '<div>{{a}}</div>'
       }
     }
-    expect(p.mount().$el.textContent).toBe('1')
+    expect(p.$mount().$el.textContent).toBe('1')
   })
 
   it('willReceiveProps', done => {
@@ -100,7 +100,7 @@ describe('Life cycle', () => {
         return '<div><Child :a="a"/></div>'
       }
     }
-    expect(b.mount().$el.textContent).toBe('1')
+    expect(b.$mount().$el.textContent).toBe('1')
   })
 
   it('if willReceiveProps method return false', done => {
@@ -136,7 +136,7 @@ describe('Life cycle', () => {
         return '<div><Child :a="a"/></div>'
       }
     }
-    expect(b.mount().$el.textContent).toBe('1')
+    expect(b.$mount().$el.textContent).toBe('1')
   })
 
   it('didUpdate', done => {
@@ -159,7 +159,7 @@ describe('Life cycle', () => {
       template () {
         return '<div>{{a}}</div>'
       }
-    }).mount()
+    }).$mount()
   })
 
   it('destroy', done => {
@@ -187,7 +187,7 @@ describe('Life cycle', () => {
       template () {
         return '<div><Child v-if="show" :a="a"/></div>'
       }
-    }).mount()
+    }).$mount()
   })
 
   it('life cycle order', done => {
@@ -234,6 +234,6 @@ describe('Life cycle', () => {
       template () {
         return '<div><Child v-if="show" :a="a"/></div>'
       }
-    }).mount()
+    }).$mount()
   })
 })

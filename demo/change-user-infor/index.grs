@@ -37,13 +37,13 @@
 </template>
 
 <script>
-  import Grass, { CSSModules } from "../../src";
+  import Grass from "../../src";
   import * as _ from '../util'
   import List from '../list'
   import style from './style'
 
   @Grass.event
-  @CSSModules(style)
+  @Grass.CSSModules(style)
   export default class ChangeUserComponent extends Grass.Component {
     constructor(props) {
       super(props)
@@ -58,7 +58,7 @@
       }
     }
 
-    createBefore () {
+    beforeCreate () {
        List.on(data => {
         if (typeof data === 'string') {
           return
