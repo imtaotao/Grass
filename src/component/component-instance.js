@@ -19,10 +19,21 @@ export function getComponentInstance (widgetVNode, parentComponent) {
         : _.grassWarn('Component "state" must be a "Object"', instance.name)
     }
   } else {
+    const components = Object.create(null)
     const props = getProps(data.parentConfig.attrs)
-    const template = componentClass(props, parentComponent)
 
-    instance = createNoStateComponent(props, template, componentClass)
+    function registerComponent (name, comp) {
+      if (_.isObject(name)) {
+        comp = name
+        name = comp.name
+      }
+      components[name] = comp
+      return registerComponent
+    }
+
+    const template = componentClass(props, registerComponent, parentComponent)
+
+    instance = createNoStateComponent(props, template, components, componentClass)
   }
 
   if (tagName) {
@@ -41,10 +52,11 @@ export function getComponentInstance (widgetVNode, parentComponent) {
   return instance
 }
 
-function createNoStateComponent (props, template, componentClass) {
+function createNoStateComponent (props, template, component, componentClass) {
   return {
     props,
     template,
+    component,
     noStateComp: true,
     name: componentClass.name,
     constructor: componentClass,

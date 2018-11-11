@@ -1,6 +1,6 @@
 import Grass from '../../../src'
 import * as _ from '../../../src/utils'
-import { throwComponent } from '../util'
+import { componentThrowErr } from '../util'
 import { isVNode } from '../../../src/virtual-dom/vnode/typeof-vnode'
 
 const {
@@ -130,7 +130,7 @@ describe('Global API', () => {
 
   it('no state component event', () => {
     const p = () => '<div></div>'
-    expect(throwComponent(() => event(p))).toThrowError('rethrow')
+    expect(componentThrowErr(() => event(p))).toThrowError('rethrow')
   })
 
   it('async component', done => {

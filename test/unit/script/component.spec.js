@@ -1,6 +1,6 @@
 import Grass from '../../../src'
 import * as _ from '../../../src/utils'
-import { throwComponent } from '../util'
+import { componentThrowErr } from '../util'
 import { isWidget, isVNode } from '../../../src/virtual-dom/vnode/typeof-vnode'
 
 const Component = Grass.Component
@@ -8,7 +8,7 @@ const Component = Grass.Component
 describe('Component', () => {
   it('missing template function, can\'t create component', () => {
     class p extends Component {}
-    expect(throwComponent(p)).toThrowError('rethrow')
+    expect(componentThrowErr(p)).toThrowError('rethrow')
   })
 
   it('template no return string', () => {
@@ -16,8 +16,8 @@ describe('Component', () => {
       template () {}
     }
     const b = () => {}
-    expect(throwComponent(a)).toThrowError('rethrow')
-    expect(throwComponent(b)).toThrowError('rethrow')
+    expect(componentThrowErr(a)).toThrowError('rethrow')
+    expect(componentThrowErr(b)).toThrowError('rethrow')
   })
 
   it('ability to create components', () => {
@@ -161,7 +161,7 @@ describe('Component', () => {
         `)
       }
     }
-    expect(throwComponent(p)).toThrowError('rethrow')
+    expect(componentThrowErr(p)).toThrowError('rethrow')
   })
 
   it('the html tag is not closed', () => {
@@ -170,7 +170,7 @@ describe('Component', () => {
         return '<div><div>'
       }
     }
-    expect(throwComponent(p)).toThrowError('rethrow')
+    expect(componentThrowErr(p)).toThrowError('rethrow')
   })
 
   it('the html single tag is not closed', () => {
@@ -179,7 +179,7 @@ describe('Component', () => {
         return '<a>'
       }
     }
-    expect(throwComponent(p)).toThrowError('rethrow')
+    expect(componentThrowErr(p)).toThrowError('rethrow')
   })
 
   it('setState method', done => {
@@ -430,13 +430,23 @@ describe('Component', () => {
 
   it('$children ref', () => {
     const a = () => '<div></div>'
+    class b extends Component {
+      beforeCreate () {
+        this.template = '<div></div>'
+      }
+    }
     class p extends Component {
       beforeCreate () {
-        this.template = '<div><Child ref="Child"/></div>'
-        this.component = { Child: a }
+        this.template = '<div><One ref="one"/><Two ref="two"/></div>'
+        this.component = {
+          One: a,
+          Two: b,
+        }
       }
       created () {
-        expect(this.$children.Child.$el.outerHTML).toBe('<div></div>')
+        expect(Object.keys(this.$children).length).toBe(2)
+        expect(this.$children.one.$el.outerHTML).toBe('<div></div>')
+        expect(this.$children.two.$el.outerHTML).toBe('<div></div>')
       }
     }
     p.$mount()
@@ -457,7 +467,7 @@ describe('Component', () => {
         `)
       }
     }
-    expect(throwComponent(p)).toThrowError('rethrow')
+    expect(componentThrowErr(p)).toThrowError('rethrow')
   })
 
   it('multiple ref', () => {

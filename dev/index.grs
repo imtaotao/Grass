@@ -80,8 +80,11 @@
       return {
         response,
         Child,
-        bb: function bb (props, parent) {
-          return `<div>{{a}}</div>`
+        bb: function bb (props, r, parent) {
+          const d = () => '<span>陈涛</span>'
+          r('ddd', d)()
+          console.log(r);
+          return `<div>{{a}}<ddd/></div>`
         }
       }
     }

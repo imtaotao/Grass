@@ -1,6 +1,6 @@
 {
   "name": "tt-grass",
-  "version": "0.0.0-beta.7",
+  "version": "0.0.0-beta.8",
   "description": "",
   "main": "dist/grass.common.js",
   "module": "dist/grass.esm.js",
@@ -62,8 +62,5 @@
     "virtual-dom": "^2.1.1",
     "webpack": "^3.10.0",
     "webpack-dev-server": "^2.9.7"
-  },
-  "dependencies": {
-    "vue": "^2.5.17"
   }
 }

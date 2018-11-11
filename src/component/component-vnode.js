@@ -122,8 +122,9 @@ function update ({ component, data: { parentConfig } }) {
         component.willReceiveProps(newProps) === false) {
       return
     } else if (component.noStateComp) {
+      const empty = () => empty
       // Update new props, props maybe changed in function component.
-      component.constructor.call(component, newProps, component.$parent)
+      component.constructor.call(component, newProps, empty, component.$parent)
     }
 
     component.props = newProps

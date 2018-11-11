@@ -1,6 +1,6 @@
 import Grass from '../../../src'
 import * as _ from '../../../src/utils'
-import { throwComponent } from '../util'
+import { componentThrowErr } from '../util'
 import { isVText } from '../../../src/virtual-dom/vnode/typeof-vnode'
 
 const Component = Grass.Component
@@ -131,7 +131,7 @@ describe('directive', () => {
     }
     const cm = b.$mount()
     const node = b.$ast.children[0]
-    expect(throwComponent(a)).toThrowError('rethrow')
+    expect(componentThrowErr(a)).toThrowError('rethrow')
     expect(cm.$el.textContent).toBe('a')
     expect(node.if).toBeTruthy()
     expect(node.tagName).toBe('span')
@@ -318,7 +318,7 @@ describe('directive', () => {
       }
     }
     const cm = b.$mount()
-    expect(throwComponent(a)).toThrowError('rethrow')
+    expect(componentThrowErr(a)).toThrowError('rethrow')
     expect(cm.$el.textContent).toBe('12one1two2')
     expect(cm.$el.children.length).toBe(4)
   })

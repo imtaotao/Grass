@@ -1,4 +1,4 @@
-export function throwComponent (cm) {
+export function componentThrowErr (cm) {
   return () => {
     try {
       cm.$mount()
