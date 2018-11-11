@@ -1304,15 +1304,20 @@ var Dep = function () {
   createClass(Dep, [{
     key: "addSub",
     value: function addSub(sub) {
-      if (!this.subsIds.has(sub.id)) {
+      var obj = isObject(sub);
+      if (obj && !this.subsIds.has(sub.id)) {
         this.subsIds.add(sub.id);
+        this.subs.push(sub);
+      } else if (!obj) {
         this.subs.push(sub);
       }
     }
   }, {
     key: "removeSub",
     value: function removeSub(sub) {
-      this.subsIds.delete(sub.id);
+      if (isObject(sub)) {
+        this.subsIds.delete(sub.id);
+      }
       remove(this.subs, sub);
     }
   }, {
@@ -1459,6 +1464,9 @@ function defineReactive(obj, key, val) {
   }
   var getter = property && property.get;
   var setter = property && property.set;
+  if ((!getter || setter) && arguments.length === 2) {
+    val = obj[key];
+  }
   var childOb = observe(val);
   Object.defineProperty(obj, key, {
     enumerable: true,
@@ -2862,9 +2870,20 @@ function getComponentInstance(widgetVNode, parentComponent) {
       isPlainObject(res) ? instance.state = res : grassWarn('Component "state" must be a "Object"', instance.name);
     }
   } else {
+    var registerComponent = function registerComponent(name, comp) {
+      if (isObject(name)) {
+        comp = name;
+        name = comp.name;
+      }
+      components[name] = comp;
+      return registerComponent;
+    };
+
+    var components = Object.create(null);
     var props = getProps(data.parentConfig.attrs);
-    var template = componentClass(props, parentComponent);
-    instance = createNoStateComponent(props, template, componentClass);
+
+    var template = componentClass(props, registerComponent, parentComponent);
+    instance = createNoStateComponent(props, template, components, componentClass);
   }
   if (tagName) {
     setOnlyReadAttr(instance, 'name', tagName);
@@ -2877,10 +2896,11 @@ function getComponentInstance(widgetVNode, parentComponent) {
   }
   return instance;
 }
-function createNoStateComponent(props, template, componentClass) {
+function createNoStateComponent(props, template, component, componentClass) {
   return {
     props: props,
     template: template,
+    component: component,
     noStateComp: true,
     name: componentClass.name,
     constructor: componentClass,
@@ -2970,8 +2990,15 @@ var WidgetVNode = function () {
 
       component.$el = dom;
       if (parentComponent) {
+        var ref = this.data.parentConfig.attrs.ref;
         component.$parent = parentComponent;
-        parentComponent.$children[component.name] = component;
+        if (typeof ref === 'string' || typeof ref === 'number') {
+          if (parentComponent.$children[ref]) {
+            grassWarn('The component instance "' + ref + '" already exists, please change the ref name', component.name);
+          } else {
+            parentComponent.$children[ref] = component;
+          }
+        }
       }
       cacheComponentDomAndVTree(this, vtree, dom);
       component.$data.created = true;
@@ -3027,7 +3054,10 @@ function _update(_ref) {
     if (!component.noStateComp && component.willReceiveProps(newProps) === false) {
       return;
     } else if (component.noStateComp) {
-      component.constructor.call(component, newProps, component.$parent);
+      var empty = function empty() {
+        return empty;
+      };
+      component.constructor.call(component, newProps, empty, component.$parent);
     }
     component.props = newProps;
     updateDomTree(component);
