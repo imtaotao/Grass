@@ -36,7 +36,7 @@ describe('Life cycle', () => {
         expect(isEmptyObj(this.props)).toBeTruthy()
       }
       template () {
-        return '<div>a<Child/></div>'
+        return '<div>a<Child ref="Child"/></div>'
       }
       component () {
         return { Child: a }

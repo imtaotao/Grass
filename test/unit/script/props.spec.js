@@ -106,7 +106,7 @@ function multiPropsTest (done, mode) {
     template () {
       return (`
         <div>
-          <Child :a="this.props.a"/>
+          <Child :a="this.props.a" ref="Child"/>
         </div>
       `)
     }
@@ -129,7 +129,7 @@ function multiPropsTest (done, mode) {
     template () {
       return (`
         <div>
-          <Child :a="this.props.a"/>
+          <Child :a="this.props.a" ref="Child"/>
         </div>
       `)
     }
@@ -164,7 +164,7 @@ function multiPropsTest (done, mode) {
     template () {
       return (`
         <div>
-          <Child :a="a"/>
+          <Child :a="a" ref="Child"/>
         </div>
       `)
     }

@@ -76,7 +76,7 @@ describe('Component', () => {
       template () {
         return (
           `<div>
-            parent <Child :t="1"/>
+            parent <Child :t="1" ref="Child"/>
           </div>`)
       }
       component () {
@@ -153,7 +153,7 @@ describe('Component', () => {
   })
 
   it('component can only contain one root node', () => {
-    class cm extends Component {
+    class p extends Component {
       template () {
         return (`
           <div></div>
@@ -161,25 +161,25 @@ describe('Component', () => {
         `)
       }
     }
-    expect(throwComponent(cm)).toThrowError('rethrow')
+    expect(throwComponent(p)).toThrowError('rethrow')
   })
 
   it('the html tag is not closed', () => {
-    class cm extends Component {
+    class p extends Component {
       template () {
         return '<div><div>'
       }
     }
-    expect(throwComponent(cm)).toThrowError('rethrow')
+    expect(throwComponent(p)).toThrowError('rethrow')
   })
 
   it('the html single tag is not closed', () => {
-    class cm extends Component {
+    class p extends Component {
       template () {
         return '<a>'
       }
     }
-    expect(throwComponent(cm)).toThrowError('rethrow')
+    expect(throwComponent(p)).toThrowError('rethrow')
   })
 
   it('setState method', done => {
@@ -273,7 +273,7 @@ describe('Component', () => {
       template () {
         return (`
           <div>
-            <Child v-if="show">
+            <Child v-if="show" ref="Child">
               <div>{{text}}</div>
             </Child>
           </div>
@@ -428,11 +428,81 @@ describe('Component', () => {
     }).$mount()
   })
 
-  it('component name', () => {
+  it('$children ref', () => {
+    const a = () => '<div></div>'
+    class p extends Component {
+      beforeCreate () {
+        this.template = '<div><Child ref="Child"/></div>'
+        this.component = { Child: a }
+      }
+      created () {
+        expect(this.$children.Child.$el.outerHTML).toBe('<div></div>')
+      }
+    }
+    p.$mount()
+  })
+
+  it('ref attribute repeat', () => {
+    const a = () => '<div></div>'
+    class p extends Component {
+      beforeCreate () {
+        this.component = { Child: a }
+      }
+      template () {
+        return (`
+          <div>
+            <Child ref="Child"/>
+            <Child ref="Child"/>
+          </div>
+        `)
+      }
+    }
+    expect(throwComponent(p)).toThrowError('rethrow')
+  })
+
+  it('multiple ref', () => {
+    const a = () => '<div></div>'
+    class p extends Component {
+      beforeCreate () {
+        this.component = { Child: a }
+      }
+      created () {
+        expect(Object.keys(this.$children).length).toBe(2)
+        expect(this.$el.outerHTML).toBe('<div><div></div><div></div></div>')
+        expect(this.$children.one.constructor).toBe(this.$children.two.constructor)
+      }
+      template () {
+        return (`
+          <div>
+            <Child ref="one"/>
+            <Child ref="two"/>
+          </div>
+        `)
+      }
+    }
+    p.$mount()
+  })
+
+  it('no ref attribute', () => {
     const a = () => '<div></div>'
     class p extends Component {
       beforeCreate () {
         this.template = '<div><Child/></div>'
+        this.component = { Child: a }
+      }
+      created () {
+        expect(this.$el.outerHTML).toBe('<div><div></div></div>')
+        expect(_.isEmptyObj(this.$children)).toBeTruthy()
+      }
+    }
+    p.$mount()
+  })
+
+  it('component name', () => {
+    const a = () => '<div></div>'
+    class p extends Component {
+      beforeCreate () {
+        this.template = '<div><Child ref="Child"/></div>'
         this.component = { Child: a }
       }
     }

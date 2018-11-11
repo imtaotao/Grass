@@ -53,8 +53,19 @@ export class WidgetVNode {
     component.$el = dom
   
     if (parentComponent) {
+      const ref = this.data.parentConfig.attrs.ref
       component.$parent = parentComponent
-      parentComponent.$children[component.name] = component
+
+      if (typeof ref === 'string' || typeof ref === 'number') {
+        if (parentComponent.$children[ref]) {
+          _.grassWarn(
+            `The component instance "${ref}" already exists, please change the ref name`,
+            component.name
+          )
+        } else {
+          parentComponent.$children[ref] = component
+        }
+      }
     }
 
     cacheComponentDomAndVTree(this, vtree, dom)

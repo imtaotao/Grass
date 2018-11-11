@@ -1,23 +1,17 @@
 <template>
   <div>
     <div @click.self.stop.prevent="this.callback.bind(this)">
-      <span>dsf</span>
       点击
     </div>
     <span v-for="val of arr">{{ val }}</span>
 
-    <Child test1="api" :test2="api" :show="true" :api="api">
+    <Child test1="api" :test2="api" :show="true" :api="api" ref="abc">
       <div slot="tao">{{api}}</div>
       tt
-      <bb slot='fangfang'></bb>
+      <bb slot='fangfang' a='1'></bb>
     </Child>
-  
-    <div data-dd="1" v-for="val of obj" v-transition="'slide-fade'" v-beforeEnter="this.enter" v-show="show">
-      <span v-for="val of val">
-        <a v-for="val of val">{{val}}</a>  
-      </span>
-    </div>
-    <Child v-if="show"/>
+    ---
+    <Child :show="show" ref="ac"/>
   </div>
 </template>
 
@@ -35,27 +29,6 @@
         api: 'index',
         arr: [1, 2],
         show: true,
-        // obj: {
-        //   tt: 'chentao',
-        //   ff: 'fangfang'
-        // }
-        obj: {
-          t: {
-            cc: 'c',
-            b: ''
-          },
-          o: {
-            a:{},
-            b: {
-              tt: 'tt',
-              ff: 'ff'
-            },
-            c: {
-              d:3,
-              e:4,
-            }
-          }
-        }
       })
 
       window.ss = this.state
@@ -66,24 +39,15 @@
     }
 
     created (dom) {
-      console.log(this.$parent, this.$children);
+      console.log(this.$children);
       Child.listener('tt', this.testListener)
     }
 
-    enter (dom) {
-      console.log(dom);
-    }
     willUpdate (dom) {
       console.log(dom);
     }
 
     callback (api) {
-      // this.setState({
-      //   show: !this.state.show,
-      //   arr: [1, 2, 3, 4, 5],
-      //   api: 'taotao',
-      // })
-
       this.state.show = !this.state.show
       this.state.arr = [1, 2, 3, 4, 5]
       this.state.api = 'taotao'
@@ -113,55 +77,14 @@
     }
 
     component () {
-      console.log(this);
       return {
         response,
-        Child: Grass.async((resolve, reject) => {
-          return {
-            component: new Promise((re) => {
-              setTimeout(() => {
-                re(import('./child.grs'))
-              }, 2000)
-            }),
-            error: Grass.async((resolve) => {
-              return {
-                component: new Promise(re => {
-                  setTimeout(() => {
-                    resolve(error)
-                  }, 3000)
-                })
-              }
-            }),
-            // error,
-            timeout: 2100,
-            loading,
-            // loading: Grass.async((resolve) => {
-            //   setTimeout(() => {
-            //     resolve(response)
-            //   }, 500)
-            // }),
-          }
-        }, (err, cm) => {
-          console.log(this);
-          console.log(err)
-          console.dir(cm)
-        }),
-        // Child,
+        Child,
         bb: function bb (props, parent) {
-          props.a = 121
-          // console.log(props, parent, this);
           return `<div>{{a}}</div>`
         }
       }
     }
-  }
-
-  function loading () {
-    return '<div> loading </div>'
-  }
-
-  function error () {
-    return '<div> error </div>'
   }
 
   window.rr = Root.$mount(document.getElementById('root'))
