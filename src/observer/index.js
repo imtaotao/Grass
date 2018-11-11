@@ -52,6 +52,9 @@ export function defineReactive (obj, key, val) {
 
   const getter = property && property.get
   const setter = property && property.set
+  if ((!getter || setter) && arguments.length === 2) {
+    val = obj[key]
+  }
 
   let childOb = observe(val)
 
@@ -97,7 +100,7 @@ export function defineReactive (obj, key, val) {
  * This is a tool function, it's can let state transfer to response state,
  * but it's can't transifer array.
  */
-function observe (value) {
+export function observe (value) {
   if (!_.isObject(value) || _.isVNode(value)) {
     return
   }

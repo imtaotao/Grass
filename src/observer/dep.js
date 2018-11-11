@@ -1,3 +1,4 @@
+import * as _ from '../utils'
 import { remove } from "../utils";
 
 let uid = 0
@@ -10,14 +11,20 @@ export default class Dep {
   }
 
   addSub (sub) {
-    if (!this.subsIds.has(sub.id)) {
+    const obj = _.isObject(sub)
+
+    if (obj && !this.subsIds.has(sub.id)) {
       this.subsIds.add(sub.id)
+      this.subs.push(sub)
+    } else if (!obj) {
       this.subs.push(sub)
     }
   }
 
   removeSub (sub) {
-    this.subsIds.delete(sub.id)
+    if (_.isObject(sub)) {
+      this.subsIds.delete(sub.id)
+    }
     remove(this.subs, sub)
   }
 
