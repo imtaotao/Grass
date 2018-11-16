@@ -252,6 +252,8 @@ class two extends Grass.Component {
 ```
 响应数据模式和普通模式，最好不要混用
 
+<br/>
+<br/>
 ## 无状态组件
 + props
 + register

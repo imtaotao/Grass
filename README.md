@@ -4,9 +4,9 @@
 
 ## [全局API](./src/global-api)
 
-## [实例](./src/component)
+## [组件实例](./src/component)
 
-## [指令](./src/directives)
+## [模板指令](./src/directives)
 
 ### 与 [grass-loader](https://github.com/imtaotao/grass-loader) 一起使用
 grass-loader 会预编译模板，所以你可以像 vue 一样使用单文件组件，不同的是，这个单文件组件并不包含 css
