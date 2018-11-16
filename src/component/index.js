@@ -83,6 +83,8 @@ export class Component {
 
     if (_.isPlainObject(data)) {
       initWatchState(data)
+      this.set = set
+      this.delete = del
       this.state = data
       this.$isWatch = true
     }
@@ -93,9 +95,6 @@ export class Component {
     return mount(rootDOM, this)
   }
 }
-
-Component.prototype.set = set
-Component.prototype.delete = del
 
 export function mount (rootDOM, componentClass) {
   const vnode = new WidgetVNode(null, {}, null, componentClass)

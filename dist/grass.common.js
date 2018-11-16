@@ -3202,6 +3202,8 @@ var Component = function () {
       data = Object.setPrototypeOf(data, null);
       if (isPlainObject(data)) {
         initWatchState(data);
+        this.set = set$1;
+        this.delete = del;
         this.state = data;
         this.$isWatch = true;
       }
@@ -3214,8 +3216,6 @@ var Component = function () {
   }]);
   return Component;
 }();
-Component.prototype.set = set$1;
-Component.prototype.delete = del;
 function mount(rootDOM, componentClass) {
   var vnode = new WidgetVNode(null, {}, null, componentClass);
   var dom = create(vnode);
