@@ -20,7 +20,7 @@ grass-loader 会预编译模板，所以你可以像 vue 一样使用单文件�
   import style from './style.css'
 
   @CSSModules(style)
-  class C extends Grass.Component {
+  class P extends Grass.Component {
     constructor () {
       super()
       this.state = {

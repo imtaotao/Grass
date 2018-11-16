@@ -1,10 +1,29 @@
 ## 全局 api
++ Component
++ mount
 + directive
 + CSSModules
 + async
 + event
 + mixin
 + use
+
+## Component
+`Component` 用于创建 class 形式的组件
+```js
+ class P extends Grass.Component {}
+```
+
+## mount
+`mount` 方法与组件构造函数的 `$mount` 方法一样，用于挂载组件，返回组件实例
+```js
+class P extends Grass.Component {}
+const p = Grass.mount(dom, P)
+```
+或者用于无状态组件
+```js
+const p = Grass.mount(dom, () => '<div></div>')
+```
 
 ## directive
 这个方法用来注册自定义的指令。自定义指令的优先级低于内置执行
@@ -40,9 +59,9 @@ Grass 提供了 一个 CSSModules api，用于配合 css-loader 做 css 的模�
     }
     component () {
       return {
-        Child: Grass.async(() => import('../child))
+        Child: Grass.async(() => import('../child'))
         // Child: Grass.async((resolve, reject) => setTimeout(() => {
-          // resovle(child)
+        // resovle(child)
         // })
       }
     }
@@ -82,7 +101,22 @@ class P extends Grass.Component {
 + `done` 监听 done 事件，对于组件实例的 `done`
 + `error` 监听 error 事件，对于组件实例的 `error`
 
-需要注意的是组件一旦出发 `done` 或 `error` 事件，就再也不会触发事件了
+需要注意的是组件一旦出发 `done` 或 `error` 事件，就再也不会触发事件了<br/>
+可能你会在一个组件内触发不同的事件，所以你需要标记 type 进行区分，event 提供了俩工具函数来帮助你做这些，`listener`与`tNext`
+```js
+  class P extends Component {
+    created () {
+      this.tNext('tt', 1)
+    }
+  }
+
+  P.listener('tt', val => {
+    ...
+  })
+
+  P.$mount()
+```
+
 
 ## mixin
 mixin 可以对组件混入一些方法和属性，它有两种用法

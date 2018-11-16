@@ -91,7 +91,7 @@ Grass 提供了 `v-transition` 和一个 `animate` 修饰符来做动画效果�
     import style from './style.css'
 
     @CSSModules(style)
-    class C extends Grass.Component {
+    class P extends Grass.Component {
       constructor () {
         super()
       }

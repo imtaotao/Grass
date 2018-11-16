@@ -2,6 +2,7 @@
 组件一共分为两种，一种通过 class 语法定义一个类，为有状态的组件，另外一种为无状态组件，直接通过函数来定义，返回一段模板。
 
 + class 组件
+通过继承 Grass.Component
 ```js
   class P extend Grass.Component {
     constructor (props) {
@@ -228,7 +229,7 @@ class two extends Grass.Component {
 ## 响应式模式
 ```html
 <template>
-  <div styleName="xx" @click="this.c.bind(this)">{{ tao }}</div>'
+  <div styleName="xx" @click="this.click.bind(this)">{{ tao }}</div>'
 </template>
 
 <script>
@@ -236,17 +237,80 @@ class two extends Grass.Component {
   import style from './style.css'
 
   @CSSModules(style)
-  class C extends Grass.Component {
+  class P extends Grass.Component {
     constructor () {
       super()
       this.createResponseState({
         tao: 'taotao',
       })
     }
-    c () {
+    click () {
       this.state.tao = 'tao'
     }
   }
 </script>
 ```
 响应数据模式和普通模式，最好不要混用
+
+## 无状态组件
++ props
++ register
++ parent
+
+使用方法
+```js
+  function p (props, register, parent) {
+    return '<div></div>'
+  }
+```
+
+### props
+`props` 与 class 组件形式的 `this.props` 一样，都是父组件传下来的，不同的是，在无状态组件中，我们在模板中不需要使用 `this.props.xx`，在无状态组件中，`props` 与 class 组件的 `state` 一样，可以简写
+
+class 组件
+```js
+  class P extends Grass.Component {
+    constructor () {
+      this.state = { a : 1 }
+      // this.props = { b: 2 }
+    }
+    template () {
+      return '<div>{{ a }} {{ this.props.b }}</div>'
+    }
+  }
+```
+无状态组件
+```js
+  function p (props) {
+    // props -> { b : 2 }
+    return `<div>{{ b }}</div>`
+  }
+```
+
+当前，在无状态组件中，你可以对 `props` 进行更改，由于是引用模式，`props` 所有的更改都将映射到真实的视图中
+```js
+  function click (e) {
+    ...
+  }
+  function p (props) {
+    props.c = click
+    return `<div @click="c"></div>`
+  }
+```
+
+### register
+`register` 可以让当前无状态组件注册子组件，不然在无状态组件中，你无法使用子组件，这是个很大的问题，也真是这个方法出现的原因。它接收一个参数或俩参数，返回函数自身
+```js
+  function one () {
+    return '<div>child</div>'
+  }
+  function two (props, register, parent) {
+    register('Child', one)
+    // 如果只传入组件，那么组件的 constructor name 将作为组件的名字
+    // register(one)
+    return '<div><Child/></div>'
+  }
+```
+
+### parent
+`parent` 对应着 class 组件中的 `this.$parent` 属性
