@@ -255,7 +255,7 @@ class two extends Grass.Component {
 <br/>
 <br/>
 
-## 无状态组件
+# 无状态组件
 + props
 + register
 + parent
