@@ -1,16 +1,12 @@
 ## 一个简单的 mvvm 库
 
-## 如何使用
-在 [demo](https://github.com/imtaotao/Grass/tree/master/demo/root/index.grs) 中有例子
+## [如何使用](https://github.com/imtaotao/Grass/tree/master/demo/root/index.grs)
 
-## 全局API
-[api](https://github.com/imtaotao/Grass/tree/master/src/global-api)
+## [全局API](https://github.com/imtaotao/Grass/tree/master/src/global-api)
 
-## 实例
-[api](https://github.com/imtaotao/Grass/tree/master/src/component)
+## [实例](https://github.com/imtaotao/Grass/tree/master/src/component)
 
-## 指令
-[api](https://github.com/imtaotao/Grass/tree/master/src/directives)
+## [指令](https://github.com/imtaotao/Grass/tree/master/src/directives)
 
 ### 与 [grass-loader](https://github.com/imtaotao/grass-loader) 一起使用
 grass-loader 会预编译模板，所以你可以像 vue 一样使用单文件组件，不同的是，这个单文件组件并不包含 css
