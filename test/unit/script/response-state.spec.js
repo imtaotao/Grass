@@ -60,10 +60,10 @@ describe('response state', () => {
 			}
 			created () {
 				expect(this.$el.textContent).toBe('12')
-				this.state.arr = 1
+				this.state.arr = [1, 1]
 			}
 			didUpdate () {
-				expect(this.$el.textContent).toBe('')
+				expect(this.$el.textContent).toBe('11')
 				done()
 			}
 		}).$mount()
@@ -83,10 +83,10 @@ describe('response state', () => {
 			}
 			created () {
 				expect(this.$el.textContent).toBe('12')
-				this.state.obj = 1
+				this.state.obj = { a: 1 }
 			}
 			didUpdate () {
-				expect(this.$el.textContent).toBe('')
+				expect(this.$el.textContent).toBe('1')
 				done()
 			}
 		}).$mount()

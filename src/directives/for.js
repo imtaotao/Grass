@@ -44,6 +44,8 @@ export default function vfor (node, component, vnodeConf) {
 
         addValue(isMultiple, val, key, i, nodeKey)
       }
+    } else {
+      throw Error(`for data must be a "array" or "object", but now is "${typeof data}"`)
     }
   }
 

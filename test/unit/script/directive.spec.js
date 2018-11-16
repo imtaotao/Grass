@@ -330,9 +330,8 @@ describe('directive', () => {
           data: {
             arr: [1, 2],
             obj: {
-              one: 3,
-              two: 4,
-              three: [5, 6]
+              a: 3,
+              b: 4,
             }
           },
         }
@@ -341,10 +340,8 @@ describe('directive', () => {
         return (`
           <div>
             <div v-for="val of data">
-              {{val.toString()}}
               <span v-for="(val, key) of val">
-                {{val}}
-                <a v-for="val of val">{{val}}</a>
+                {{key}}{{val}}
               </span>
             </div>
           </div>
@@ -353,8 +350,7 @@ describe('directive', () => {
     }
     const cm = b.$mount()
     const key = '[\\s\\S]*'
-    const regString = `1,2${key}1${key}2${key}\[object Object\]${key}3${key}4${key}5,6${key}56`
-    const reg = new RegExp(regString, 'g')
+    const reg = new RegExp(`01${key}12${key}a3${key}b4`, 'g')
     expect(reg.test(cm.$el.textContent)).toBeTruthy()
   })
 })
