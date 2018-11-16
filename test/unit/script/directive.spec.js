@@ -353,4 +353,22 @@ describe('directive', () => {
     const reg = new RegExp(`01${key}12${key}a3${key}b4`, 'g')
     expect(reg.test(cm.$el.textContent)).toBeTruthy()
   })
+
+  it('show throw error', () => {
+    class p extends Component {
+      beforeCreate () {
+        this.state = {
+          arr: 1,
+        }
+      }
+      template () {
+        return (`
+          <div>
+            <span v-for="val of arr">{{val}}</span>
+          </div>
+        `)
+      }
+    }
+    expect(componentThrowErr(p)).toThrowError('rethrow')
+  })
 })
