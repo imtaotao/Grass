@@ -45,14 +45,14 @@ module.exports = {
               modules: true,
             },
         }, {
-            loader: "postcss-loader", // 添加浏览器兼容前缀
+            loader: "postcss-loader",
             options: {
               ident: 'postcss',
               plugins: (loader) => [
                 require('postcss-import')({ root: loader.resourcePath }),
                 require('postcss-cssnext')(),
                 require('autoprefixer')(),
-                require('cssnano')(), // 压缩css代码
+                require('cssnano')(),
               ],
             },
         }],
@@ -63,7 +63,7 @@ module.exports = {
     new webpack.BannerPlugin('grass demo'),
     new webpack.DefinePlugin(setNpmAras()),
     new HtmlWebpackPlugin({
-        template: __dirname + "/index.html"
+      template: __dirname + "/index.html"
     }),
     new webpack.optimize.OccurrenceOrderPlugin(),
     new ExtractTextPlugin("style.css"),
