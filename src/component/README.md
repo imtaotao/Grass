@@ -24,7 +24,7 @@
 ```
 
 ## template
-class 组件必须有一个 template 属性或方法，如果为一个方法，它应该返回一段模板代码，否则会抛出一个错误。模板代码应该只能有一个根元素
+class 组件必须有一个 template 属性或方法，如果为一个方法，它应该返回一段模板代码，否则会抛出一个错误。模板代码应该只能有**一个根元素**
 
 ## component
 component 属性或方法用来注册子组件，它应该为一个对象或返回一个对象
@@ -105,7 +105,7 @@ component 属性或方法用来注册子组件，它应该为一个对象或返�
 + delete（响应模式下）
 
 ### createState
-`createState` 能够创建一个纯碎的 state，他会丢弃 state 的原有原型链。（对于 state，很重要的一点是，我们需要一个感觉的state，也就是原型链必须为 `Object.prototype` 或者 `null`，否则会出现一些其他的问题）
+`createState` 能够创建一个纯碎的 state，他会丢弃 state 的原有原型链。（对于 state，很重要的一点是，我们需要一个原型链干净的 state，也就是原型链必须为 `Object.prototype` 或者 `null`，否则会出现一些其他的问题）
 ```js
   class P extends Grass.Component {
     beforeCreate () {

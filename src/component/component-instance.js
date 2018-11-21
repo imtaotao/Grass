@@ -87,10 +87,6 @@ function genAstCode (component) {
     template = template.call(component)
   }
 
-  if (_.isObject(template) && template.type === TAG) {
-    return template
-  }
-
   if (typeof template !== 'string') {
     _.grassWarn(`Component template must a "string" or "function", But now is "${typeof template}"`, name)
     return
@@ -100,6 +96,11 @@ function genAstCode (component) {
   if (!(ast = parseTemplate(template.trim(), name))) {
     _.grassWarn('No string template available', name)
     return
+  }
+
+  // deal with css modules hook function
+  if (typeof component.constructor.CSSModules === 'function') {
+    component.constructor.CSSModules(ast, component.name)
   }
 
   return ast

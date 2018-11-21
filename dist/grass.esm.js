@@ -2723,9 +2723,6 @@ function render(widgetVNode, ast) {
   if (!isEmptyObj(data.parentConfig)) {
     migrateComponentStatus(data.parentConfig, vnodeConfig);
   }
-  if (typeof componentClass.CSSModules === 'function') {
-    componentClass.CSSModules(vnodeConfig, component.name);
-  }
   if (component.$firstCompilation) {
     component.$firstCompilation = false;
   }
@@ -2931,9 +2928,6 @@ function genAstCode(component) {
   if (typeof template === 'function') {
     template = template.call(component);
   }
-  if (isObject(template) && template.type === TAG) {
-    return template;
-  }
   if (typeof template !== 'string') {
     grassWarn('Component template must a "string" or "function", But now is "' + (typeof template === 'undefined' ? 'undefined' : _typeof(template)) + '"', name);
     return;
@@ -2941,6 +2935,9 @@ function genAstCode(component) {
   if (!(ast = parseTemplate(template.trim(), name))) {
     grassWarn('No string template available', name);
     return;
+  }
+  if (typeof component.constructor.CSSModules === 'function') {
+    component.constructor.CSSModules(ast, component.name);
   }
   return ast;
 }

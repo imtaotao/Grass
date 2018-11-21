@@ -26,7 +26,7 @@ const p = Grass.mount(dom, () => '<div></div>')
 ```
 
 ## directive
-这个方法用来注册自定义的指令。自定义指令的优先级低于内置执行
+这个方法用来注册自定义的指令。自定义指令的优先级低于内置指令
 ```js
 const P = () => '<div v-tao="1"></div>'
 Grass.directive('tao', (dom, val, vnode) => {

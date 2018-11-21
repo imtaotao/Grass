@@ -18,12 +18,6 @@ export function render (widgetVNode, ast) {
   if (!_.isEmptyObj(data.parentConfig)) {
     migrateComponentStatus(data.parentConfig, vnodeConfig)
   }
-  
-
-  // deal with css modules hook function
-  if (typeof componentClass.CSSModules === 'function') {
-    componentClass.CSSModules(vnodeConfig, component.name)
-  }
 
   if (component.$firstCompilation) {
     component.$firstCompilation = false

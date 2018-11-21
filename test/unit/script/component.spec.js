@@ -105,7 +105,8 @@ describe('Component', () => {
     const cm = Grass.CSSModules(style)(p).$mount()
     const ast = cm.constructor.$ast
     const vnode = cm.$widgetVNode.container.vtree
-    expect(ast.attrs.styleName).toBe('a')
+    expect(ast.attrs.className).toBe('b')
+    expect(ast.attrs.styleName).toBeUndefined()
     expect(vnode.properties.className).toBe('b')
   })
 
@@ -117,7 +118,8 @@ describe('Component', () => {
     const comp = Grass.mount(null, compClass)
     const ast = comp.constructor.$ast
     const vnode = comp.$widgetVNode.container.vtree
-    expect(ast.attrs.styleName).toBe('a')
+    expect(ast.attrs.className).toBe('b')
+    expect(ast.attrs.styleName).toBeUndefined()
     expect(vnode.properties.className).toBe('b')
   })
 
