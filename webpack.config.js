@@ -4,9 +4,9 @@ const ExtractTextPlugin = require('extract-text-webpack-plugin')
 const path = require('path')
 
 module.exports = {
-	entry: __dirname + "/index.js", //唯一入口文件
+	entry: __dirname + "/index.js",
   output: {
-    path: path.resolve(__dirname, 'dist'),
+    path: resolve('dist'),
     filename: "bundle.js"
   },
   resolve: {
@@ -17,10 +17,10 @@ module.exports = {
   },
   devtool: 'source-map',
   devServer: {
-      contentBase: __dirname, //本地服务器所加载的页面所在的目录
-      historyApiFallback: true, //不跳转
+      contentBase: __dirname,
+      historyApiFallback: true,
       inline: true,
-      hot: true, // 通过 --hot方式启动的话，不需要收到加 webpack.HotModuleReplacementPlugin 插件
+      hot: true,
       stats: "errors-only"
   },
   module: {
@@ -31,19 +31,19 @@ module.exports = {
       }, {
         loader: "grass-loader",
         options: {
-          libPath: __dirname + '/src'
+          libPath: __dirname + '/src',
         },
       }],
-      exclude: /node_modules/
+      exclude: /node_modules/,
   	}, {
-      test: /\.css$/, // css 可以通过 @import 'xxx.scss';
+      test: /\.css$/,
       use: ExtractTextPlugin.extract({
-        fallback: "style-loader", //当 CSS 没有被提取,采用的loader，感觉像是兼容
+        fallback: "style-loader",
         use: [{
             loader: "css-loader",
             options: {
               modules: true,
-            }
+            },
         }, {
             loader: "postcss-loader", // 添加浏览器兼容前缀
             options: {
@@ -52,27 +52,26 @@ module.exports = {
                 require('postcss-import')({ root: loader.resourcePath }),
                 require('postcss-cssnext')(),
                 require('autoprefixer')(),
-                require('cssnano')() // 压缩css代码
-              ]
-            }
+                require('cssnano')(), // 压缩css代码
+              ],
+            },
         }],
       })
 		}]
 	},
 	plugins: [
-    new webpack.BannerPlugin('xx'),
-    new webpack.DefinePlugin(set_npm_args()),
+    new webpack.BannerPlugin('grass demo'),
+    new webpack.DefinePlugin(setNpmAras()),
     new HtmlWebpackPlugin({
         template: __dirname + "/index.html"
     }),
     new webpack.optimize.OccurrenceOrderPlugin(),
-    // new webpack.optimize.UglifyJsPlugin(), // 暂时不压缩代码
-    new ExtractTextPlugin("style.css"), // 生成的css文件名字
+    new ExtractTextPlugin("style.css"),
     new webpack.HotModuleReplacementPlugin(),
 	]
 }
 
-function set_npm_args () {
+function setNpmAras () {
   return {
     NODE_ENV: `'${process.env.NODE_ENV}'`
   }

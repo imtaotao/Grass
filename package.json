@@ -1,7 +1,7 @@
 {
   "name": "tt-grass",
   "version": "0.0.1-alpha.0",
-  "description": "",
+  "description": "A simple mvvm library",
   "main": "dist/grass.common.js",
   "module": "dist/grass.esm.js",
   "scripts": {
