@@ -1,4 +1,5 @@
 ## 一个简单的 mvvm 库
+[![NPM version][npm-image]][npm-url]
 
 ## [如何使用](https://github.com/imtaotao/Grass/tree/master/demo/root/index.grs)
 
@@ -42,3 +43,6 @@ grass-loader 会预编译模板，所以你可以像 vue 一样使用单文件�
 <br/>
 
 报错信息显示的组件名称，是根据组件的声明名字进行关联的，所以注重的地方是组件创建时的 name。欢迎大家提 bug 啊，一起学习。前端小分队 qq 群：624921236
+
+[npm-image]: https://img.shields.io/npm/v/@rustle/grass.svg?style=flat-square
+[npm-url]: https://www.npmjs.com/package/@rustle/grass

@@ -98,7 +98,7 @@ function genAstCode (component) {
     return
   }
 
-  // deal with css modules hook function
+  // Deal with css modules hook function
   if (typeof component.constructor.CSSModules === 'function') {
     component.constructor.CSSModules(ast, component.name)
   }
