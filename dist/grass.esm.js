@@ -2716,8 +2716,7 @@ function modifyOrdinayAttrAsLibAttr(node) {
 
 function render(widgetVNode, ast) {
   var component = widgetVNode.component,
-      data = widgetVNode.data,
-      componentClass = widgetVNode.componentClass;
+      data = widgetVNode.data;
 
   var vnodeConfig = complierDirectFromAst(ast, component);
   if (!isEmptyObj(data.parentConfig)) {
@@ -2878,10 +2877,13 @@ function getComponentInstance(widgetVNode, parentComponent) {
       return registerComponent;
     };
 
+    var template = function template() {
+      return componentClass.call(this, props, registerComponent, parentComponent);
+    };
+
     var components = Object.create(null);
     var props = getProps(data.parentConfig.attrs);
 
-    var template = componentClass(props, registerComponent, parentComponent);
     instance = createNoStateComponent(props, template, components, componentClass);
   }
   if (tagName) {
@@ -2896,7 +2898,7 @@ function getComponentInstance(widgetVNode, parentComponent) {
   return instance;
 }
 function createNoStateComponent(props, template, component, componentClass) {
-  return {
+  var comp = {
     props: props,
     template: template,
     component: component,
@@ -2919,6 +2921,8 @@ function createNoStateComponent(props, template, component, componentClass) {
       enqueueSetState(this, partialState);
     }
   };
+  setOnlyReadAttr(comp, 'noStateComp', true);
+  return comp;
 }
 function genAstCode(component) {
   var template = component.template,
