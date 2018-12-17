@@ -101,4 +101,14 @@ describe('stateless component', () => {
     }
     Grass.mount(null, b)
   })
+
+  it('this is componnet in no state component', () => {
+    Grass.mount(null, function p () {
+      expect(!!this).toBeTruthy()
+      expect(typeof this).toBe('object')
+      this.setState({})
+      expect(this.$data.stateQueue.length).toBe(1)
+      return '<div></div>'
+    })
+  })
 })

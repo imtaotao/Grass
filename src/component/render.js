@@ -8,7 +8,7 @@ import { migrateComponentStatus } from './component-transfer'
 import complierDirectFromAst from '../directives/index'
 
 export function render (widgetVNode, ast) {
-  const { component, data, componentClass } = widgetVNode
+  const { component, data } = widgetVNode
   const vnodeConfig = complierDirectFromAst(ast, component)
 
   /**

@@ -1,7 +1,7 @@
 import * as _ from '../utils'
 import { getProps, forceUpdate } from './index'
 import { enqueueSetState } from './update-state'
-import { TAG, parseTemplate } from '../ast/parse-template'
+import { parseTemplate } from '../ast/parse-template'
 
 export function getComponentInstance (widgetVNode, parentComponent) {
   const { componentClass, data } = widgetVNode
@@ -31,7 +31,9 @@ export function getComponentInstance (widgetVNode, parentComponent) {
       return registerComponent
     }
 
-    const template = componentClass(props, registerComponent, parentComponent)
+    function template () {
+      return componentClass.call(this, props, registerComponent, parentComponent)
+    }
 
     instance = createNoStateComponent(props, template, components, componentClass)
   }
@@ -53,7 +55,7 @@ export function getComponentInstance (widgetVNode, parentComponent) {
 }
 
 function createNoStateComponent (props, template, component, componentClass) {
-  return {
+  const comp = {
     props,
     template,
     component,
@@ -76,6 +78,8 @@ function createNoStateComponent (props, template, component, componentClass) {
       enqueueSetState(this, partialState)
     }
   }
+  _.setOnlyReadAttr(comp, 'noStateComp', true)
+  return comp
 }
 
 function genAstCode (component) {
