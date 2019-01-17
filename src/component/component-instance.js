@@ -36,6 +36,7 @@ export function getComponentInstance (widgetVNode, parentComponent) {
     }
 
     instance = createNoStateComponent(props, template, components, componentClass)
+    instance.template = instance.template()
   }
 
   if (tagName) {
