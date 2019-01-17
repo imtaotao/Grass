@@ -2419,7 +2419,7 @@ function vfor(node, component, vnodeConf) {
         _loop(_i, _len);
       }
     } else {
-      throw Error('for data must be a "array" or "object", but now is "' + (typeof data === 'undefined' ? 'undefined' : _typeof(data)) + '"');
+      throw Error('Data must be a "array" or "object", but now is "' + (typeof data === 'undefined' ? 'undefined' : _typeof(data)) + '"');
     }
   }
   function addValue(isMultiple, val, key, i, nodeKey) {
@@ -2887,6 +2887,7 @@ function getComponentInstance(widgetVNode, parentComponent) {
     var props = getProps(data.parentConfig.attrs);
 
     instance = createNoStateComponent(props, template, components, componentClass);
+    instance.template = instance.template();
   }
   if (tagName) {
     setOnlyReadAttr(instance, 'name', tagName);

@@ -36,6 +36,7 @@ export function getComponentInstance (widgetVNode, parentComponent) {
     }
 
     instance = createNoStateComponent(props, template, components, componentClass)
+    // we need call component function, because if "ast" already exists, the "template" function will not be called again
     instance.template = instance.template()
   }
 
