@@ -2416,7 +2416,7 @@ function vfor(node, component, vnodeConf) {
         _loop(_i, _len);
       }
     } else {
-      throw Error('Data must be a "array" or "object", but now is "' + (typeof data === 'undefined' ? 'undefined' : _typeof(data)) + '"');
+      throw Error('Data must be a "array" or "object", but now is "' + (typeof data === 'undefined' ? 'undefined' : _typeof(data)) + ': ' + data + '"');
     }
   }
   function addValue(isMultiple, val, key, i, nodeKey) {
