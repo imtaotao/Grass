@@ -139,6 +139,29 @@ describe('directive', () => {
     expect(cm.$el.children[0].onclick).toBe(cm.c)
   })
 
+  it('v-if and ref', done => {
+    const a = () => '<div>a<div/>'
+    class b extends Component {
+      beforeCreate () {
+        this.state = { show: true }
+        this.template = "<div><A v-if='show' ref='a' /></div>"
+        this.component = { A: a }
+        setTimeout(() => {
+          this.setState({ show: false })
+        })
+      }
+      didUpdate () {
+        expect(this.$children.a).toBeNull()
+        expect(this.$el.textContent).toBe('')
+        expect(this.$widgetVNode.container.vtree.children.length).toBe(0)
+        done()
+      }
+    }
+    const cm = b.$mount()
+    expect(cm.$el.textContent).toBe('a')
+    expect(cm.$children.a.name).toBe('A')
+  })
+
   it('v-show', done => {
     class p extends Component {
       c() {}
@@ -311,8 +334,8 @@ describe('directive', () => {
       template () {
         return (`
           <div>
-            <span v-for="val of arr">{{val}}</span>
-            <span v-for="(val, key) of obj">{{key}}{{val}}</span>
+            <b v-for="val of arr">{{val}}</b>
+            <a v-for="(val, key) of obj">{{key}}{{val}}</a>
           </div>
         `)
       }
