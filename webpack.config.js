@@ -12,7 +12,7 @@ module.exports = {
   resolve: {
     extensions: ['.js', '.json', '.css', '.vue', '.grs'],
     alias: {
-      '@': resolve('./demo')
+      '@': resolve('./src')
     }
   },
   devtool: 'source-map',
@@ -31,7 +31,7 @@ module.exports = {
       }, {
         loader: "grass-loader",
         options: {
-          lib: __dirname + '/src',
+          lib: '@',
           needGrass: true,
         },
       }],
