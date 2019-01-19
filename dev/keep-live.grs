@@ -1,0 +1,46 @@
+<template>
+  <div @click.prevent='e => this.click && this.click(e)'>{{ data }}</div>
+</template>
+
+<script>
+  const { Component } = Grass
+
+  class Child extends Component {
+    // #temp
+    beforeCreate () {
+      this.createResponseState({
+        data: 'Child1',
+      }) 
+    }
+
+    click (e) {
+      const data = this.state.data
+      const l = data.length
+
+      this.state.data = data[l - 1] === '1'
+        ? 'Child2'
+        : 'Child1'
+    }
+  }
+
+  class Root extends Component {
+    beforeCreate () {
+      let temp = (/* #temp string */)
+      this.createResponseState({
+        data: 'Root',
+        show: true,
+      })
+
+      temp = `<div>${temp} --- <Child ref='cc' v-if='show'/></div>`
+      this.template = temp
+    }
+
+    component () {
+      return {
+        Child: Child,
+      }
+    }
+  }
+
+  window.r = Root.$mount(document.getElementById('root'))
+</script>
