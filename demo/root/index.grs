@@ -12,7 +12,6 @@
 </template>
 
 <script>
-  import Grass from '../../src'
   import style from './style'
   import List from '../list'
   import AddUser from '../add-user'
@@ -20,6 +19,7 @@
 
   @Grass.CSSModules(style)
   export default class UserList extends Grass.Component {
+    // #temp
     constructor(props) {
       super(props)
       this.state = {

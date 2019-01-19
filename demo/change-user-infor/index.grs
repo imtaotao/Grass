@@ -37,7 +37,6 @@
 </template>
 
 <script>
-  import Grass from "../../src";
   import * as _ from '../util'
   import List from '../list'
   import style from './style'
@@ -45,6 +44,7 @@
   @Grass.event
   @Grass.CSSModules(style)
   export default class ChangeUserComponent extends Grass.Component {
+    // #temp
     constructor(props) {
       super(props)
       this.state = {
@@ -125,7 +125,6 @@
         })
       }
     }
-
 
     isChecked (name) {
       return name === this.state.infor.sex

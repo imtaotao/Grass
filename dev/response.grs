@@ -3,11 +3,11 @@
 </template>
 
 <script>
-  import Grass from '../src'
   import style from './response'
 
   @Grass.CSSModules(style)
   export default class Res extends Grass.Component {
+    // #temp
     constructor (props) {
       super(props)
       this.createResponseState({

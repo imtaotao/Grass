@@ -2878,9 +2878,9 @@ graceful-fs@^4.1.11, graceful-fs@^4.1.2, graceful-fs@^4.1.6, graceful-fs@^4.1.9:
   version "4.1.15"
   resolved "http://registry.npm.taobao.org/graceful-fs/download/graceful-fs-4.1.15.tgz#ffb703e1066e8a0eeaa4c8b80ba9253eeefbfb00"
 
-grass-loader@^0.0.1:
-  version "0.0.1"
-  resolved "http://registry.npm.taobao.org/grass-loader/download/grass-loader-0.0.1.tgz#9bde750827be42cc71c6086537aeffd180c04cb9"
+grass-loader@^0.0.2:
+  version "0.0.2"
+  resolved "http://registry.npm.taobao.org/grass-loader/download/grass-loader-0.0.2.tgz#60582e824bdcb681e69b35d7a96b7a3db3b40e7a"
   dependencies:
     loader-utils "*"
 
@@ -6727,10 +6727,6 @@ vm-browserify@0.0.4:
 void-elements@^2.0.0:
   version "2.0.1"
   resolved "http://registry.npm.taobao.org/void-elements/download/void-elements-2.0.1.tgz#c066afb582bb1cb4128d60ea92392e94d5e9dbec"
-
-vue@^2.5.17:
-  version "2.5.17"
-  resolved "http://registry.npm.taobao.org/vue/download/vue-2.5.17.tgz#0f8789ad718be68ca1872629832ed533589c6ada"
 
 watchpack@^1.4.0:
   version "1.6.0"

@@ -36,7 +36,7 @@
     "cross-env": "^5.1.1",
     "css-loader": "^0.28.7",
     "extract-text-webpack-plugin": "^3.0.2",
-    "grass-loader": "^0.0.1",
+    "grass-loader": "^0.0.2",
     "html-webpack-plugin": "^2.30.1",
     "jasmine-core": "^3.3.0",
     "karma": "^3.1.1",

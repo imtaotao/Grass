@@ -29,7 +29,6 @@
 </template>
 
 <script>
-  import Grass from "../../src"
   import AddUser from '../add-user'
   import ChangeUserComponent from '../change-user-infor'
   import style from './style.css'
@@ -38,6 +37,7 @@
   @Grass.event
   @Grass.CSSModules(style)
   export default class List extends Grass.Component {
+    // #temp
     constructor(props) {
       super(props)
 

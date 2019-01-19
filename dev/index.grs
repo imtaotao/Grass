@@ -16,13 +16,13 @@
 </template>
 
 <script>
-  import Grass, { CSSModules } from '../src'
   import Child from './child'
   import style from './style.css'
   import response from './response.grs'
 
   @Grass.CSSModules(style)
   class Root extends Grass.Component {
+    // #temp
     constructor () {
       super()
       this.createResponseState({

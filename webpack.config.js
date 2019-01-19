@@ -31,7 +31,8 @@ module.exports = {
       }, {
         loader: "grass-loader",
         options: {
-          libPath: __dirname + '/src',
+          lib: __dirname + '/src',
+          needGrass: true,
         },
       }],
       exclude: /node_modules/,

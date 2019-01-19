@@ -14,14 +14,12 @@
 </template>
 
 <script>
-  import Grass from '../src'
-
   @Grass.event
   @Grass.CSSModules(require('./style.css'))
   export default class Child extends Grass.Component {
+    // #temp
     constructor (props) {
       super(props)
-
       this.createState({
         excellent: '你妹的',
       })
