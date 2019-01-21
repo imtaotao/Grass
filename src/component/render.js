@@ -1,11 +1,9 @@
 import * as _ from '../utils/index'
 import { TAG } from '../ast/parse-template'
-import { WidgetVNode } from './component-vnode'
-import { createVNode } from './create-vnode'
-import { getSlotVNode, pushSlotVNode } from './component-slot'
-import { createAsyncComponent } from './component-async'
-import { migrateComponentStatus } from './component-transfer'
 import complierDirectFromAst from '../directives/index'
+import { migrateComponentStatus } from './component-transfer'
+import { getSlotVNode, pushSlotVNode } from './component-slot'
+import { createVNode, createComponentVNode } from './create-vnode'
 
 export function render (widgetVNode, ast) {
   const { component, data } = widgetVNode
@@ -41,36 +39,17 @@ export function genChildren (children, component) {
           // If a slot
           if (child.tagName === 'slot') {
             const vnode = getSlotVNode(child.attrs.name, component)
-
-            if (vnode) {
-              pushSlotVNode(vnodeChildren, vnode)
-            }
+            vnode && pushSlotVNode(vnodeChildren, vnode)
           }
         } else {
           // If a component tag
-          let childClass = getComponentClass(child, component)
-          
-          // If a async component
-          if (childClass.async) {
-            const { factory, cb } = childClass
-            childClass = createAsyncComponent(factory, component, cb)
-            // If no childClass, represent no loading component or other component.
-            if (!childClass) { 
-              // We don't need placeholder vnode, not render just fine.
-              continue
-            }
-          }
-
-          const slotVNode = genChildren(child.children, component)
-          const vnode = new WidgetVNode(component, child, slotVNode, childClass)
-
-          vnodeChildren.push(vnode)
+          const childClass = getComponentClass(child, component)
+          const vnode = createComponentVNode(child, childClass, component)
+          vnode && vnodeChildren.push(vnode)
         }
       } else {
         const content = _.toString(child.content)
-        if (content.trim()) {
-          vnodeChildren.push(content)
-        }
+        content.trim() && vnodeChildren.push(content)
       }
     }
   }

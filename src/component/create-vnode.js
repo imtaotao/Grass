@@ -1,5 +1,8 @@
 import * as _ from '../utils'
 import { h } from '../virtual-dom'
+import { genChildren } from './render'
+import { WidgetVNode } from './component-vnode'
+import { createAsyncComponent } from './component-async'
 import { elementCreated } from '../global-api/custom-directive'
 
 export function createVNode (vnodeConfig, children) {
@@ -28,5 +31,22 @@ export function createVNode (vnodeConfig, children) {
     vnode.slot = attrs.slot
   }
 
+  return vnode
+}
+
+export function createComponentVNode (child, childClass, component) {
+  // If a async component
+  if (childClass.async) {
+    const { factory, cb } = childClass
+    childClass = createAsyncComponent(factory, component, cb)
+    // If no childClass, represent no loading component or other component.
+    if (!childClass) { 
+      // We don't need placeholder vnode, not render just fine.
+      return null
+    }
+  }
+
+  const slotVNode = genChildren(child.children, component)
+  const vnode = new WidgetVNode(component, child, slotVNode, childClass)
   return vnode
 }
