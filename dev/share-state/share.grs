@@ -1,0 +1,14 @@
+<template>
+  <div>
+    
+  </div>
+</template>
+
+<script>
+  export default class Share extends Grass.Component {
+    // #temp
+    createBefore () {
+      
+    }
+  }
+</script>

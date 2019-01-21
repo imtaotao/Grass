@@ -25,7 +25,7 @@
 
   class Root extends Component {
     beforeCreate () {
-      let temp = (/* #temp string */)
+      let temp = String(/* #temp string */)
       this.createResponseState({
         data: 'Root',
         show: true,
