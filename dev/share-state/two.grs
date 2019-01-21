@@ -13,5 +13,9 @@
         parentData: 'from Two',
       }
     }
+
+    created () {
+      console.log(this.$widgetVNode.container.vtree);
+    }
   }
 </script>

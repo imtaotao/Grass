@@ -25,6 +25,6 @@
       }
     }
   }
-
-  export default Share
+  
+  export default Grass.share(Share, { parentData: 'from share' })
 </script>

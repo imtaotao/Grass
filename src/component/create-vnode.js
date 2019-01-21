@@ -1,7 +1,7 @@
 import * as _ from '../utils'
 import { h } from '../virtual-dom'
 import { genChildren } from './render'
-import { WidgetVNode } from './component-vnode'
+import { WidgetVNode, transferData } from './component-vnode'
 import { createAsyncComponent } from './component-async'
 import { elementCreated } from '../global-api/custom-directive'
 
@@ -45,8 +45,20 @@ export function createComponentVNode (child, childClass, component) {
       return null
     }
   }
-
+  
   const slotVNode = genChildren(child.children, component)
+  
+  // If a share component
+  if (childClass.share) {
+    const { fn, component } = childClass
+    const oldVNode = component.$widgetVNode
+    const newVNode = new WidgetVNode(component, child, slotVNode, fn, true)
+
+    transferData(newVNode, oldVNode)
+
+    return newVNode
+  }
+
   const vnode = new WidgetVNode(component, child, slotVNode, childClass)
   return vnode
 }
