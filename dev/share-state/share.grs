@@ -1,14 +1,30 @@
 <template>
-  <div>
-    
+  <div className='share'>
+    <style>
+      .share {
+        width: 250px;
+        height: 20px;
+        margin: 5px;
+        line-height: 20px;
+        text-align: center;
+        border-radius: 3px;
+        background: #e88c8c;
+        color: #fff;
+      }
+    </style>
+    {{ text }} : {{ this.props.parentData }}
   </div>
 </template>
 
 <script>
-  export default class Share extends Grass.Component {
+  class Share extends Grass.Component {
     // #temp
-    createBefore () {
-      
+    beforeCreate () {
+      this.state = {
+        text: 'tao',
+      }
     }
   }
+
+  export default Share
 </script>

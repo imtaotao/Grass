@@ -1,13 +1,63 @@
 <template>
-  <div>
-    
+  <div className='container'>
+    <style>
+      .container {
+        display: border-box;
+        width: 500px;
+        height: 250px;
+        margin:0 auto;
+        border-radius: 3px;
+        background: #dff7f4;
+        padding: 10px 0 0 10px;
+      }
+      .button {
+        display: block;
+        width: 80px;
+        height: 30px;
+        color: #fff;
+        cursor: pointer;
+        margin-bottom: 10px;
+        line-height: 30px;
+        text-align: center;
+        border-radius: 3px;
+        background: #61b967;
+      }
+    </style>
+    <div :style='{ marginBottom: "10px" }'>{{ title }}</div>
+    <div>
+      <span className='button' @click='this.change.bind(this)'>setState</span>
+      <One/>
+      <Two/>
+      self：
+      <Share :parentData='parentData' />
+    </div>
   </div>
 </template>
 
-<<script>
+<script>
+  import One from './one'
+  import Two from './two'
+  import Share from './share'
+
   class Root extends Grass.Component {
     // #temp
+    beforeCreate () {
+      this.component = {
+        One,
+        Two,
+        Share,
+      }
+      this.state = {
+        show: true,
+        parentData: 'from Root',
+        title: 'Share state Component test demo'
+      }
+    }
+
+    change () {
+      this.setState({ parentData: 'from Root --> change'})
+    }
   }
 
-  Root.$mount(window.root)
+  window.r = Root.$mount(window.root)
 </script>

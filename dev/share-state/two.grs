@@ -1,0 +1,17 @@
+<template>
+  <div>two: <Share :parentData='parentData'/></div>
+</template>
+
+<script>
+  import Share from './share'
+
+  export default class Two extends Grass.Component {
+    // #temp
+    beforeCreate () {
+      this.component = { Share }
+      this.state = {
+        parentData: 'from Two',
+      }
+    }
+  }
+</script>
