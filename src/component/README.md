@@ -27,26 +27,40 @@
 class 组件必须有一个 template 属性或方法，如果为一个方法，它应该返回一段模板代码，否则会抛出一个错误。模板代码应该只能有**一个根元素**
 
 ## component
-component 属性或方法用来注册子组件，它应该为一个对象或返回一个对象
+component 属性或方法用来注册子组件，它应该为一个对象或者是返回一个对象的方法
+```js
+  class P extend Grass.Component {
+    constructor (props) {
+      super(props)
+      this.component = { XXComponent: xx }
+    }
+    // or
+    component () {
+      return {
+        XXComponent: xx,
+      }
+    }
+  }
+```
 
 ## 生命周期
 生命周期的回调只能在 class 形式的组件中使用
-+ beforeCreate
-此时组件刚刚实例化完成，此时的还未对组件进行 mount，所以，在这里可以定义组件的 `state`、`component`、`template` 等属性，但是所有此时组件内部的属性都为初始值，例如 `$parent`、`$children` 等
++ beforeCreate <br>
+此时组件刚刚实例化完成，此时的还未对组件进行实例化，所以，在这里可以定义组件的 `state`、`component`、`template` 等属性，但是所有此时组件内部的属性都为初始值，例如 `$parent`、`$children` 等
 
-+ created
-在组件 mount 之后，会调用此方法，此时所有的组件内部属性值已经与组件树联系起来，此函数接受一个参数，为 mount 后的真实 dom 元素
++ created <br>
+在组件实例化之后，会调用此方法，此时所有的组件内部属性值已经与组件树联系起来，此函数接受一个参数，为组件挂载后的真实 dom 元素
 
-+ willUpdate
++ willUpdate <br>
 在组件将要更新的时候调用，此函数接受一个参数，为当前组件真实的 dom 元素，与组件的 `$el` 属性一致。`this.$el === dom`
 
-+ willReceiveProps
++ willReceiveProps <br>
 在子组件将要更新的时候，会调用此函数，它将在 `willUpdate` 之前调用，这个函数接受一个新的 props 参数。这个函数的主要是用来优化组件，避免不必要的渲染，`return false` 可以阻止当前组件的更新
 
-+ didUpdate
++ didUpdate <br>
 在组件更新完成后调用，此函数接受一个参数，为当前组件真实的 dom 元素
 
-+ destroy
++ destroy <br>
 在组件即将销毁的时候调用，此函数接受一个参数，为当前组件真实的 dom 元素。在此函数中可以对组件的一些事件绑定等进行解绑，避免内存的泄露
 
 
@@ -121,7 +135,7 @@ component 属性或方法用来注册子组件，它应该为一个对象或返�
 `createResponseState` 能够创建一个响应式的 state，同样的，他会丢弃 state 原有的原型链
 
 ### setState
-在非响应式的模式下（通过 $isWatch 查看当前组件的模式)，可以通过 `setState` 来更改状态，更新视图，在响应式模式下，此方法会给出一个报错。状态的更改不会立即响应到视图，也不能立即得到更改的状态。它有两种使用方式，一种为传入 state，一种为回调函数形式，在回调函数中，你能够拿到最新的 state，这个回调需要返回一个 state
+在非响应式的模式下（可以通过 $isWatch 查看当前组件的模式)，可以通过 `setState` 来更改状态，更新视图，在响应式模式下，此方法会给出一个报错。状态的更改不会立即响应到视图，也不能立即得到更改的状态。它有两种使用方式，一种为传入 state，一种为回调函数形式，在回调函数中，你能够拿到最新的 state，这个回调需要返回一个 state
 ```js
   class P extends Grass.Component {
     created () {
