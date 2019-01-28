@@ -1284,11 +1284,6 @@ function patchIndices(patches) {
   return indices;
 }
 
-var h$1 = h;
-var diff$1 = diff;
-var patch$1 = patch;
-var create = createElement;
-
 var uid = 0;
 
 var Dep = function () {
@@ -1823,7 +1818,7 @@ function createVNode(vnodeConfig, children) {
       attrs = vnodeConfig.attrs,
       customDirection = vnodeConfig.customDirection;
 
-  var vnode = h$1(tagName, attrs, children, function (dom, vnode) {
+  var vnode = h(tagName, attrs, children, function (dom, vnode) {
     elementCreated(dom, customDirection, vnode);
   });
   vnode.data = Object.create(null);
@@ -1977,7 +1972,7 @@ function ensureCtor(component) {
 
 var scope = null;
 var chain = [scope];
-function create$1(s) {
+function create(s) {
   if (s) {
     Object.setPrototypeOf(s, scope);
     chain.push(s);
@@ -2031,7 +2026,7 @@ function isLegScope(obj) {
 }
 var scope$1 = {
   add: add,
-  create: create$1,
+  create: create,
   destroy: destroy,
   getScope: getScope,
   resetScope: resetScope,
@@ -2351,7 +2346,7 @@ function createVnodeConf(astNode, parent) {
     }
     return tag;
   }
-  return vText$2(astNode.content, parent);
+  return vText$1(astNode.content, parent);
 }
 function vTag(tagName, parent, attrs, indexKey, direction, children) {
   var node = Object.create(null);
@@ -2364,7 +2359,7 @@ function vTag(tagName, parent, attrs, indexKey, direction, children) {
   node.direction = direction;
   return node;
 }
-function vText$2(content, parent) {
+function vText$1(content, parent) {
   var node = Object.create(null);
   node.type = TEXT;
   node.parent = parent;
@@ -2511,7 +2506,7 @@ function text(val, component, vnodeConf) {
   var code = 'with($obj_) { return ' + val + '; }';
   var content = runExecuteContext(code, 'text', vnodeConf, component);
   if (isReservedTag(vnodeConf.tagName)) {
-    vnodeConf.children = [vText$2(content, vnodeConf)];
+    vnodeConf.children = [vText$1(content, vnodeConf)];
   } else {
     vnodeConf.vTextResult = content;
   }
@@ -2814,18 +2809,18 @@ function batchUpdateQueue(component) {
   Promise.resolve().then(function () {
     var queue = component.$data.stateQueue;
     var state = Object.assign({}, component.state);
-    var index$$1 = 0;
-    while (index$$1 < queue.length) {
-      var currentIndex = index$$1;
-      index$$1++;
+    var index = 0;
+    while (index < queue.length) {
+      var currentIndex = index;
+      index++;
       state = mergeState(state, queue[currentIndex]);
-      if (index$$1 > CAPACITY) {
-        var newLength = queue.length - index$$1;
+      if (index > CAPACITY) {
+        var newLength = queue.length - index;
         for (var i = 0; i < newLength; i++) {
-          queue[i] = queue[index$$1 + i];
+          queue[i] = queue[index + i];
         }
-        queue.length -= index$$1;
-        index$$1 = 0;
+        queue.length -= index;
+        index = 0;
       }
     }
     queue.length = 0;
@@ -2844,8 +2839,8 @@ function updateDomTree(component) {
   }
   var ast = component.constructor.$ast;
   var newTree = render(vnode, ast);
-  var patchs = diff$1(vtree, newTree);
-  patch$1(dom, patchs);
+  var patchs = diff(vtree, newTree);
+  patch(dom, patchs);
   cacheComponentDomAndVTree(vnode, newTree, dom);
   if (!component.noStateComp) {
     component.didUpdate(dom);
@@ -3043,7 +3038,7 @@ function renderingRealDom(widgetVNode) {
 
   var ast = componentClass.$ast;
   var vtree = render(widgetVNode, ast);
-  var dom = create(vtree);
+  var dom = createElement(vtree);
   return { dom: dom, vtree: vtree };
 }
 function cacheComponentDomAndVTree(widgetVNode, vtree, dom) {
@@ -3224,7 +3219,7 @@ var Component = function () {
 }();
 function mount(rootDOM, componentClass) {
   var vnode = new WidgetVNode(null, {}, null, componentClass);
-  var dom = create(vnode);
+  var dom = createElement(vnode);
   rootDOM && rootDOM.appendChild(dom);
   return vnode.component;
 }
@@ -3240,7 +3235,7 @@ function getProps(attrs, requireList, name) {
     return props;
   }
   var keys = Object.keys(attrs);
-  var index$$1 = null;
+  var index = null;
   for (var i = 0; i < keys.length; i++) {
     var key = keys[i];
     if (filterPropsList[key]) {
@@ -3249,9 +3244,9 @@ function getProps(attrs, requireList, name) {
     var val = attrs[key];
     if (!requireList) {
       props[key] = val;
-    } else if (requireList && ~(index$$1 = requireList.indexOf(key))) {
+    } else if (requireList && ~(index = requireList.indexOf(key))) {
       props[key] = val;
-      requireList.splice(index$$1, 1);
+      requireList.splice(index, 1);
     }
   }
   if (requireList && requireList.length) {
