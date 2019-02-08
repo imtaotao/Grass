@@ -36,7 +36,8 @@ Grass.directive('tao', (dom, val, vnode) => {
 ```
 
 ## CSSModules
-Grass 提供了 一个 CSSModules api，用于配合 css-loader 做 css 的模块化，你可以使用 styleName 和 className 做区分
+Grass 提供了 一个 CSSModules api，用于配合 css-loader 做 css 的模块化，你可以使用 styleName 和 className 做区分，
+需要注意的是，styleName 会在模板解析时进行转换，所以不能使用 `v-bind:styleName='xx'`（后续可能修复）
 ```js
   import style from './style.css'
 
@@ -46,6 +47,7 @@ Grass 提供了 一个 CSSModules api，用于配合 css-loader 做 css 的模�
       return '<div styleName="xx"></div>'
     }
   }
+  
 ```
 
 ## async

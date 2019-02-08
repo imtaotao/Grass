@@ -133,7 +133,6 @@ describe('Component', () => {
     const ast = cm.constructor.$ast
     const vnode = cm.$widgetVNode.container.vtree
     expect(ast.attrs.styleName).toBe('a')
-    expect(vnode.properties.styleName).toBe('a')
     expect(vnode.properties.className).toBeUndefined()
   })
 
