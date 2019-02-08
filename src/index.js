@@ -19,6 +19,6 @@ if (Object.setPrototypeOf) {
   Object.setPrototypeOf(Grass, prototype)
 } else {
   Grass.__proto__ = prototype
-} 
+}
 
 export default Grass

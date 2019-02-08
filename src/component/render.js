@@ -10,6 +10,11 @@ import complierDirectFromAst from '../directives/index'
 export function render (widgetVNode, ast) {
   const { component, data } = widgetVNode
   const vnodeConfig = complierDirectFromAst(ast, component)
+  
+   // Deal with css modules hook function
+   if (typeof component.constructor.CSSModules === 'function') {
+    component.constructor.CSSModules(vnodeConfig, component.name)
+  }
 
   /**
    * We need transfer some data to child component from parent component

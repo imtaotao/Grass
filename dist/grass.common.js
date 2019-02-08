@@ -731,9 +731,9 @@ if (hasTransition) {
   }
 }
 function enter(node, vnode, rm) {
-  var _vnode$data = vnode.data,
-      vTransitionType = _vnode$data.vTransitionType,
-      vTransitionData = _vnode$data.vTransitionData;
+  var _ref = vnode.data || {},
+      vTransitionType = _ref.vTransitionType,
+      vTransitionData = _ref.vTransitionData;
 
   if (!vTransitionType) {
     rm();
@@ -776,9 +776,9 @@ function enter(node, vnode, rm) {
   });
 }
 function leave(node, vnode, rm) {
-  var _vnode$data2 = vnode.data,
-      vTransitionType = _vnode$data2.vTransitionType,
-      vTransitionData = _vnode$data2.vTransitionData;
+  var _ref2 = vnode.data || {},
+      vTransitionType = _ref2.vTransitionType,
+      vTransitionData = _ref2.vTransitionData;
 
   if (!vTransitionType) {
     rm();
@@ -2722,6 +2722,9 @@ function render(widgetVNode, ast) {
       data = widgetVNode.data;
 
   var vnodeConfig = complierDirectFromAst(ast, component);
+  if (typeof component.constructor.CSSModules === 'function') {
+    component.constructor.CSSModules(vnodeConfig, component.name);
+  }
   if (!isEmptyObj(data.parentConfig)) {
     migrateComponentStatus(data.parentConfig, vnodeConfig);
   }
@@ -2939,9 +2942,6 @@ function genAstCode(component) {
   if (!(ast = parseTemplate(template.trim(), name))) {
     grassWarn('No string template available', name);
     return;
-  }
-  if (typeof component.constructor.CSSModules === 'function') {
-    component.constructor.CSSModules(ast, component.name);
   }
   return ast;
 }
