@@ -1,5 +1,5 @@
 import * as _ from '../../utils/index'
-import { enter, leave, addClass, applyPendingNode } from './transition'
+import { enter, leave, applyPendingNode } from './transition'
 
 export default function applyProperties(node, vnode, props, previous) {
   for (let propName in props) {
@@ -14,8 +14,6 @@ export default function applyProperties(node, vnode, props, previous) {
         transition(node, vnode, propValue, () => {
           node[propName] = propValue
         })
-      } else if (propName === 'className') {
-        addClass(node, propValue)
       } else if (isAllow(propName)) {
         node[propName] = propValue
       }

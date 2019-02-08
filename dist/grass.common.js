@@ -965,8 +965,6 @@ function applyProperties(node, vnode, props, previous) {
         transition(node, vnode, propValue, function () {
           node[propName] = propValue;
         });
-      } else if (propName === 'className') {
-        addClass(node, propValue);
       } else if (isAllow(propName)) {
         node[propName] = propValue;
       }

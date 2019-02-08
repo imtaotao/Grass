@@ -10,7 +10,7 @@ import complierDirectFromAst from '../directives/index'
 export function render (widgetVNode, ast) {
   const { component, data } = widgetVNode
   const vnodeConfig = complierDirectFromAst(ast, component)
-
+  
   /**
    * We need transfer some data to child component from parent component
    * example: props, slot data
