@@ -29,6 +29,7 @@ export class Component {
   created (dom) {}
   willUpdate (dom) {}
   willReceiveProps (newProps) {}
+  didReceiveProps () {}
   didUpdate (dom) {}
   destroy (dom) {}
 

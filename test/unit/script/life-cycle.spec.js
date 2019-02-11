@@ -139,6 +139,43 @@ describe('Life cycle', () => {
     expect(b.$mount().$el.textContent).toBe('1')
   })
 
+  it('didReceiveProps', done => {
+    let i = 0, j = 0
+    class a extends Component {
+      constructor (props) {
+        super(props)
+        expect(props.a).toBe(1)
+      }
+      didReceiveProps () {
+        i++
+        expect(this.props.a).toBe(2)
+        this.forceUpdate()
+      }
+      didUpdate () {
+        j++
+        expect(i).toBe(1)
+        j === 2 && done()
+      }
+      template () {
+        return '<div>{{this.props.a}}</div>'
+      }
+    }
+    class b extends Component {
+      constructor () {
+        super()
+        this.state = { a: 1 }
+        this.component = { Child: a }
+        setTimeout(() => {
+          this.setState({ a: 2 })
+        })
+      }
+      template () {
+        return '<div><Child :a="a"/></div>'
+      }
+    }
+    expect(b.$mount().$el.textContent).toBe('1')
+  })
+
   it('didUpdate', done => {
     (class p extends Component {
       beforeCreate () {
@@ -205,16 +242,20 @@ describe('Life cycle', () => {
         expect(i).toBe(2)
         i++
       }
-      willUpdate () {
+      didReceiveProps () {
         expect(i).toBe(3)
         i++
       }
-      didUpdate () {
+      willUpdate () {
         expect(i).toBe(4)
         i++
       }
-      destroy () {
+      didUpdate () {
         expect(i).toBe(5)
+        i++
+      }
+      destroy () {
+        expect(i).toBe(6)
         done()
       }
       template () {

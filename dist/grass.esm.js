@@ -3059,6 +3059,7 @@ function _update(_ref) {
       component.constructor.call(component, newProps, empty, component.$parent);
     }
     component.props = newProps;
+    !component.noStateComp && component.didReceiveProps();
     updateDomTree(component);
   }
 }
@@ -3142,6 +3143,9 @@ var Component = function () {
   }, {
     key: 'willReceiveProps',
     value: function willReceiveProps(newProps) {}
+  }, {
+    key: 'didReceiveProps',
+    value: function didReceiveProps() {}
   }, {
     key: 'didUpdate',
     value: function didUpdate(dom) {}

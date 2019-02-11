@@ -128,6 +128,7 @@ function update ({ component, data: { parentConfig } }) {
     }
 
     component.props = newProps
+    !component.noStateComp && component.didReceiveProps()
     updateDomTree(component)
   }
 }
