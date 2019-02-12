@@ -2990,6 +2990,9 @@ function genAstCode(component) {
     grassWarn('No string template available', name);
     return;
   }
+  if (typeof component.constructor.CSSModules === 'function') {
+    component.constructor.CSSModules(ast, component.name);
+  }
   return ast;
 }
 
@@ -3529,18 +3532,17 @@ function CSSModules(styles) {
     if (component && !isEmptyObj(styles)) {
       component.$styles = styles;
     }
-    return component;
     component.CSSModules = function (vnodeConf, _compName) {
       compName = _compName;
       if (haveStyleName(vnodeConf)) {
-        replaceStyleName(vnodeConf.attrs, style, vnodeConf.tagName);
+        replaceStyleName(vnodeConf.attrs, styles, vnodeConf.tagName);
       }
-      applyChildren(vnodeConf, style);
+      applyChildren(vnodeConf, styles);
     };
     return component;
   };
 }
-function applyChildren(config, style) {
+function applyChildren(config, styles) {
   if (!config) {
     return;
   }
@@ -3549,21 +3551,21 @@ function applyChildren(config, style) {
     for (var i = 0, len = children.length; i < len; i++) {
       var child = children[i];
       if (haveStyleName(child)) {
-        replaceStyleName(child.attrs, style, child.tagName);
+        replaceStyleName(child.attrs, styles, child.tagName);
       }
-      applyChildren(child, style);
+      applyChildren(child, styles);
     }
   }
 }
-function replaceStyleName(attrs, style, tagName) {
+function replaceStyleName(attrs, styles, tagName) {
   var styleString = attrs.styleName;
   if (typeof styleString === 'string') {
     var styleNames = styleString.split(' ');
     var result = '';
     for (var i = 0, len = styleNames.length; i < len; i++) {
       var styleName = styleNames[i];
-      if (styleName && hasOwn(style, styleName)) {
-        var value = style[styleName];
+      if (styleName && hasOwn(styles, styleName)) {
+        var value = styles[styleName];
         result += !result ? value : ' ' + value;
       } else if (styleName) {
         grassWarn('"' + styleName + '" CSS module is undefined', compName + (': <' + tagName + '/>'));

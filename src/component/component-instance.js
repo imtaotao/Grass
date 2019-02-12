@@ -99,10 +99,10 @@ function genAstCode (component) {
     return
   }
 
-  // // Deal with css modules hook function, can't use "v-bind:styleName" transfer className
-  // if (typeof component.constructor.CSSModules === 'function') {
-  //   component.constructor.CSSModules(ast, component.name)
-  // }
+  // // Deal with css modules hook function
+  if (typeof component.constructor.CSSModules === 'function') {
+    component.constructor.CSSModules(ast, component.name)
+  }
 
   return ast
 }

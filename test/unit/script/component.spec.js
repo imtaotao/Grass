@@ -133,9 +133,10 @@ describe('Component', () => {
     const cm = Grass.mount(null, compClass)
     const ast = cm.constructor.$ast
     const vnode = cm.$widgetVNode.container.vtree
-    expect(ast.attrs.className).toBeUndefined()
-    expect(ast.attrs.styleName).toBe('a')
-    expect(vnode.properties.styleName).toBe('a')
+    expect(ast.attrs.className).toBe('b')
+    // if use styleName and not use v-bind:styleName, the styleName transfer className in ast
+    expect(ast.attrs.styleName).toBeUndefined()
+    expect(vnode.properties.styleName).toBeUndefined()
     setTimeout(() => {
       expect(cm.$el.className).toBe('b')
       done()

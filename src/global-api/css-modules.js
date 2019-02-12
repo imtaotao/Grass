@@ -7,22 +7,21 @@ export default function CSSModules (styles) {
     if (component && !_.isEmptyObj(styles)) {
       component.$styles = styles
     }
-    return component
 
     component.CSSModules = function (vnodeConf, _compName) {
       compName = _compName
       if (haveStyleName(vnodeConf)) {
-        replaceStyleName(vnodeConf.attrs, style, vnodeConf.tagName)
+        replaceStyleName(vnodeConf.attrs, styles, vnodeConf.tagName)
       }
 
-      applyChildren(vnodeConf, style)
+      applyChildren(vnodeConf, styles)
     }
 
     return component
   }
 }
 
-function applyChildren (config, style) {
+function applyChildren (config, styles) {
   if (!config) {
     return
   }
@@ -34,15 +33,15 @@ function applyChildren (config, style) {
       const child = children[i]
 
       if (haveStyleName(child)) {
-        replaceStyleName(child.attrs, style, child.tagName)
+        replaceStyleName(child.attrs, styles, child.tagName)
       }
 
-      applyChildren(child, style)
+      applyChildren(child, styles)
     }
   }
 }
 
-function replaceStyleName (attrs, style, tagName) {
+function replaceStyleName (attrs, styles, tagName) {
   const styleString = attrs.styleName
 
   if (typeof styleString === 'string') {
@@ -52,8 +51,8 @@ function replaceStyleName (attrs, style, tagName) {
     for (let i = 0, len = styleNames.length; i < len; i++) {
       const styleName = styleNames[i]
 
-      if (styleName && _.hasOwn(style, styleName)) {
-        const value = style[styleName]
+      if (styleName && _.hasOwn(styles, styleName)) {
+        const value = styles[styleName]
 
         result += !result ? value : ' ' + value
       } else if (styleName) {
