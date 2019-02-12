@@ -1,7 +1,7 @@
 <template>
   <div
     :className='m ? "size" : "smailSize"'
-    :styleName='"add " + (m ? "default" : "")'
+    styleName='add default'
     @click='this.change'>fdsf</div>
 </template>
 

@@ -969,11 +969,13 @@ function applyProperties(node, vnode, props, previous) {
         });
       } else if (propName === 'styleName' && propValue) {
         var styleNameRes = getNormalStyleNameRes(vnode, propValue);
-        var result = mergeClassName(props.className, styleNameRes);
-        if (result !== node.className) {
-          node.className = result;
+        if (styleNameRes) {
+          var result = mergeClassName(props.className, styleNameRes);
+          if (result !== node.className) {
+            node.className = result;
+          }
+          delete props.className;
         }
-        delete props.className;
       } else if (propName === 'className') {
         var preValue = previous && previous.className;
         if (propValue !== preValue) {
@@ -2988,9 +2990,6 @@ function genAstCode(component) {
     grassWarn('No string template available', name);
     return;
   }
-  if (typeof component.constructor.CSSModules === 'function') {
-    component.constructor.CSSModules(ast, component.name);
-  }
   return ast;
 }
 
@@ -3524,66 +3523,13 @@ function hasExpanded(compClass) {
   return compClass.remove === compClass.prototype.remove;
 }
 
-var compName = void 0;
 function CSSModules(styles) {
   return function (component) {
     if (component && !isEmptyObj(styles)) {
       component.$styles = styles;
     }
-    component.CSSModules = function (vnodeConf, _compName) {
-      compName = _compName;
-      if (haveStyleName(vnodeConf)) {
-        replaceStyleName(vnodeConf.attrs, styles, vnodeConf.tagName);
-      }
-      applyChildren(vnodeConf, styles);
-    };
     return component;
   };
-}
-function applyChildren(config, styles) {
-  if (!config) {
-    return;
-  }
-  var children = config.children;
-  if (children) {
-    for (var i = 0, len = children.length; i < len; i++) {
-      var child = children[i];
-      if (haveStyleName(child)) {
-        replaceStyleName(child.attrs, styles, child.tagName);
-      }
-      applyChildren(child, styles);
-    }
-  }
-}
-function replaceStyleName(attrs, styles, tagName) {
-  var styleString = attrs.styleName;
-  if (typeof styleString === 'string') {
-    var styleNames = styleString.split(' ');
-    var result = '';
-    for (var i = 0, len = styleNames.length; i < len; i++) {
-      var styleName = styleNames[i];
-      if (styleName && hasOwn(styles, styleName)) {
-        var value = styles[styleName];
-        result += !result ? value : ' ' + value;
-      } else if (styleName) {
-        grassWarn('"' + styleName + '" CSS module is undefined', compName + (': <' + tagName + '/>'));
-      }
-    }
-    if (result) {
-      attrs.styleName = undefined;
-      mergeClassName$1(attrs, result);
-    }
-  }
-}
-function mergeClassName$1(attrs, classResult) {
-  if (!attrs.className) {
-    attrs.className = classResult;
-  } else {
-    attrs.className += ' ' + classResult;
-  }
-}
-function haveStyleName(node) {
-  return node && node.attrs && node.attrs.styleName;
 }
 
 function async(factory, cb) {

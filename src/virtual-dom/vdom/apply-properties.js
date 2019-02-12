@@ -17,12 +17,14 @@ export default function applyProperties(node, vnode, props, previous) {
       } else if (propName === 'styleName' && propValue) {
         // process styleName
         const styleNameRes = getNormalStyleNameRes(vnode, propValue)
-        const result = mergeClassName(props.className, styleNameRes)
-        if (result !== node.className) {
-          node.className = result
+        if (styleNameRes) {
+          const result = mergeClassName(props.className, styleNameRes)
+          if (result !== node.className) {
+            node.className = result
+          }
+          // aviod repeat set className
+          delete props.className
         }
-        // aviod repeat set className
-        delete props.className
       } else if (propName === 'className') {
         // diff className
         const preValue = previous && previous.className
