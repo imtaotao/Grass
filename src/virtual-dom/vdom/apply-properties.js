@@ -14,6 +14,21 @@ export default function applyProperties(node, vnode, props, previous) {
         transition(node, vnode, propValue, () => {
           node[propName] = propValue
         })
+      } else if (propName === 'styleName' && propValue) {
+        // process styleName
+        const styleNameRes = getNormalStyleNameRes(vnode, propValue)
+        const result = mergeClassName(props.className, styleNameRes)
+        if (result !== node.className) {
+          node.className = result
+        }
+        // aviod repeat set className
+        delete props.className
+      } else if (propName === 'className') {
+        // diff className
+        const preValue = previous && previous.className
+        if (propValue !== preValue) {
+          node[propName] = propValue
+        }
       } else if (isAllow(propName)) {
         node[propName] = propValue
       }
@@ -95,6 +110,44 @@ function transition (node, vnode, propValue, callback) {
   } else {
     leave(node, vnode, callback)
   }
+}
+
+function getNormalStyleNameRes (vnode, propValue) {
+  const styles = vnode.data && vnode.data.styles
+  if (styles) {
+    const tagName = vnode.tagName
+    const compName = vnode.data && vnode.data.compName
+    return processStyleName(propValue, styles, tagName, compName)
+  }
+  return null
+}
+
+function processStyleName (styleString, style, tagName, compName) {
+  if (typeof styleString === 'string') {
+    const styleNames = styleString.split(' ')
+    let result = ''
+
+    for (let i = 0, len = styleNames.length; i < len; i++) {
+      const styleName = styleNames[i]
+
+      if (styleName && _.hasOwn(style, styleName)) {
+        const value = style[styleName]
+
+        result += !result ? value : ' ' + value
+      } else if (styleName) {
+        compName = compName || 'unknow'
+        tagName = tagName.toLocaleLowerCase()
+        _.grassWarn(`"${styleName}" CSS module is undefined`, compName + `: <${tagName}/>`)
+      }
+    }
+    return result
+  }
+  return null
+}
+
+function mergeClassName (className, classResult) {
+  if (!className) return classResult
+  return className + ' ' + classResult
 }
 
 function isObject(x) {

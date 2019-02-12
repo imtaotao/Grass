@@ -2,11 +2,12 @@ import * as _ from '../utils/index'
 
 let compName
 
-export default function CSSModules (style) {
+export default function CSSModules (styles) {
   return component => {
-    if (!component || _.isEmptyObj(style)) {
-      return component
+    if (component && !_.isEmptyObj(styles)) {
+      component.$styles = styles
     }
+    return component
 
     component.CSSModules = function (vnodeConf, _compName) {
       compName = _compName

@@ -2,7 +2,9 @@ import * as _ from '../utils'
 import { h } from '../virtual-dom'
 import { elementCreated } from '../global-api/custom-directive'
 
-export function createVNode (vnodeConfig, children) {
+export function createVNode (vnodeConfig, children, component) {
+  const compName = component.name
+  const styles = component.constructor.$styles
   const { tagName, attrs, customDirection } = vnodeConfig
 
   const vnode = h(tagName, attrs, children, (dom, vnode) => {
@@ -10,6 +12,8 @@ export function createVNode (vnodeConfig, children) {
   })
 
   vnode.data = Object.create(null)
+  vnode.data.styles = styles
+  vnode.data.compName = compName
 
   if (vnodeConfig.vTransitionType) {
     const { vTransitionType, vTransitionData } = vnodeConfig

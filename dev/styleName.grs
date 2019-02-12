@@ -1,0 +1,24 @@
+<template>
+  <div
+    :className='m ? "size" : "smailSize"'
+    :styleName='"add " + (m ? "default" : "")'
+    @click='this.change'>fdsf</div>
+</template>
+
+<script>
+  import style from './style'
+
+  @Grass.CSSModules(style)
+  class Root extends Grass.Component {
+    // #temp
+    beforeCreate () {
+      this.createResponseState({ m: true })
+    }
+    change = e => {
+      this.state.m = !this.state.m
+    }
+  }
+
+  
+  Root.$mount(document.getElementById('root'))
+</script>
