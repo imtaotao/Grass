@@ -4,7 +4,7 @@ import { enter, leave, applyPendingNode } from './transition'
 export default function applyProperties(node, vnode, props, previous) {
   for (let propName in props) {
     const propValue = props[propName]
-    
+
     if (propValue === undefined) {
       removeProperty(node, propName, propValue, previous)
     } else if (isObject(propValue)) {
@@ -52,9 +52,14 @@ function patchObject (node, propName, propValue, previous) {
     for (let attrName in propValue) {
       const attrValue = propValue[attrName]
 
-      attrValue === undefined
-        ? node.removeAttribute(attrName)
-        : node.setAttribute(attrName, attrValue)
+      if (attrValue === undefined) {
+        node.removeAttribute(attrName)
+      } else {
+        // https://developer.mozilla.org/en-US/docs/Web/API/Element/setAttribute#Notes
+        attrName === 'value' && node.getAttribute('value') != null
+          ? node.value = attrValue
+          : node.setAttribute(attrName, attrValue)
+      }
     }
     return
   }

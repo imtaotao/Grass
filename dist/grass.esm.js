@@ -1001,7 +1001,11 @@ function patchObject(node, propName, propValue, previous) {
   if (propName === 'attributes') {
     for (var attrName in propValue) {
       var attrValue = propValue[attrName];
-      attrValue === undefined ? node.removeAttribute(attrName) : node.setAttribute(attrName, attrValue);
+      if (attrValue === undefined) {
+        node.removeAttribute(attrName);
+      } else {
+        attrName === 'value' && node.getAttribute('value') != null ? node.value = attrValue : node.setAttribute(attrName, attrValue);
+      }
     }
     return;
   }
