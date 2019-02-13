@@ -12,6 +12,11 @@ export default function diffProps(a, b) {
     const bValue = b[aKey]
 
     if (aValue === bValue) {
+      // we need className connect styleName attribute
+      if (aKey === 'className' || aKey === 'styleName') {
+        diff = diff || {}
+        diff[aKey] = bValue
+      }
       continue
     } else if (isObject(aValue) && isObject(bValue)) {
       // 如果是同一个构造函数的实例

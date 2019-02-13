@@ -23,7 +23,7 @@ export function render (widgetVNode, ast) {
     component.$firstCompilation = false
   }
 
-  return createVNode(vnodeConfig, genChildren(vnodeConfig.children, component))
+  return createVNode(vnodeConfig, genChildren(vnodeConfig.children, component), component)
 }
 
 export function genChildren (children, component) {
@@ -35,7 +35,7 @@ export function genChildren (children, component) {
       if (child.type === TAG) {
         // If is a reserved tag
         if (_.isReservedTag(child.tagName)) {
-          const vnode = createVNode(child, genChildren(child.children, component))
+          const vnode = createVNode(child, genChildren(child.children, component), component)
           vnodeChildren.push(vnode)
         } else if (_.isInternelTag(child.tagName)) {
           // If a slot

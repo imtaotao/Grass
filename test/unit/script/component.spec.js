@@ -95,35 +95,54 @@ describe('Component', () => {
     expect(bcm.$children.Child.props.t).toBe(1)
   })
 
-  it('CSSModules and styleName are normal', () => {
-    const style = { a: 'b' }
+  it('CSSModules and styleName are normal', done => {
+    const style = {
+      a: '_a',
+      b: '_b',
+      c: '_c',
+    }
     class p extends Component {
+      beforeCreate () {
+        this.state = { add: true }
+      }
       template () {
-        return '<div styleName="a"></div>'
+        return '<div :styleName="`a ` + (add ? `b` : `c`)" className="tt"></div>'
+      }
+      created (dom) {
+        expect(dom.className).toBe('tt _a _b')
+        this.setState({ add: false })
+      }
+      didUpdate (dom) {
+        expect(dom.className).toBe('tt _a _c')
+        done()
       }
     }
     const cm = Grass.CSSModules(style)(p).$mount()
     const ast = cm.constructor.$ast
     const vnode = cm.$widgetVNode.container.vtree
-    expect(ast.attrs.className).toBe('b')
+    expect(ast.attrs.className).toBe('tt')
     expect(ast.attrs.styleName).toBeUndefined()
-    expect(vnode.properties.className).toBe('b')
+    expect(vnode.properties.styleName).toBe('a b')
   })
 
-  it('no state component use CSSModules', () => {
+  it('no state component use CSSModules', done => {
     const style = { a: 'b' }
     const compClass = Grass.CSSModules(style)(
       () => '<div styleName="a"></div>'
     )
-    const comp = Grass.mount(null, compClass)
-    const ast = comp.constructor.$ast
-    const vnode = comp.$widgetVNode.container.vtree
-    expect(ast.attrs.className).toBe('b')
-    expect(ast.attrs.styleName).toBeUndefined()
-    expect(vnode.properties.className).toBe('b')
+    const cm = Grass.mount(null, compClass)
+    const ast = cm.constructor.$ast
+    const vnode = cm.$widgetVNode.container.vtree
+    expect(ast.attrs.className).toBeUndefined()
+    expect(ast.attrs.styleName).toBe('a')
+    expect(vnode.properties.styleName).toBe('a')
+    setTimeout(() => {
+      expect(cm.$el.className).toBe('b')
+      done()
+    })
   })
 
-  it('styleName is not available without the CSSModules method', () => {
+  it('styleName is not available without the CSSModules method', done => {
     class p extends Component {
       template () {
         return '<div styleName="a"></div>'
@@ -134,6 +153,10 @@ describe('Component', () => {
     const vnode = cm.$widgetVNode.container.vtree
     expect(ast.attrs.styleName).toBe('a')
     expect(vnode.properties.className).toBeUndefined()
+    setTimeout(() => {
+      expect(cm.$el.className).toBe('')
+      done()
+    })
   })
 
   it('no state component are in normal use', () => {

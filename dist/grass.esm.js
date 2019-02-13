@@ -425,6 +425,10 @@ function diffProps(a, b) {
     var aValue = a[aKey];
     var bValue = b[aKey];
     if (aValue === bValue) {
+      if (aKey === 'className' || aKey === 'styleName') {
+        diff = diff || {};
+        diff[aKey] = bValue;
+      }
       continue;
     } else if (isObject$1(aValue) && isObject$1(bValue)) {
       if (Object.getPrototypeOf(aValue) === Object.getPrototypeOf(bValue)) {
@@ -963,6 +967,20 @@ function applyProperties(node, vnode, props, previous) {
         transition(node, vnode, propValue, function () {
           node[propName] = propValue;
         });
+      } else if (propName === 'styleName' && propValue) {
+        var styleNameRes = getNormalStyleNameRes(vnode, propValue);
+        if (styleNameRes) {
+          var result = mergeClassName(props.className, styleNameRes);
+          if (result !== node.className) {
+            node.className = result;
+          }
+          delete props.className;
+        }
+      } else if (propName === 'className') {
+        var preValue = previous && previous.className;
+        if (propValue !== preValue) {
+          node[propName] = propValue;
+        }
       } else if (isAllow(propName)) {
         node[propName] = propValue;
       }
@@ -1025,6 +1043,38 @@ function transition(node, vnode, propValue, callback) {
   } else {
     leave(node, vnode, callback);
   }
+}
+function getNormalStyleNameRes(vnode, propValue) {
+  var styles = vnode.data && vnode.data.styles;
+  if (styles) {
+    var tagName = vnode.tagName;
+    var compName = vnode.data && vnode.data.compName;
+    return processStyleName(propValue, styles, tagName, compName);
+  }
+  return null;
+}
+function processStyleName(styleString, style, tagName, compName) {
+  if (typeof styleString === 'string') {
+    var styleNames = styleString.split(' ');
+    var result = '';
+    for (var i = 0, len = styleNames.length; i < len; i++) {
+      var styleName = styleNames[i];
+      if (styleName && hasOwn(style, styleName)) {
+        var value = style[styleName];
+        result += !result ? value : ' ' + value;
+      } else if (styleName) {
+        compName = compName || 'unknow';
+        tagName = tagName.toLocaleLowerCase();
+        grassWarn('"' + styleName + '" CSS module is undefined', compName + (': <' + tagName + '/>'));
+      }
+    }
+    return result;
+  }
+  return null;
+}
+function mergeClassName(className, classResult) {
+  if (!className) return classResult;
+  return className + ' ' + classResult;
 }
 function isObject$2(x) {
   return (typeof x === 'undefined' ? 'undefined' : _typeof(x)) === 'object' && x !== null;
@@ -1809,7 +1859,9 @@ function elementCreated(dom, direaction, vnode) {
   }
 }
 
-function createVNode(vnodeConfig, children) {
+function createVNode(vnodeConfig, children, component) {
+  var compName = component.name;
+  var styles = component.constructor.$styles;
   var tagName = vnodeConfig.tagName,
       attrs = vnodeConfig.attrs,
       customDirection = vnodeConfig.customDirection;
@@ -1818,6 +1870,8 @@ function createVNode(vnodeConfig, children) {
     elementCreated(dom, customDirection, vnode);
   });
   vnode.data = Object.create(null);
+  vnode.data.styles = styles;
+  vnode.data.compName = compName;
   if (vnodeConfig.vTransitionType) {
     var vTransitionType = vnodeConfig.vTransitionType,
         vTransitionData = vnodeConfig.vTransitionData;
@@ -2724,7 +2778,7 @@ function render(widgetVNode, ast) {
   if (component.$firstCompilation) {
     component.$firstCompilation = false;
   }
-  return createVNode(vnodeConfig, genChildren(vnodeConfig.children, component));
+  return createVNode(vnodeConfig, genChildren(vnodeConfig.children, component), component);
 }
 function genChildren(children, component) {
   var vnodeChildren = [];
@@ -2733,7 +2787,7 @@ function genChildren(children, component) {
     if (child) {
       if (child.type === TAG) {
         if (isReservedTag(child.tagName)) {
-          var vnode = createVNode(child, genChildren(child.children, component));
+          var vnode = createVNode(child, genChildren(child.children, component), component);
           vnodeChildren.push(vnode);
         } else if (isInternelTag(child.tagName)) {
           if (child.tagName === 'slot') {
@@ -2935,9 +2989,6 @@ function genAstCode(component) {
   if (!(ast = parseTemplate(template.trim(), name))) {
     grassWarn('No string template available', name);
     return;
-  }
-  if (typeof component.constructor.CSSModules === 'function') {
-    component.constructor.CSSModules(ast, component.name);
   }
   return ast;
 }
@@ -3472,66 +3523,13 @@ function hasExpanded(compClass) {
   return compClass.remove === compClass.prototype.remove;
 }
 
-var compName = void 0;
-function CSSModules(style) {
+function CSSModules(styles) {
   return function (component) {
-    if (!component || isEmptyObj(style)) {
-      return component;
+    if (component && !isEmptyObj(styles)) {
+      component.$styles = styles;
     }
-    component.CSSModules = function (vnodeConf, _compName) {
-      compName = _compName;
-      if (haveStyleName(vnodeConf)) {
-        replaceStyleName(vnodeConf.attrs, style, vnodeConf.tagName);
-      }
-      applyChildren(vnodeConf, style);
-    };
     return component;
   };
-}
-function applyChildren(config, style) {
-  if (!config) {
-    return;
-  }
-  var children = config.children;
-  if (children) {
-    for (var i = 0, len = children.length; i < len; i++) {
-      var child = children[i];
-      if (haveStyleName(child)) {
-        replaceStyleName(child.attrs, style, child.tagName);
-      }
-      applyChildren(child, style);
-    }
-  }
-}
-function replaceStyleName(attrs, style, tagName) {
-  var styleString = attrs.styleName;
-  if (typeof styleString === 'string') {
-    var styleNames = styleString.split(' ');
-    var result = '';
-    for (var i = 0, len = styleNames.length; i < len; i++) {
-      var styleName = styleNames[i];
-      if (styleName && hasOwn(style, styleName)) {
-        var value = style[styleName];
-        result += !result ? value : ' ' + value;
-      } else if (styleName) {
-        grassWarn('"' + styleName + '" CSS module is undefined', compName + (': <' + tagName + '/>'));
-      }
-    }
-    if (result) {
-      attrs.styleName = undefined;
-      mergeClassName(attrs, result);
-    }
-  }
-}
-function mergeClassName(attrs, classResult) {
-  if (!attrs.className) {
-    attrs.className = classResult;
-  } else {
-    attrs.className += ' ' + classResult;
-  }
-}
-function haveStyleName(node) {
-  return node && node.attrs && node.attrs.styleName;
 }
 
 function async(factory, cb) {
