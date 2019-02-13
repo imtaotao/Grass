@@ -11,6 +11,11 @@ export function render (widgetVNode, ast) {
   const { component, data } = widgetVNode
   const vnodeConfig = complierDirectFromAst(ast, component)
   
+
+  if (typeof component.constructor.CSSModules === 'function') {
+    component.constructor.CSSModules(vnodeConfig, component.name)
+  }
+  
   /**
    * We need transfer some data to child component from parent component
    * example: props, slot data
@@ -23,7 +28,7 @@ export function render (widgetVNode, ast) {
     component.$firstCompilation = false
   }
 
-  return createVNode(vnodeConfig, genChildren(vnodeConfig.children, component), component)
+  return createVNode(vnodeConfig, genChildren(vnodeConfig.children, component))
 }
 
 export function genChildren (children, component) {
@@ -35,7 +40,7 @@ export function genChildren (children, component) {
       if (child.type === TAG) {
         // If is a reserved tag
         if (_.isReservedTag(child.tagName)) {
-          const vnode = createVNode(child, genChildren(child.children, component), component)
+          const vnode = createVNode(child, genChildren(child.children, component))
           vnodeChildren.push(vnode)
         } else if (_.isInternelTag(child.tagName)) {
           // If a slot

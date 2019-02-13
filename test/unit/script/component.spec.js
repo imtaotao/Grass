@@ -122,7 +122,7 @@ describe('Component', () => {
     const vnode = cm.$widgetVNode.container.vtree
     expect(ast.attrs.className).toBe('tt')
     expect(ast.attrs.styleName).toBeUndefined()
-    expect(vnode.properties.styleName).toBe('a b')
+    expect(vnode.properties.className).toBe('tt _a _b')
   })
 
   it('no state component use CSSModules', done => {
@@ -135,7 +135,8 @@ describe('Component', () => {
     const vnode = cm.$widgetVNode.container.vtree
     expect(ast.attrs.className).toBeUndefined()
     expect(ast.attrs.styleName).toBe('a')
-    expect(vnode.properties.styleName).toBe('a')
+    expect(vnode.properties.className).toBe('b')
+    expect(vnode.properties.styleName).toBeUndefined()
     setTimeout(() => {
       expect(cm.$el.className).toBe('b')
       done()
