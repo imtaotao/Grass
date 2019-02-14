@@ -5,7 +5,7 @@ import * as _ from '../utils/index'
 export default function runExecuteContext (code, directName, vnodeConf, component, callback) {
   const { noStateComp, state, props } = component
   const insertScope = noStateComp ? props : state
-  const realData = scope.insertChain(insertScope || {})
+  const realData = scope.insertChain(insertScope || {}, component.name)
 
   if (!/{{[\s\S]*}}/g.test(directName)) {
     directName = 'v-' + directName

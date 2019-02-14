@@ -1986,9 +1986,9 @@ function create(s) {
   chain.push(scope);
   return scope;
 }
-function add(key, val) {
+function add(key, val, compName) {
   if (typeof key !== 'string') {
-    warn('The variable name of the "for" scope must be a "string"');
+    grassWarn('The variable name of the "for" scope must be a "string"', compName);
     return;
   }
   scope[key] = val;
@@ -2004,9 +2004,9 @@ function destroy() {
 function getScope() {
   return scope;
 }
-function insertChain(obj) {
+function insertChain(obj, compName) {
   if (!isLegScope(obj)) {
-    warn('Insert "scope" must be a "object"');
+    grassWarn('Insert "scope" must be a "object"', compName);
     return;
   }
   if (scope === null) return obj;
@@ -2112,7 +2112,7 @@ function runExecuteContext(code, directName, vnodeConf, component, callback) {
       props = component.props;
 
   var insertScope = noStateComp ? props : state;
-  var realData = scope$1.insertChain(insertScope || {});
+  var realData = scope$1.insertChain(insertScope || {}, component.name);
   if (!/{{[\s\S]*}}/g.test(directName)) {
     directName = 'v-' + directName;
   }
@@ -2420,10 +2420,10 @@ function vfor(node, component, vnodeConf) {
   }
   function addValue(isMultiple, val, key, i, nodeKey) {
     if (isMultiple) {
-      scope$1.add(keys[0], val);
-      scope$1.add(keys[1], key);
+      scope$1.add(keys[0], val, component.name);
+      scope$1.add(keys[1], key, component.name);
     } else {
-      scope$1.add(keys, val);
+      scope$1.add(keys, val, component.name);
     }
     vforCallback(i, nodeKey);
   }
@@ -3481,65 +3481,57 @@ function hasExpanded(compClass) {
 }
 
 var compName = void 0;
-function CSSModules(style) {
+function CSSModules(styles) {
   return function (component) {
-    if (!component || isEmptyObj(style)) {
+    if (!component || isEmptyObj(styles)) {
       return component;
     }
     component.CSSModules = function (vnodeConf, _compName) {
       compName = _compName;
-      if (haveStyleName(vnodeConf)) {
-        replaceStyleName(vnodeConf.attrs, style, vnodeConf.tagName);
+      if (vnodeConf && vnodeConf.attrs) {
+        replaceStyleName(vnodeConf.attrs, styles, vnodeConf.tagName);
       }
-      applyChildren(vnodeConf, style);
+      applyChildren(vnodeConf, styles);
     };
     return component;
   };
 }
-function applyChildren(config, style) {
-  if (!config) {
-    return;
-  }
+function applyChildren(config, styles) {
+  if (!config) return;
   var children = config.children;
   if (children) {
     for (var i = 0, len = children.length; i < len; i++) {
       var child = children[i];
-      if (haveStyleName(child)) {
-        replaceStyleName(child.attrs, style, child.tagName);
+      if (child && child.attrs) {
+        replaceStyleName(child.attrs, styles, child.tagName);
       }
-      applyChildren(child, style);
+      applyChildren(child, styles);
     }
   }
 }
-function replaceStyleName(attrs, style, tagName) {
-  var styleString = attrs.styleName;
-  if (typeof styleString === 'string') {
-    var styleNames = styleString.split(' ');
-    var result = '';
+function replaceStyleName(attrs, styles, tagName) {
+  var result = '';
+  if (typeof attrs.styleName === 'string') {
+    var styleNames = attrs.styleName.split(' ');
     for (var i = 0, len = styleNames.length; i < len; i++) {
-      var styleName = styleNames[i];
-      if (styleName && hasOwn(style, styleName)) {
-        var value = style[styleName];
+      var name = styleNames[i];
+      if (name && hasOwn(styles, name)) {
+        var value = styles[name];
         result += !result ? value : ' ' + value;
-      } else if (styleName) {
-        grassWarn('"' + styleName + '" CSS module is undefined', compName + (': <' + tagName + '/>'));
+      } else if (name) {
+        grassWarn('"' + name + '" CSS module is undefined', compName + (': <' + tagName + '/>'));
       }
     }
-    if (result) {
-      attrs.styleName = undefined;
-      mergeClassName(attrs, result);
-    }
   }
+  attrs.styleName = undefined;
+  mergeClassName(attrs, result);
 }
 function mergeClassName(attrs, classResult) {
   if (!attrs.className) {
     attrs.className = classResult;
-  } else {
+  } else if (classResult) {
     attrs.className += ' ' + classResult;
   }
-}
-function haveStyleName(node) {
-  return node && node.attrs && node.attrs.styleName;
 }
 
 function async(factory, cb) {

@@ -23,9 +23,9 @@ function create (s) {
   return scope
 }
 
-function add (key, val) {
+function add (key, val, compName) {
   if (typeof key !== 'string') {
-    _.warn('The variable name of the "for" scope must be a "string"')
+    _.grassWarn('The variable name of the "for" scope must be a "string"', compName)
     return
   }
   scope[key] = val
@@ -44,9 +44,9 @@ function getScope () {
   return scope
 }
 
-function insertChain (obj) {
+function insertChain (obj, compName) {
   if (!isLegScope(obj)) {
-    _.warn('Insert "scope" must be a "object"')
+    _.grassWarn('Insert "scope" must be a "object"', compName)
     return
   }
   if (scope === null) return obj

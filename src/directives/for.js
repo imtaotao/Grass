@@ -51,10 +51,10 @@ export default function vfor (node, component, vnodeConf) {
 
   function addValue (isMultiple, val, key, i, nodeKey) {
     if (isMultiple) {
-      scope.add(keys[0], val);
-      scope.add(keys[1], key);
+      scope.add(keys[0], val, component.name)
+      scope.add(keys[1], key, component.name)
     } else {
-      scope.add(keys, val);
+      scope.add(keys, val, component.name)
     }
 
     vforCallback(i, nodeKey)
