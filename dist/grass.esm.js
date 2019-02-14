@@ -1680,7 +1680,7 @@ function parseTemplate(html, compName) {
     html = html.substring(n);
   }
   function getForArgs(attr) {
-    var args = /((\w+)|(\([^\(]+\)))\s+of\s+([\w\.\(\)\[\]]+)/g.exec(attr['v-for']);
+    var args = /((\w+)|(\([^\(]+\)))\s+of\s+([\w\.\(\)\[\]\|\&\s]+)/g.exec(attr['v-for']);
     if (args) {
       var key = args[1];
       if (key.includes(',')) {

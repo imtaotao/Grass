@@ -210,7 +210,7 @@ export function parseTemplate (html, compName) {
   }
 
   function getForArgs (attr) {
-    const args = /((\w+)|(\([^\(]+\)))\s+of\s+([\w\.\(\)\[\]]+)/g.exec(attr['v-for'])
+    const args = /((\w+)|(\([^\(]+\)))\s+of\s+([\w\.\(\)\[\]\|\&\s]+)/g.exec(attr['v-for'])
     if (args) {
       let key = args[1]
       if (key.includes(',')) {
