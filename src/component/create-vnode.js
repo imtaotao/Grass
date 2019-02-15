@@ -28,5 +28,7 @@ export function createVNode (vnodeConfig, children) {
     vnode.slot = attrs.slot
   }
 
+  vnode.el = null
+
   return vnode
 }

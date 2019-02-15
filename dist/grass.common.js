@@ -1060,6 +1060,7 @@ function createElement(vnode) {
   var properties = vnode.properties,
       children = vnode.children;
 
+  vnode.el = node;
   applyProperties(node, vnode, properties);
   for (var i = 0, len = children.length; i < len; i++) {
     var childNode = createElement(children[i]);
@@ -1841,6 +1842,7 @@ function createVNode(vnodeConfig, children) {
   if (attrs.slot) {
     vnode.slot = attrs.slot;
   }
+  vnode.el = null;
   return vnode;
 }
 

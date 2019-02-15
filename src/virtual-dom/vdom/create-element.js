@@ -25,6 +25,8 @@ export default function createElement (vnode) {
 
   const { properties, children } = vnode
 
+  vnode.el = node
+
   applyProperties(node, vnode, properties)
 
   for (let i = 0, len = children.length; i < len; i++) {
