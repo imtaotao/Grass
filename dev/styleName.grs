@@ -2,20 +2,32 @@
   <div
     :className='m ? undefined: "size"'
     :styleName='"add " + (m ? "" : "default")'
-    @click='this.change'>fdsf</div>
+    @click='this.change'>
+      <span @click='() => show = !show'>toogle</span>
+      <c  v-text='show' :show='1'/>
+    </div>
 </template>
 
 <script>
   import style from './style'
 
+  class c extends Grass.Component {
+    template = '<div>{{ this.props.show }}</div>'
+    willReceiveProps (newProps, shouldUpdate) {
+      return newProps.show !== this.props.show
+    }
+  }
+
   @Grass.CSSModules(style)
   class Root extends Grass.Component {
     // #temp
+    component = { c }
+
     beforeCreate () {
-      this.createResponseState({ m: true })
+      this.createResponseState({ m: true, show: true })
     }
     change = e => {
-      this.state.m = !this.state.m
+      // this.state.m = !this.state.m
     }
   }
   // :className='m ? "size" : "smailSize"'

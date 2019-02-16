@@ -1,11 +1,19 @@
 import * as _ from '../utils'
 import bind from '../directives/bind'
+import { vText } from '../directives/util'
 
 export function migrateComponentStatus (outputNode, acceptNode) {
   if (!outputNode || !acceptNode) return
 
   transitionDirect(outputNode, acceptNode)
   transitionClass(outputNode, acceptNode)
+}
+
+export function shouldForceUpdate (node) {
+  if (_.hasOwn(node, 'vTextResult')) return 'text'
+  if (_.hasOwn(node, 'vShowResult')) return 'show'
+  if (_.hasOwn(node, 'vTransitionType')) return 'transition'
+  return false
 }
 
 /**
@@ -16,7 +24,7 @@ function transitionDirect (O, A) {
   if (_.hasOwn(O, 'vTextResult')) {
     const res = O['vTextResult']
     A.children.unshift(
-      vText(toString(res), A)
+      vText(_.toString(res), A)
     )
   }
 

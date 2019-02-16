@@ -3,8 +3,9 @@ import { getProps } from './index'
 import { render } from './render'
 import { create } from '../virtual-dom'
 import { updateDomTree } from './update-state'
-import { elementCreated } from '../global-api/custom-directive'
+import { shouldForceUpdate } from './component-transfer'
 import { getComponentInstance } from './component-instance'
+import { elementCreated } from '../global-api/custom-directive'
 
 export class WidgetVNode {
   constructor (parentComponent, parentConfig, slotVNode, componentClass) {
@@ -117,9 +118,17 @@ function update ({ component, data: { parentConfig } }) {
   if (component && parentConfig) {
     const { $propsRequireList, name } = component
     const newProps = getProps(parentConfig.attrs, $propsRequireList, name)
+    const forceUpdate = shouldForceUpdate(parentConfig)
 
-    if (!component.noStateComp &&
-        component.willReceiveProps(newProps) === false) {
+    if (!component.noStateComp && component.willReceiveProps(newProps, !!forceUpdate) === false) {
+      if (forceUpdate) {
+        _.grassWarn(
+          `Have a "v-${forceUpdate}" directive in the parent component("${component.$parent.name}") tag, ` +
+          `which can cause anomalous behavior if the current component("${component.name}") is not update.`, 
+          component.name,
+          true,
+        )
+      }
       return
     } else if (component.noStateComp) {
       const empty = () => empty

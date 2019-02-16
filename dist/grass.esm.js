@@ -142,7 +142,7 @@ function remove(arr, item) {
     }
   }
 }
-function toString$1(val) {
+function toString(val) {
   return val == null ? '' : (typeof val === 'undefined' ? 'undefined' : _typeof(val)) === 'object' ? JSON.stringify(val, null, 2) : String(val);
 }
 function extend(to, _from) {
@@ -191,9 +191,9 @@ function warn(msg, noError) {
   }
   throw Error(errorInfor);
 }
-function grassWarn(msg, compName) {
-  var errorInfor = '[Grass tip]: ' + msg + '  \n\n    --->  ' + (compName || 'unknow') + '\n';
-  throw Error(errorInfor);
+function grassWarn(msg, compName, noError) {
+  var errorInfor = msg + '  \n\n    --->  ' + (compName || 'unknow') + '\n';
+  warn(errorInfor, noError);
 }
 
 function cached(fn) {
@@ -1566,11 +1566,11 @@ function parseTemplate(html, compName) {
       var isRoot = scope === ast;
       if (isRoot) {
         parent = null;
-        indexKey = toString$1(ast.length);
+        indexKey = toString(ast.length);
         container = ast;
       } else {
         parent = scope;
-        indexKey = toString$1(scope.children.length);
+        indexKey = toString(scope.children.length);
         container = scope.children;
       }
       var tagNode = createTag(tagName, indexKey, parent);
@@ -2212,10 +2212,62 @@ function test(o, str, key) {
   return !reg.test(o) && !reg.test(str);
 }
 
+function createVnodeConf(astNode, parent) {
+  if (astNode.type === TAG) {
+    var tagName = astNode.tagName,
+        attrs = astNode.attrs,
+        indexKey = astNode.indexKey,
+        direction = astNode.direction;
+
+    var _children = [];
+    var _attrs = deepClone(attrs);
+    var _direction = deepClone(direction);
+    var tag = vTag(tagName, parent, _attrs, indexKey, _direction, _children);
+    if (hasOwn(astNode, 'for')) {
+      tag.for = true;
+      tag.watcherCollectList = astNode.watcherCollectList;
+    }
+    return tag;
+  }
+  return vText(astNode.content, parent);
+}
+function vTag(tagName, parent, attrs, indexKey, direction, children) {
+  var node = Object.create(null);
+  node.type = TAG;
+  node.attrs = attrs;
+  node.parent = parent;
+  node.tagName = tagName;
+  node.indexKey = indexKey;
+  node.children = children;
+  node.direction = direction;
+  return node;
+}
+function vText(content, parent) {
+  var node = Object.create(null);
+  node.type = TEXT;
+  node.parent = parent;
+  node.content = content;
+  return node;
+}
+function removeChild(parent, child) {
+  var children = parent.children;
+  for (var i = 0; i < children.length; i++) {
+    if (children[i] === child) {
+      children[i] = null;
+    }
+  }
+}
+
 function migrateComponentStatus(outputNode, acceptNode) {
   if (!outputNode || !acceptNode) return;
   transitionDirect(outputNode, acceptNode);
   transitionClass(outputNode, acceptNode);
+}
+function shouldForceUpdate(node) {
+  if (hasOwn(node, 'vTextResult')) return 'text';
+  if (hasOwn(node, 'vShowResult')) return 'show';
+  if (hasOwn(node, 'vTransitionType')) return 'transition';
+  return false;
 }
 function transitionDirect(O, A) {
   if (hasOwn(O, 'vTextResult')) {
@@ -2333,52 +2385,6 @@ function createModifiersFun(modifiers, cb) {
     }
   }
   return eventCallback;
-}
-
-function createVnodeConf(astNode, parent) {
-  if (astNode.type === TAG) {
-    var tagName = astNode.tagName,
-        attrs = astNode.attrs,
-        indexKey = astNode.indexKey,
-        direction = astNode.direction;
-
-    var _children = [];
-    var _attrs = deepClone(attrs);
-    var _direction = deepClone(direction);
-    var tag = vTag(tagName, parent, _attrs, indexKey, _direction, _children);
-    if (hasOwn(astNode, 'for')) {
-      tag.for = true;
-      tag.watcherCollectList = astNode.watcherCollectList;
-    }
-    return tag;
-  }
-  return vText$1(astNode.content, parent);
-}
-function vTag(tagName, parent, attrs, indexKey, direction, children) {
-  var node = Object.create(null);
-  node.type = TAG;
-  node.attrs = attrs;
-  node.parent = parent;
-  node.tagName = tagName;
-  node.indexKey = indexKey;
-  node.children = children;
-  node.direction = direction;
-  return node;
-}
-function vText$1(content, parent) {
-  var node = Object.create(null);
-  node.type = TEXT;
-  node.parent = parent;
-  node.content = content;
-  return node;
-}
-function removeChild(parent, child) {
-  var children = parent.children;
-  for (var i = 0; i < children.length; i++) {
-    if (children[i] === child) {
-      children[i] = null;
-    }
-  }
 }
 
 function vfor(node, component, vnodeConf) {
@@ -2512,7 +2518,7 @@ function text(val, component, vnodeConf) {
   var code = 'with($obj_) { return ' + val + '; }';
   var content = runExecuteContext(code, 'text', vnodeConf, component);
   if (isReservedTag(vnodeConf.tagName)) {
-    vnodeConf.children = [vText$1(content, vnodeConf)];
+    vnodeConf.children = [vText(content, vnodeConf)];
   } else {
     vnodeConf.vTextResult = content;
   }
@@ -2772,7 +2778,7 @@ function genChildren(children, component) {
           vnodeChildren.push(_vnode2);
         }
       } else {
-        var content = toString$1(child.content);
+        var content = toString(child.content);
         if (content.trim()) {
           vnodeChildren.push(content);
         }
@@ -3060,7 +3066,11 @@ function _update(_ref) {
         name = component.name;
 
     var newProps = getProps(parentConfig.attrs, $propsRequireList, name);
-    if (!component.noStateComp && component.willReceiveProps(newProps) === false) {
+    var forceUpdate = shouldForceUpdate(parentConfig);
+    if (!component.noStateComp && component.willReceiveProps(newProps, !!forceUpdate) === false) {
+      if (forceUpdate) {
+        grassWarn('Have a "v-' + forceUpdate + '" directive in the parent component("' + component.$parent.name + '") tag, ' + ('which can cause anomalous behavior if the current component("' + component.name + '") is not update.'), component.name, true);
+      }
       return;
     } else if (component.noStateComp) {
       var empty = function empty() {

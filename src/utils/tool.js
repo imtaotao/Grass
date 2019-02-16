@@ -120,8 +120,7 @@ export function warn (msg, noError) {
   throw Error(errorInfor)
 }
 
-export function grassWarn (msg, compName) {
-  const errorInfor = `[Grass tip]: ${msg}  \n\n    --->  ${compName || 'unknow'}\n`
-
-  throw Error(errorInfor)
+export function grassWarn (msg, compName, noError) {
+  const errorInfor = `${msg}  \n\n    --->  ${compName || 'unknow'}\n`
+  warn(errorInfor, noError)
 }
