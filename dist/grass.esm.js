@@ -2264,10 +2264,7 @@ function migrateComponentStatus(outputNode, acceptNode) {
   transitionClass(outputNode, acceptNode);
 }
 function shouldForceUpdate(node) {
-  if (hasOwn(node, 'vTextResult')) return 'text';
-  if (hasOwn(node, 'vShowResult')) return 'show';
-  if (hasOwn(node, 'vTransitionType')) return 'transition';
-  return false;
+  return !!(hasOwn(node, 'vTextResult') || hasOwn(node, 'vShowResult') || hasOwn(node, 'vTransitionType') || node.attrs && node.attrs.className);
 }
 function transitionDirect(O, A) {
   if (hasOwn(O, 'vTextResult')) {
@@ -3066,11 +3063,7 @@ function _update(_ref) {
         name = component.name;
 
     var newProps = getProps(parentConfig.attrs, $propsRequireList, name);
-    var forceUpdate = shouldForceUpdate(parentConfig);
-    if (!component.noStateComp && component.willReceiveProps(newProps, !!forceUpdate) === false) {
-      if (forceUpdate) {
-        grassWarn('Have a "v-' + forceUpdate + '" directive in the parent component("' + component.$parent.name + '") tag, ' + ('which can cause anomalous behavior if the current component("' + component.name + '") is not update.'), component.name, true);
-      }
+    if (!component.noStateComp && component.willReceiveProps(newProps, shouldForceUpdate(parentConfig)) === false) {
       return;
     } else if (component.noStateComp) {
       var empty = function empty() {

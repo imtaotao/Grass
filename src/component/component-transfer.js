@@ -10,10 +10,12 @@ export function migrateComponentStatus (outputNode, acceptNode) {
 }
 
 export function shouldForceUpdate (node) {
-  if (_.hasOwn(node, 'vTextResult')) return 'text'
-  if (_.hasOwn(node, 'vShowResult')) return 'show'
-  if (_.hasOwn(node, 'vTransitionType')) return 'transition'
-  return false
+  return !!(
+    _.hasOwn(node, 'vTextResult') ||
+    _.hasOwn(node, 'vShowResult') ||
+    _.hasOwn(node, 'vTransitionType') ||
+    node.attrs && node.attrs.className
+  )
 }
 
 /**

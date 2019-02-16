@@ -118,17 +118,9 @@ function update ({ component, data: { parentConfig } }) {
   if (component && parentConfig) {
     const { $propsRequireList, name } = component
     const newProps = getProps(parentConfig.attrs, $propsRequireList, name)
-    const forceUpdate = shouldForceUpdate(parentConfig)
 
-    if (!component.noStateComp && component.willReceiveProps(newProps, !!forceUpdate) === false) {
-      if (forceUpdate) {
-        _.grassWarn(
-          `Have a "v-${forceUpdate}" directive in the parent component("${component.$parent.name}") tag, ` +
-          `which can cause anomalous behavior if the current component("${component.name}") is not update.`, 
-          component.name,
-          true,
-        )
-      }
+    if (!component.noStateComp && 
+      component.willReceiveProps(newProps, shouldForceUpdate(parentConfig)) === false) {
       return
     } else if (component.noStateComp) {
       const empty = () => empty
