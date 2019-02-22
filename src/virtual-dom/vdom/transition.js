@@ -195,7 +195,7 @@ function whenTransitionEnds (node, type, cb) {
       end()
     }
   }
-  
+
   setTimeout(() => {
     if (ended < propCount) {
       end()

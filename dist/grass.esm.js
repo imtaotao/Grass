@@ -956,8 +956,15 @@ function callHook(funs, node, type) {
 }
 
 function applyProperties(node, vnode, props, previous) {
+  if (hasOwn(props, 'className')) {
+    node.className = props.className;
+  }
+
   var _loop = function _loop(propName) {
     var propValue = props[propName];
+    if (propName === 'className') {
+      return 'continue';
+    }
     if (propValue === undefined) {
       removeProperty(node, propName, propValue, previous);
     } else if (isObject$2(propValue)) {
@@ -974,7 +981,9 @@ function applyProperties(node, vnode, props, previous) {
   };
 
   for (var propName in props) {
-    _loop(propName);
+    var _ret = _loop(propName);
+
+    if (_ret === 'continue') continue;
   }
 }
 function removeProperty(node, propName, previous) {

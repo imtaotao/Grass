@@ -2,8 +2,17 @@ import * as _ from '../../utils/index'
 import { enter, leave, applyPendingNode } from './transition'
 
 export default function applyProperties(node, vnode, props, previous) {
+  // 对 className 先行处理，避免后面的动画添加的 className 被覆盖掉
+  if (_.hasOwn(props, 'className')) {
+    node.className = props.className
+  }
+
   for (let propName in props) {
     const propValue = props[propName]
+
+    if (propName === 'className') {
+      continue
+    }
 
     if (propValue === undefined) {
       removeProperty(node, propName, propValue, previous)

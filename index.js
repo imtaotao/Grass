@@ -1,3 +1,3 @@
 // import './demo'
 // import './dev'
-import './dev/styleName'
+import './dev'
