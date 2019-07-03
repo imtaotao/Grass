@@ -1,6 +1,6 @@
 {
   "name": "@rustle/grass",
-  "version": "0.0.1-alpha.6",
+  "version": "0.0.1-alpha.7",
   "description": "A simple mvvm library",
   "main": "dist/grass.common.js",
   "module": "dist/grass.esm.js",
