@@ -1201,7 +1201,7 @@ function widgetPatch(domNode, leftVNode, widget, renderOptions) {
   var updating = updateWidget(leftVNode, widget);
   var newNode = updating ? widget.update(leftVNode, domNode) || domNode : renderOptions.render(widget);
   var parentNode = domNode.parentNode;
-  if (parentNode) {
+  if (parentNode && newNode !== domNode) {
     parentNode.replaceChild(newNode, domNode);
   }
   if (!updating) {
@@ -2893,9 +2893,12 @@ function getComponentInstance(widgetVNode, parentComponent) {
     }
   } else {
     var registerComponent = function registerComponent(name, comp) {
-      if (isObject(name)) {
+      if (typeof name === 'function') {
         comp = name;
         name = comp.name;
+        if (!name) {
+          grassWarn('Component must have a name, you can pass the component name in the first parameter', componentClass.name);
+        }
       }
       components[name] = comp;
       return registerComponent;
@@ -2903,8 +2906,8 @@ function getComponentInstance(widgetVNode, parentComponent) {
 
     var components = Object.create(null);
     var props = getProps(data.parentConfig.attrs);
-
     instance = createNoStateComponent(props, null, components, componentClass);
+
     instance.template = componentClass.call(instance, props, registerComponent, parentComponent);
   }
   if (tagName) {

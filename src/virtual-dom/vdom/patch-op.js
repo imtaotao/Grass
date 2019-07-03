@@ -84,7 +84,7 @@ function widgetPatch (domNode, leftVNode, widget, renderOptions) {
 
   const parentNode = domNode.parentNode
 
-  if (parentNode) {
+  if (parentNode && newNode !== domNode) {
     parentNode.replaceChild(newNode, domNode)
   }
 

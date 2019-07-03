@@ -21,17 +21,21 @@ export function getComponentInstance (widgetVNode, parentComponent) {
   } else {
     const components = Object.create(null)
     const props = getProps(data.parentConfig.attrs)
+    instance = createNoStateComponent(props, null, components, componentClass)
 
+    // rigister components to lessState component
     function registerComponent (name, comp) {
-      if (_.isObject(name)) {
+      if (typeof name === 'function') {
         comp = name
         name = comp.name
+        if (!name) {
+          _.grassWarn(`Component must have a name, you can pass the component name in the first parameter`, componentClass.name)
+        }
       }
       components[name] = comp
       return registerComponent
     }
 
-    instance = createNoStateComponent(props, null, components, componentClass)
     instance.template = componentClass.call(instance, props, registerComponent, parentComponent)
   }
 
