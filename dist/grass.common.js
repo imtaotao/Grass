@@ -289,6 +289,7 @@ function isReservedTag(tag) {
   return isHTMLTag(tag) || isSVG(tag);
 }
 function noop() {}
+var isWidget$1 = isWidget;
 var isVNode$1 = function isVNode$$1(v) {
   return isVNode(v) || isVText(v) || isWidget(v);
 };
@@ -3043,6 +3044,7 @@ var WidgetVNode = function () {
   }, {
     key: 'destroy',
     value: function destroy(dom) {
+      destroyChildComponent(this.container.vtree);
       if (typeof this.component.destroy === 'function') {
         this.component.destroy(dom);
       }
@@ -3096,6 +3098,24 @@ function transferData(nv, ov) {
   nv.container = ov.container;
   nv.component.$widgetVNode = nv;
   nv.component.$slot = nv.data.slotVNode;
+}
+function destroyChildComponent(_ref2) {
+  var children = _ref2.children;
+
+  for (var i = 0, len = children.length; i < len; i++) {
+    var VNode = children[i];
+    if (isWidget$1(VNode)) {
+      var component = VNode.component;
+      var _VNode$container = VNode.container,
+          vtree = _VNode$container.vtree,
+          dom = _VNode$container.dom;
+
+      destroyChildComponent(vtree);
+      if (!component.noStateComp && typeof component.destroy === 'function') {
+        component.destroy(dom);
+      }
+    }
+  }
 }
 
 function set$1(target, key, val) {

@@ -24,7 +24,6 @@ export class Component {
     }
   }
 
-
   beforeCreate () {}
   created (dom) {}
   willUpdate (dom) {}

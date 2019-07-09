@@ -11,7 +11,7 @@
       <bb slot='fangfang' a='1'></bb>
     </Child>
     ---
-    <Child :show="show" ref="ac"/>
+    <Child :show="show" ref="ac" v-if='show'/>
   </div>
 </template>
 
