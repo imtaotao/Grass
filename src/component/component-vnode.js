@@ -89,7 +89,7 @@ export class WidgetVNode {
 
   destroy (dom) {
     // we need call all child component destroy hook
-    destroyChildComponent(this.container.vtree)
+    destroyChildComponent(this.container.vtree.children)
 
     if (typeof this.component.destroy === 'function') {
       this.component.destroy(dom)
@@ -150,19 +150,21 @@ function transferData (nv, ov) {
   nv.component.$slot = nv.data.slotVNode
 }
 
-function destroyChildComponent ({ children }) {
-  for (let i = 0, len = children.length; i < len; i++) {
-    const VNode = children[i]
+function destroyChildComponent (VNodes) {
+  for (let i = 0, len = VNodes.length; i < len; i++) {
+    const VNode = VNodes[i]
 
     if (_.isWidget(VNode)) {
       const component = VNode.component
       const { vtree, dom } = VNode.container
       
-      destroyChildComponent(vtree)
+      destroyChildComponent(vtree.children)
 
       if (!component.noStateComp && typeof component.destroy === 'function') {
         component.destroy(dom)
       }
+    } else if (_.isOriginVNode(VNode)) {
+      destroyChildComponent(VNode.children)
     }
   }
 }

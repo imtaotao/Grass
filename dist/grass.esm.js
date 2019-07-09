@@ -288,6 +288,7 @@ function isReservedTag(tag) {
 }
 function noop() {}
 var isWidget$1 = isWidget;
+var isOriginVNode = isVNode;
 var isVNode$1 = function isVNode$$1(v) {
   return isVNode(v) || isVText(v) || isWidget(v);
 };
@@ -3042,7 +3043,7 @@ var WidgetVNode = function () {
   }, {
     key: 'destroy',
     value: function destroy(dom) {
-      destroyChildComponent(this.container.vtree);
+      destroyChildComponent(this.container.vtree.children);
       if (typeof this.component.destroy === 'function') {
         this.component.destroy(dom);
       }
@@ -3097,21 +3098,21 @@ function transferData(nv, ov) {
   nv.component.$widgetVNode = nv;
   nv.component.$slot = nv.data.slotVNode;
 }
-function destroyChildComponent(_ref2) {
-  var children = _ref2.children;
-
-  for (var i = 0, len = children.length; i < len; i++) {
-    var VNode = children[i];
+function destroyChildComponent(VNodes) {
+  for (var i = 0, len = VNodes.length; i < len; i++) {
+    var VNode = VNodes[i];
     if (isWidget$1(VNode)) {
       var component = VNode.component;
       var _VNode$container = VNode.container,
           vtree = _VNode$container.vtree,
           dom = _VNode$container.dom;
 
-      destroyChildComponent(vtree);
+      destroyChildComponent(vtree.children);
       if (!component.noStateComp && typeof component.destroy === 'function') {
         component.destroy(dom);
       }
+    } else if (isOriginVNode(VNode)) {
+      destroyChildComponent(VNode.children);
     }
   }
 }

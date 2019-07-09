@@ -46,4 +46,6 @@ export const no = () => false
 
 export const isWidget = _isWidget
 
+export const isOriginVNode = _isVNode
+
 export const isVNode = v =>  _isVNode(v) || isVText(v) || _isWidget(v)
